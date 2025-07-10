@@ -19,6 +19,7 @@ KineticaFS is a region-aware file lifecycle manager for S3-based storage. It tra
 - [ ] Basic observability (logs, metrics)
 - [ ] Public and expiring file links
 - [ ] Optional TTL per reference
+- [ ] Scylla Cassandra Support
 - [ ] Support for batch import/export
 - [ ] Multi-tenant support
 - [ ] NATS hook for event-driven GC
@@ -27,6 +28,7 @@ KineticaFS is a region-aware file lifecycle manager for S3-based storage. It tra
 - [ ] WASM hooks for file filters / pre-upload logic
 - [ ] Admin panel / metrics endpoint
 - [ ] K8s Operator
+- [ ] PgSql Support
 
 ## 📜 License
 
