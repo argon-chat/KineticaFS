@@ -1,2 +1,2 @@
 # KineticaFS
-Region-aware file service with smart pointers and built-in garbage collection for S3.
+KineticaFS is a region-aware file lifecycle manager for S3-based storage. It tracks file usage across regions, migrates hot files closer to clients, and safely removes unused ones using reference-counting and GC.
