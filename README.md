@@ -30,6 +30,7 @@ KineticaFS is a region-aware file lifecycle manager for S3-based storage. It tra
 - [ ] Admin panel / metrics endpoint
 - [ ] K8s Operator
 - [ ] PgSql Support
+- [ ] Dotnet Client Library 🔥
 
 ## 📜 License
 
