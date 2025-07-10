@@ -12,14 +12,15 @@ KineticaFS is a region-aware file lifecycle manager for S3-based storage. It tra
 
 ## 📈 Roadmap
 
-- [ ] File reference tracking API (`CreateRef`, `DeleteRef`, `ListRefs`)
-- [ ] File upload and migration logic
+- [ ] File reference tracking API (`CreateRef`, `DeleteRef`, `ListRefs`) 🔥
+- [ ] File upload 🔥
+- [ ] Scylla Cassandra Support 🔥
+- [ ] Migration logic
 - [ ] Per-region heatmap tracking
-- [ ] GC for unreferenced files
+- [ ] GC for unreferenced files 🔥
 - [ ] Basic observability (logs, metrics)
-- [ ] Public and expiring file links
+- [ ] Public and expiring file links 
 - [ ] Optional TTL per reference
-- [ ] Scylla Cassandra Support
 - [ ] Support for batch import/export
 - [ ] Multi-tenant support
 - [ ] NATS hook for event-driven GC
