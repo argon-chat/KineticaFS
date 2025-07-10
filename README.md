@@ -26,6 +26,7 @@ KineticaFS is a region-aware file lifecycle manager for S3-based storage. It tra
 - [ ] Integration with Prometheus / Grafana
 - [ ] WASM hooks for file filters / pre-upload logic
 - [ ] Admin panel / metrics endpoint
+- [ ] K8s Operator
 
 ## 📜 License
 
