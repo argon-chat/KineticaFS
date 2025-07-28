@@ -4,7 +4,7 @@ import "github.com/gin-gonic/gin"
 
 func addFileRoutes(v1 *gin.RouterGroup) {
 	/* TODO: Implement file routes
-	files := rg.Group("/file")
+	files := v1.Group("/file")
 
 	files.POST("/", func(c *gin.Context) {
 	})

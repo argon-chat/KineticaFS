@@ -4,7 +4,7 @@ import "github.com/gin-gonic/gin"
 
 func addUserRoutes(v1 *gin.RouterGroup) {
 	/* TODO: Implement file routes
-	users := rg.Group("/users")
+	users := v1.Group("/users")
 
 	users.POST("/", func(c *gin.Context) {
 	})
