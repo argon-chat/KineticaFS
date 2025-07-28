@@ -3,7 +3,7 @@ package guid
 import (
 	"crypto/rand"
 	"encoding/binary"
-	"fmt"
+	"github.com/google/uuid"
 )
 
 type Guid struct {
@@ -52,16 +52,15 @@ func (g *Guid) Calc() (bytes [16]byte) {
 	return bytes
 }
 
-func (g *Guid) Pack() (uuid string) {
+func (g *Guid) Pack() (string, error) {
 	return bytesToUUIDString(g.Calc())
 }
 
-func bytesToUUIDString(b [16]byte) string {
-	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
-		binary.BigEndian.Uint32(b[0:4]),
-		binary.BigEndian.Uint16(b[4:6]),
-		binary.BigEndian.Uint16(b[6:8]),
-		binary.BigEndian.Uint16(b[8:10]),
-		b[10:16],
-	)
+func bytesToUUIDString(b [16]byte) (string, error) {
+	uid, err := uuid.FromBytes(b[:])
+	if err != nil {
+		return "", err
+	}
+
+	return uid.String(), nil
 }

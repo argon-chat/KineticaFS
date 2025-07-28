@@ -30,9 +30,6 @@ func TestGuid_Calc(t *testing.T) {
 	)
 	bytes := g.Calc()
 
-	if len(bytes) != 16 {
-		t.Fatalf("expected 16 bytes, got %d", len(bytes))
-	}
 	if bytes[0] != 0x12 || bytes[1] != 0x34 || bytes[2] != 0x56 || bytes[3] != 0x78 {
 		t.Errorf("epochTs bytes incorrect: %x", bytes[0:4])
 	}
@@ -70,7 +67,10 @@ func TestGuid_Pack(t *testing.T) {
 
 	g := NewGuid(epochTs, regionId, bucketCode, randomEntropy, 0)
 
-	uuid := g.Pack()
+	uuid, err := g.Pack()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	expectedUUID := "01e13380-0cab-cd4d-545c-be77bcf94880"
 	if uuid != expectedUUID {
 		t.Errorf("expected UUID %s, got %s", expectedUUID, uuid)
