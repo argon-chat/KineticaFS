@@ -1,6 +1,7 @@
 # KineticaFS
-KineticaFS is a region-aware file lifecycle manager for S3-based storage. It tracks file usage across regions, migrates hot files closer to clients, and safely removes unused ones using reference-counting and GC.
 
+KineticaFS is a region-aware file lifecycle manager for S3-based storage. It tracks file usage across regions, migrates
+hot files closer to clients, and safely removes unused ones using reference-counting and GC.
 
 ## ✨ Features
 
@@ -8,7 +9,6 @@ KineticaFS is a region-aware file lifecycle manager for S3-based storage. It tra
 - 🌍 **Region-aware**: Detects file access patterns and migrates "hot" files closer to clients
 - 🧠 **Smart pointers**: Tracks file references in your system to prevent premature deletion
 - ♻️ **Garbage collection**: Removes unreferenced or expired files safely and automatically
-
 
 ## 📈 Roadmap
 
@@ -19,7 +19,7 @@ KineticaFS is a region-aware file lifecycle manager for S3-based storage. It tra
 - [ ] Per-region heatmap tracking
 - [ ] GC for unreferenced files 🔥
 - [ ] Basic observability (logs, metrics)
-- [ ] Public and expiring file links 
+- [ ] Public and expiring file links
 - [ ] Optional TTL per reference
 - [ ] Support for batch import/export
 - [ ] Multi-tenant support

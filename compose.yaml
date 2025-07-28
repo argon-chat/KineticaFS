@@ -7,7 +7,7 @@ services:
       - "8333:8333"
       - "9321:9321"
     volumes:
-      - ./data/region1:/data
+      - region1:/data
     environment:
       S3_ACCESS_KEY: argon
       S3_SECRET_KEY: argon
@@ -24,7 +24,7 @@ services:
       - "8334:8333"
       - "9322:9321"
     volumes:
-      - ./data/region2:/data
+      - region2:/data
     environment:
       S3_ACCESS_KEY: argon
       S3_SECRET_KEY: argon
@@ -39,7 +39,7 @@ services:
   scylla:
     image: scylladb/scylla:latest
     volumes:
-      - ./data/scylla:/var/lib/scylla
+      - scylla:/var/lib/scylla
     command: --smp 1 --memory 264M --overprovisioned 1 --developer-mode 1
     ports:
       - "9042:9042"
@@ -48,3 +48,8 @@ services:
       SCYLLA_CLUSTER_NAME: 'scylla_cluster'
       SCYLLA_SEEDS: 'scylla'
   # endregion
+
+volumes:
+  region1: { }
+  region2: { }
+  scylla: { }
