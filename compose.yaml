@@ -1,37 +1,50 @@
 services:
+  # region storage
   region1:
-    image: quay.io/minio/minio:RELEASE.2022-02-18T01-50-10Z
+    image: chrislusf/seaweedfs
+    command: "server -s3 -dir /data"
+    ports:
+      - "8333:8333"
+      - "9321:9321"
     volumes:
       - ./data/region1:/data
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     environment:
-      MINIO_ROOT_USER: 'minio_user'
-      MINIO_ROOT_PASSWORD: 'minio_password'
-      MINIO_ADDRESS: ':9000'
-      MINIO_CONSOLE_ADDRESS: ':9001'
-    command: minio server /data
+      S3_ACCESS_KEY: argon
+      S3_SECRET_KEY: argon
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9321/" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
   region2:
-    image: quay.io/minio/minio:RELEASE.2022-02-18T01-50-10Z
+    image: chrislusf/seaweedfs
+    command: "server -s3 -dir /data"
+    ports:
+      - "8334:8333"
+      - "9322:9321"
     volumes:
       - ./data/region2:/data
-    ports:
-      - "9002:9002"
-      - "9003:9003"
     environment:
-      MINIO_ROOT_USER: 'minio_user'
-      MINIO_ROOT_PASSWORD: 'minio_password'
-      MINIO_ADDRESS: ':9002'
-      MINIO_CONSOLE_ADDRESS: ':9003'
-    command: minio server /data
+      S3_ACCESS_KEY: argon
+      S3_SECRET_KEY: argon
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9321/" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+  # endregion
+  # region databases
   scylla:
     image: scylladb/scylla:latest
     volumes:
       - ./data/scylla:/var/lib/scylla
+    command: --smp 1 --memory 264M --overprovisioned 1 --developer-mode 1
     ports:
       - "9042:9042"
       - "9160:9160"
     environment:
       SCYLLA_CLUSTER_NAME: 'scylla_cluster'
       SCYLLA_SEEDS: 'scylla'
+  # endregion
