@@ -3,6 +3,7 @@ package guid
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"fmt"
 )
 
 type Guid struct {
@@ -32,7 +33,7 @@ func GenerateRandomEntropy() (uint64, error) {
 	return binary.BigEndian.Uint64(b[:]), nil
 }
 
-func (g *Guid) Pack() (bytes [16]byte) {
+func (g *Guid) Calc() (bytes [16]byte) {
 	binary.BigEndian.PutUint32(bytes[0:4], g.epochTs)
 	bytes[4] = g.regionId
 	binary.BigEndian.PutUint16(bytes[5:7], g.bucketCode)
@@ -49,4 +50,18 @@ func (g *Guid) Pack() (bytes [16]byte) {
 	bytes[15] = (checksum << 4) | lastByte
 
 	return bytes
+}
+
+func (g *Guid) Pack() (uuid string) {
+	return bytesToUUIDString(g.Calc())
+}
+
+func bytesToUUIDString(b [16]byte) string {
+	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
+		binary.BigEndian.Uint32(b[0:4]),
+		binary.BigEndian.Uint16(b[4:6]),
+		binary.BigEndian.Uint16(b[6:8]),
+		binary.BigEndian.Uint16(b[8:10]),
+		b[10:16],
+	)
 }

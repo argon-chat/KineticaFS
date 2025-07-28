@@ -1,7 +1,9 @@
 package guid
 
 import (
+	"github.com/argon-chat/KineticaFS/pkg/timestamp"
 	"testing"
+	"time"
 )
 
 func TestGenerateRandomEntropy(t *testing.T) {
@@ -18,7 +20,7 @@ func TestGenerateRandomEntropy(t *testing.T) {
 	}
 }
 
-func TestGuid_Pack(t *testing.T) {
+func TestGuid_Calc(t *testing.T) {
 	g := NewGuid(
 		0x12345678,
 		0x12,
@@ -26,7 +28,7 @@ func TestGuid_Pack(t *testing.T) {
 		0x0123456789ABCDEF,
 		0x0A,
 	)
-	bytes := g.Pack()
+	bytes := g.Calc()
 
 	if len(bytes) != 16 {
 		t.Fatalf("expected 16 bytes, got %d", len(bytes))
@@ -57,5 +59,20 @@ func TestGuid_Pack(t *testing.T) {
 	checksum &= 0x0F
 	if (bytes[15]>>4)&0x0F != checksum {
 		t.Errorf("checksum incorrect in last byte: %x, expected: %x", (bytes[15]>>4)&0x0F, checksum)
+	}
+}
+
+func TestGuid_Pack(t *testing.T) {
+	epochTs := timestamp.CurrentTimestampAt(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
+	regionId := byte(12)
+	bucketCode := uint16(0xABCD)
+	randomEntropy := uint64(5572180612086561096)
+
+	g := NewGuid(epochTs, regionId, bucketCode, randomEntropy, 0)
+
+	uuid := g.Pack()
+	expectedUUID := "01e13380-0cab-cd4d-545c-be77bcf94880"
+	if uuid != expectedUUID {
+		t.Errorf("expected UUID %s, got %s", expectedUUID, uuid)
 	}
 }
