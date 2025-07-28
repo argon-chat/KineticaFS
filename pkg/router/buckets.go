@@ -3,8 +3,7 @@ package router
 import "github.com/gin-gonic/gin"
 
 func addBucketsRoutes(v1 *gin.RouterGroup) {
-	/* TODO: Implement file routes
-	bucket := v1.Group("/bucket")
+	bucket := v1.Group("/bucket", authenticateUser, authorizeUser)
 
 	bucket.POST("/", func(c *gin.Context) {
 	})
@@ -16,5 +15,4 @@ func addBucketsRoutes(v1 *gin.RouterGroup) {
 	})
 	bucket.DELETE("/:id", func(c *gin.Context) {
 	})
-	*/
 }
