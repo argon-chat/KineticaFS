@@ -13,6 +13,10 @@ func Run() {
 
 func getRoutes() {
 	v1 := router.Group("/v1")
+	addV1Routes(v1)
+}
+
+func addV1Routes(v1 *gin.RouterGroup) {
 	addUserRoutes(v1)
 	addSessionRoutes(v1)
 	addBucketsRoutes(v1)
