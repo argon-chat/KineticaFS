@@ -13,5 +13,8 @@ func Run() {
 
 func getRoutes() {
 	v1 := router.Group("/v1")
+	addUserRoutes(v1)
+	addSessionRoutes(v1)
+	addBucketsRoutes(v1)
 	addFileRoutes(v1)
 }
