@@ -10,24 +10,26 @@ type params struct {
 	Token            string
 	ScillaConnection string
 	Migrate          bool
+	Port             int
 }
 
 var args = &params{}
 
 func main() {
-	props := parseFlags()
+	props := parseArgs()
 	for i, prop := range props {
 		println(i, prop)
 	}
 	if args.Server {
-		router.Run()
+		router.Run(args.Port)
 	}
 }
 
-func parseFlags() []string {
+func parseArgs() []string {
 	server := flag.Bool("server", false, "Run as server")
 	s := flag.Bool("s", false, "Alias for --server")
 	token := flag.String("token", "", "Authorization token")
+	port := flag.Int("port", 3000, "Server port")
 	scylla := flag.String("scylla", "localhost:9042", "ScyllaDB host:port")
 	migrate := flag.Bool("migrate", false, "Run migrations")
 
@@ -37,5 +39,6 @@ func parseFlags() []string {
 	args.Token = *token
 	args.ScillaConnection = *scylla
 	args.Migrate = *migrate
+	args.Port = *port
 	return flag.Args()
 }

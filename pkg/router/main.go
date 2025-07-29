@@ -1,14 +1,18 @@
 package router
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
 var router = gin.Default()
 
-func Run() {
+func Run(port int) {
 	getRoutes()
-	router.Run(":3000")
+	err := router.Run(fmt.Sprintf(":%d", port))
+	if err != nil {
+		panic(err)
+	}
 }
 
 func getRoutes() {
