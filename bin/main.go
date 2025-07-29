@@ -12,7 +12,7 @@ type params struct {
 	Migrate          bool
 }
 
-var args = params{}
+var args = &params{}
 
 func main() {
 	props := parseFlags()
