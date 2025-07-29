@@ -3,7 +3,7 @@ package router
 import "github.com/gin-gonic/gin"
 
 func addBucketsRoutes(v1 *gin.RouterGroup) {
-	bucket := v1.Group("/bucket", authenticateUser, authorizeUser)
+	bucket := v1.Group("/bucket")
 
 	bucket.POST("/", func(c *gin.Context) {
 	})

@@ -3,7 +3,7 @@ package router
 import "github.com/gin-gonic/gin"
 
 func addFileRoutes(v1 *gin.RouterGroup) {
-	files := v1.Group("/file", authenticateUser, authorizeUser)
+	files := v1.Group("/file")
 
 	files.POST("/", func(c *gin.Context) {
 	})
