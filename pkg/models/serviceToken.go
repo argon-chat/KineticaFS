@@ -1,13 +1,13 @@
 package models
 
-import "time"
-
 type ServiceToken struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name" binding:"required"`
-	AccessKey string    `json:"access_key" binding:"required"`
-	CreatedAt time.Time `json:"created_at"`
-	ExpiresAt time.Time `json:"expires_at"`
+	ApplicationModel
+	Name      string `json:"name" binding:"required" gorm:"uniqueIndex"`
+	AccessKey string `json:"access_key" binding:"required"`
+}
+
+func (st ServiceToken) GetID() string {
+	return st.ID
 }
 
 type IServiceTokenRepository interface {

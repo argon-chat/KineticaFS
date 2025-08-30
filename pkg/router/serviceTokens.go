@@ -1,6 +1,8 @@
 package router
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 func addServiceTokenRoutes(v1 *gin.RouterGroup) {
 	st := v1.Group("/st")

@@ -2,6 +2,9 @@ package router
 
 import (
 	"fmt"
+
+	"github.com/argon-chat/KineticaFS/pkg/migrator"
+	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -9,6 +12,10 @@ var router = gin.Default()
 
 func Run(port int) {
 	getRoutes()
+	migrator.MigrationTypes = []models.ApplicationRecord{
+		models.ServiceToken{},
+	}
+	migrator.Migrate()
 	err := router.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		panic(err)
