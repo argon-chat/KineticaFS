@@ -32,6 +32,6 @@ func getRoutes() {
 
 func addV1Routes(v1 *gin.RouterGroup) {
 	AddServiceTokenRoutes(v1)
-	addBucketsRoutes(v1)
+	AddBucketsRoutes(v1)
 	addFileRoutes(v1)
 }
