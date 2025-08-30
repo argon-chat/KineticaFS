@@ -2,65 +2,72 @@ package router
 
 import "github.com/gin-gonic/gin"
 
-// AddFileRoutes sets up the file endpoints.
+// AddFileRoutes sets up the server-side file management endpoints.
 func AddFileRoutes(v1 *gin.RouterGroup) {
 	files := v1.Group("/file")
-
-	files.POST("/", CreateFileHandler)
-	files.GET("/:id", GetFileHandler)
-	files.PATCH("/:id", UpdateFileHandler)
+	files.POST("/", InitiateFileUploadHandler)
+	files.POST("/:id/finalize", FinalizeFileUploadHandler)
 	files.DELETE("/:id", DeleteFileHandler)
 }
 
-// CreateFileHandler creates a new file
-// @Summary Create file
-// @Description Create a new file. Any user can perform this action.
+// AddFileBlobRoutes sets up the client-side upload endpoint.
+func AddFileBlobRoutes(v1 *gin.RouterGroup) {
+	upload := v1.Group("/upload")
+	upload.PATCH("/:blob", UploadFileBlobHandler)
+}
+
+// Initiate a new file upload (admin only)
+// @Summary Initiate file upload
+// @Description Initiate a new file upload. Returns a blob ID for the client to upload data. Admin access required.
 // @Tags files
 // @Accept json
 // @Produce json
-// @Param file body models.File true "File"
-// @Success 201 {object} models.File
+// @Success 201 {object} map[string]string "{blob: blob_id}"
 // @Failure 400 {object} router.ErrorResponse
+// @Failure 403 {object} router.ErrorResponse
 // @Router /v1/file/ [post]
-func CreateFileHandler(c *gin.Context) {
+func InitiateFileUploadHandler(c *gin.Context) {
 	// Implementation goes here
 }
 
-// GetFileHandler gets a file by ID
-// @Summary Get file
-// @Description Get a file by ID. Any user can perform this action.
-// @Tags files
+// Upload file data (client)
+// @Summary Upload file data
+// @Description Upload file data using the blob ID provided by the server. No admin access required.
+// @Tags upload
+// @Accept octet-stream
 // @Produce json
-// @Param id path string true "File ID"
-// @Success 200 {object} models.File
-// @Failure 404 {object} router.ErrorResponse
-// @Router /v1/file/{id} [get]
-func GetFileHandler(c *gin.Context) {
-	// Implementation goes here
-}
-
-// UpdateFileHandler updates a file by ID
-// @Summary Update file
-// @Description Update a file by ID. Any user can perform this action.
-// @Tags files
-// @Accept json
-// @Produce json
-// @Param id path string true "File ID"
-// @Param file body models.File true "File"
-// @Success 200 {object} models.File
+// @Param blob path string true "Blob ID"
+// @Param file body []byte true "File data"
+// @Success 204 {object} nil
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 404 {object} router.ErrorResponse
-// @Router /v1/file/{id} [patch]
-func UpdateFileHandler(c *gin.Context) {
+// @Router /v1/upload/{blob} [patch]
+func UploadFileBlobHandler(c *gin.Context) {
 	// Implementation goes here
 }
 
-// DeleteFileHandler deletes a file by ID
+// Finalize file upload (admin only)
+// @Summary Finalize file upload
+// @Description Finalize a file upload after client notifies server. Admin access required.
+// @Tags files
+// @Produce json
+// @Param id path string true "File ID"
+// @Success 200 {object} models.File
+// @Failure 400 {object} router.ErrorResponse
+// @Failure 403 {object} router.ErrorResponse
+// @Failure 404 {object} router.ErrorResponse
+// @Router /v1/file/{id}/finalize [post]
+func FinalizeFileUploadHandler(c *gin.Context) {
+	// Implementation goes here
+}
+
+// Delete file (admin only)
 // @Summary Delete file
-// @Description Delete a file by ID. Any user can perform this action.
+// @Description Delete a file by ID. Admin access required.
 // @Tags files
 // @Param id path string true "File ID"
 // @Success 204 {object} nil
+// @Failure 403 {object} router.ErrorResponse
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/file/{id} [delete]
 func DeleteFileHandler(c *gin.Context) {
