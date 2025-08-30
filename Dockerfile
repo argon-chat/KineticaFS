@@ -15,10 +15,10 @@ RUN go mod download
 COPY . .
 
 # Generate Swagger docs
-RUN export PATH=$PATH:$(go env GOPATH)/bin && swag init --generalInfo bin/main.go --output docs
+RUN export PATH=$PATH:$(go env GOPATH)/bin && swag init --generalInfo main.go --output docs
 
 # Build the Go app
-RUN go build -o /app/kineticafs ./bin/main.go
+RUN go build -o /app/kineticafs ./main.go
 
 # ----------- Run Stage -----------
 FROM alpine:3.20

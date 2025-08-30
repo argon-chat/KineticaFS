@@ -47,6 +47,17 @@ services:
     environment:
       SCYLLA_CLUSTER_NAME: 'scylla_cluster'
       SCYLLA_SEEDS: 'scylla'
+  kineticafs:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - region1
+      - region2
+      - scylla
+    environment:
+      - PORT=3000
+    restart: unless-stopped
   # endregion
 
 volumes:
