@@ -50,13 +50,11 @@ services:
   kineticafs:
     build: .
     ports:
-      - "3001:3001"
+      - "3000:3000"
     depends_on:
       - region1
       - region2
       - scylla
-    environment:
-      - PORT=3001
     restart: unless-stopped
   # endregion
 
