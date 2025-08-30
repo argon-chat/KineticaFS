@@ -32,12 +32,15 @@ func InitiateFileUploadHandler(c *gin.Context) {
 
 // Upload file data (client)
 // @Summary Upload file data
-// @Description Upload file data using the blob ID provided by the server. No admin access required.
+// @Description Upload file data using the blob ID provided by the server. Supports stream, form-data, and multipart uploads. No admin access required.
 // @Tags upload
 // @Accept octet-stream
+// @Accept multipart/form-data
+// @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param blob path string true "Blob ID"
-// @Param file body []byte true "File data"
+// @Param file formData file false "File data (multipart or form-data, required if not using raw stream)"
+// @Param file body []byte false "File data (raw stream, required if not using multipart/form-data)"
 // @Success 204 {object} nil
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 404 {object} router.ErrorResponse
