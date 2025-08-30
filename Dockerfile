@@ -18,7 +18,7 @@ COPY . .
 RUN export PATH=$PATH:$(go env GOPATH)/bin && swag init --generalInfo main.go --output docs
 
 # Build the Go app
-RUN go build -o /app/kineticafs ./main.go
+RUN go build CGO_ENABLED=0 GOOS=linux GOARCH=amd64 -o /app/kineticafs -tags prod -mod=readonly -ldflags "-s -w" ./main.go
 
 # ----------- Run Stage -----------
 FROM alpine:3.20
