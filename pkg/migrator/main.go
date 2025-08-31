@@ -10,6 +10,11 @@ import (
 var MigrationTypes []models.ApplicationRecord
 
 func Migrate() {
+	handleScyllaMigrations()
+}
+
+func handleScyllaMigrations() {
+	ensureDbExists()
 	for _, e := range MigrationTypes {
 		tableName := fmt.Sprintf("%T", e)
 		model := scyllaMigration{

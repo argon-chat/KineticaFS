@@ -11,10 +11,29 @@ type scyllaMigration struct {
 	Fields    map[string]string
 }
 
+func ensureDbExists() {
+	sql := `CREATE KEYSPACE kineticafs
+WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': 1
+};`
+	log.Printf("executing query: [ `%s` ]\n", sql)
+}
+
 func migrateScylla(model *scyllaMigration) {
 	sql := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s",
 		strings.ReplaceAll(model.TableName, "models.", ""),
 	)
+	fields := []string{}
+	for fieldName, fieldType := range model.Fields {
+		if fieldName == "ApplicationModel" {
+			continue
+		}
+		scyllaType := convertGoTypeToScylla(fieldType)
+		fields = append(fields, fmt.Sprintf("%s %s", fieldName, scyllaType))
+	}
+	sql += fmt.Sprintf(" ( %s, PRIMARY KEY (id) );", strings.Join(fields, ", "))
+
 	log.Printf("executing query: [ `%s` ]\n", sql)
 }
 
@@ -32,7 +51,7 @@ func convertGoTypeToScylla(goType string) string {
 		return "double"
 	case "bool":
 		return "boolean"
-	case "time.Time":
+	case "Time":
 		return "timestamp"
 	case "[]byte":
 		return "blob"
