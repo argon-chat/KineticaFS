@@ -19,6 +19,23 @@ func migrateScylla(model *scyllaMigration) {
 }
 
 func convertGoTypeToScylla(goType string) string {
-	// convert go types to scylladb types
-	return ""
+	switch goType {
+	case "string":
+		return "text"
+	case "int", "int8", "int16", "int32", "int64":
+		return "int"
+	case "uint", "uint8", "uint16", "uint32", "uint64":
+		return "varint"
+	case "float32":
+		return "float"
+	case "float64":
+		return "double"
+	case "bool":
+		return "boolean"
+	case "time.Time":
+		return "timestamp"
+	case "[]byte":
+		return "blob"
+	}
+	return "text"
 }
