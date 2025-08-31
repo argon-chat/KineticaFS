@@ -17,6 +17,8 @@ func Run(port int) {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	migrator.MigrationTypes = []models.ApplicationRecord{
 		models.ServiceToken{},
+		models.File{},
+		models.Bucket{},
 	}
 	migrator.Migrate()
 	err := router.Run(fmt.Sprintf(":%d", port))
