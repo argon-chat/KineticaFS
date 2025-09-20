@@ -2,12 +2,23 @@ package repositories
 
 import (
 	"fmt"
+	"reflect"
 
+	"github.com/argon-chat/KineticaFS/pkg/models"
+	"github.com/argon-chat/KineticaFS/pkg/repositories/postgres"
+	"github.com/argon-chat/KineticaFS/pkg/repositories/scylla"
 	"github.com/spf13/viper"
 )
 
+var migrationTypes []models.ApplicationRecord
+
+type IDatabase interface {
+	Connect() error
+	Close() error
+}
+
 type ApplicationRepository struct {
-	db     any
+	db     IDatabase
 	dbType string
 
 	ServiceTokens IServiceTokenRepository
@@ -16,6 +27,11 @@ type ApplicationRepository struct {
 }
 
 func NewApplicationRepository() (*ApplicationRepository, error) {
+	migrationTypes = []models.ApplicationRecord{
+		models.ServiceToken{},
+		models.Bucket{},
+		models.File{},
+	}
 	dbType := viper.GetString("database")
 	if dbType == "" {
 		return nil, fmt.Errorf("database type is not set")
@@ -35,13 +51,69 @@ func NewApplicationRepository() (*ApplicationRepository, error) {
 }
 
 func (ar *ApplicationRepository) Migrate() error {
+	switch ar.dbType {
+	case "scylla":
+		return ar.migrateScylla()
+	case "postgres":
+		return ar.migratePostgres()
+	default:
+		return fmt.Errorf("unsupported database type: %s", ar.dbType)
+	}
+}
+
+func (ar *ApplicationRepository) migrateScylla() error {
+	for _, e := range migrationTypes {
+		tableName := fmt.Sprintf("%T", e)
+		model := scyllaMigration{
+			TableName: tableName,
+			Fields:    make(map[string]string),
+		}
+		t := reflect.TypeOf(e)
+		for _, i := range reflect.VisibleFields(t) {
+			model.Fields[i.Name] = i.Type.Name()
+		}
+		query := migrateScyllaModel(&model)
+		if err := ar.db.(*scylla.ScyllaConnection).Session.Query(query).Exec(); err != nil {
+			return fmt.Errorf("failed to migrate table %s: %w", tableName, err)
+		}
+	}
+	return nil
+}
+
+func (ar *ApplicationRepository) migratePostgres() error {
 	return nil
 }
 
 func newPostgresRepository(connectionString string) (*ApplicationRepository, error) {
-	return nil, nil
+	repository, err := postgres.NewPostgresConnection(connectionString)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := &ApplicationRepository{
+		db:     repository,
+		dbType: "postgres",
+
+		ServiceTokens: nil,
+		Buckets:       nil,
+		Files:         nil,
+	}
+	return ar, nil
 }
 
 func newScyllaRepository(connectionString string) (*ApplicationRepository, error) {
-	return nil, nil
+	repository, err := scylla.NewScyllaConnection(connectionString)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := &ApplicationRepository{
+		db:     repository,
+		dbType: "scylla",
+
+		ServiceTokens: nil,
+		Buckets:       nil,
+		Files:         nil,
+	}
+	return ar, nil
 }
