@@ -1,0 +1,410 @@
+definitions:
+  models.Bucket:
+    properties:
+      access_key:
+        type: string
+      created_at:
+        type: string
+      custom_config:
+        type: string
+      endpoint:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      region:
+        type: string
+      s3_provider:
+        type: string
+      secret_key:
+        type: string
+      updated_at:
+        type: string
+      use_ssl:
+        type: boolean
+    required:
+    - access_key
+    - endpoint
+    - name
+    - region
+    - secret_key
+    type: object
+  models.File:
+    properties:
+      bucket_id:
+        type: string
+      checksum:
+        type: string
+      content_type:
+        type: string
+      created_at:
+        type: string
+      file_size:
+        type: integer
+      id:
+        type: string
+      metadata:
+        type: string
+      name:
+        type: string
+      path:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - bucket_id
+    - name
+    type: object
+  models.ServiceToken:
+    properties:
+      access_key:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - access_key
+    - name
+    type: object
+  router.ErrorResponse:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: error message
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /v1/bucket/:
+    get:
+      description: List all S3 buckets
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Bucket'
+            type: array
+      summary: List buckets
+      tags:
+      - buckets
+    post:
+      consumes:
+      - application/json
+      description: Create a new S3 bucket. Only admin users can create buckets.
+      parameters:
+      - description: Bucket
+        in: body
+        name: bucket
+        required: true
+        schema:
+          $ref: '#/definitions/models.Bucket'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Bucket'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Create bucket
+      tags:
+      - buckets
+  /v1/bucket/{id}:
+    delete:
+      description: Delete a bucket by ID. Only admin users can delete buckets.
+      parameters:
+      - description: Bucket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Delete bucket
+      tags:
+      - buckets
+    get:
+      description: Get a bucket by ID
+      parameters:
+      - description: Bucket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Bucket'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Get bucket
+      tags:
+      - buckets
+    patch:
+      consumes:
+      - application/json
+      description: Update a bucket by ID. Only admin users can update buckets.
+      parameters:
+      - description: Bucket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Bucket
+        in: body
+        name: bucket
+        required: true
+        schema:
+          $ref: '#/definitions/models.Bucket'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Bucket'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Update bucket
+      tags:
+      - buckets
+  /v1/file/:
+    post:
+      consumes:
+      - application/json
+      description: Initiate a new file upload. Returns a blob ID for the client to
+        upload data. Admin access required.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: '{blob: blob_id}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Initiate file upload
+      tags:
+      - files
+  /v1/file/{id}:
+    delete:
+      description: Delete a file by ID. Admin access required.
+      parameters:
+      - description: File ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Delete file
+      tags:
+      - files
+  /v1/file/{id}/finalize:
+    post:
+      description: Finalize a file upload after client notifies server. Admin access
+        required.
+      parameters:
+      - description: File ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.File'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Finalize file upload
+      tags:
+      - files
+  /v1/st/:
+    post:
+      consumes:
+      - application/json
+      description: Create a new service token. Only one admin token can exist. Only
+        admin can create/delete other tokens. Admin token cannot be deleted.
+      parameters:
+      - description: Service Token
+        in: body
+        name: token
+        required: true
+        schema:
+          $ref: '#/definitions/models.ServiceToken'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ServiceToken'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Create service token
+      tags:
+      - service-tokens
+  /v1/st/{id}:
+    delete:
+      description: Delete a service token by ID. Only admin can delete other tokens.
+        Admin token cannot be deleted.
+      parameters:
+      - description: Token ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Delete service token
+      tags:
+      - service-tokens
+    get:
+      description: Get a service token by ID
+      parameters:
+      - description: Token ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ServiceToken'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Get service token
+      tags:
+      - service-tokens
+  /v1/upload/{blob}:
+    patch:
+      consumes:
+      - application/octet-stream
+      - multipart/form-data
+      - application/x-www-form-urlencoded
+      description: Upload file data using the blob ID provided by the server. Supports
+        stream, form-data, and multipart uploads. No admin access required.
+      parameters:
+      - description: Blob ID
+        in: path
+        name: blob
+        required: true
+        type: string
+      - description: File data (multipart or form-data, required if not using raw
+          stream)
+        in: formData
+        name: file
+        type: file
+      - description: File data (raw stream, required if not using multipart/form-data)
+        in: body
+        name: file
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Upload file data
+      tags:
+      - upload
+swagger: "2.0"

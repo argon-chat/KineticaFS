@@ -1,5 +1,10 @@
 # KineticaFS
 
+[![CI](https://github.com/argon-chat/KineticaFS/actions/workflows/ci.yml/badge.svg)](https://github.com/argon-chat/KineticaFS/actions/workflows/ci.yml)
+[![Docker](https://github.com/argon-chat/KineticaFS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/argon-chat/KineticaFS/actions/workflows/docker-image.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/argon-chat/KineticaFS)](https://goreportcard.com/report/github.com/argon-chat/KineticaFS)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+
 KineticaFS is a region-aware file lifecycle manager for S3-based storage. It tracks file usage across regions, migrates
 hot files closer to clients, and safely removes unused ones using reference-counting and GC.
 
@@ -9,6 +14,61 @@ hot files closer to clients, and safely removes unused ones using reference-coun
 - 🌍 **Region-aware**: Detects file access patterns and migrates "hot" files closer to clients
 - 🧠 **Smart pointers**: Tracks file references in your system to prevent premature deletion
 - ♻️ **Garbage collection**: Removes unreferenced or expired files safely and automatically
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Go 1.22+ 
+- Make
+- Docker (optional, for containerized deployment)
+
+### Development Setup
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/argon-chat/KineticaFS.git
+   cd KineticaFS
+   ```
+
+2. Setup development environment:
+   ```bash
+   make dev-setup
+   ```
+
+3. Build and run:
+   ```bash
+   make build
+   make run
+   ```
+
+The server will start on `http://localhost:3000` with Swagger documentation available at `/swagger/index.html`.
+
+### Available Make Targets
+
+- `make help` - Show all available targets
+- `make all` - Run full build pipeline (format, lint, test, build, docs)
+- `make build` - Build the application
+- `make test` - Run tests with coverage
+- `make lint` - Run code linters
+- `make format` - Format code
+- `make docs` - Generate API documentation
+- `make run` - Run the server locally
+- `make clean` - Clean build artifacts
+- `make docker-build` - Build Docker image
+
+### Running with Docker
+
+```bash
+make docker-build
+make docker-run
+```
+
+Or use the provided Docker Compose:
+
+```bash
+docker compose up -d
+```
 
 ## 📈 Roadmap
 
