@@ -15,7 +15,11 @@ type ApplicationRepository struct {
 	Files         IFileRepository
 }
 
-func NewApplicationRepository(dbType string) (*ApplicationRepository, error) {
+func NewApplicationRepository() (*ApplicationRepository, error) {
+	dbType := viper.GetString("database")
+	if dbType == "" {
+		return nil, fmt.Errorf("database type is not set")
+	}
 	connectionString := viper.GetString(dbType)
 	if connectionString == "" {
 		return nil, fmt.Errorf("connection string for %s is not set", dbType)
@@ -28,6 +32,10 @@ func NewApplicationRepository(dbType string) (*ApplicationRepository, error) {
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", dbType)
 	}
+}
+
+func (ar *ApplicationRepository) Migrate() error {
+	return nil
 }
 
 func newPostgresRepository(connectionString string) (*ApplicationRepository, error) {

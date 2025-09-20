@@ -4,6 +4,7 @@ import (
 	"log"
 
 	_ "github.com/argon-chat/KineticaFS/docs"
+	"github.com/argon-chat/KineticaFS/pkg/repositories"
 	"github.com/argon-chat/KineticaFS/pkg/router"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -11,6 +12,13 @@ import (
 
 func main() {
 	initConfig()
+	_, err := repositories.NewApplicationRepository()
+	if err != nil {
+		log.Fatalf("Failed to initialize repository: %v", err)
+	}
+	if viper.GetBool("migrate") {
+
+	}
 	if viper.GetBool("server") {
 		router.Run(viper.GetInt("port"))
 	}
