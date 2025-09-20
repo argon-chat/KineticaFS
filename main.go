@@ -39,7 +39,7 @@ func initConfig() {
 	pflag.BoolP("server", "s", false, "Run as server")
 	pflag.String("token", "", "Authorization token")
 	pflag.String("scylla", "localhost:9042", "ScyllaDB host:port")
-	pflag.Bool("migrate", false, "Run migrations")
+	pflag.BoolP("migrate", "m", false, "Run migrations")
 	pflag.Int("port", 3000, "Server port")
 	pflag.String("database", "scylla", "Database backend type (scylla, postgres)")
 
