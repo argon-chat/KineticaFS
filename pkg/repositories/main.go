@@ -57,15 +57,18 @@ func NewApplicationRepository() (*ApplicationRepository, error) {
 func (ar *ApplicationRepository) Migrate() error {
 	switch ar.dbType {
 	case "scylla":
-		return ar.migrateScylla()
+		return ar.migrateDatabase(migrateScyllaModel, ar.executeScyllaQuery)
 	case "postgres":
-		return ar.migratePostgres()
+		return ar.migrateDatabase(migratePostgresModel, ar.executePostgresQuery)
 	default:
 		return fmt.Errorf("unsupported database type: %s", ar.dbType)
 	}
 }
 
-func (ar *ApplicationRepository) migrateScylla() error {
+func (ar *ApplicationRepository) migrateDatabase(
+	modelMigrator func(*migration) string,
+	queryExecutor func(string) error,
+) error {
 	for _, e := range migrationTypes {
 		tableName := fmt.Sprintf("%T", e)
 		model := migration{
@@ -76,31 +79,22 @@ func (ar *ApplicationRepository) migrateScylla() error {
 		for _, i := range reflect.VisibleFields(t) {
 			model.Fields[i.Name] = i.Type.Name()
 		}
-		query := migrateScyllaModel(&model)
-		if err := ar.db.(*scylla.ScyllaConnection).Session.Query(query).Exec(); err != nil {
+		query := modelMigrator(&model)
+		if err := queryExecutor(query); err != nil {
 			return fmt.Errorf("failed to migrate table %s: %w", tableName, err)
 		}
 	}
 	return nil
 }
 
-func (ar *ApplicationRepository) migratePostgres() error {
-	for _, e := range migrationTypes {
-		tableName := fmt.Sprintf("%T", e)
-		model := migration{
-			TableName: tableName,
-			Fields:    make(map[string]string),
-		}
-		t := reflect.TypeOf(e)
-		for _, i := range reflect.VisibleFields(t) {
-			model.Fields[i.Name] = i.Type.Name()
-		}
-		query := migratePostgresModel(&model)
-		if _, err := ar.db.(*postgres.PostgresConnection).DB.Exec(query); err != nil {
-			return fmt.Errorf("failed to migrate table %s: %w", tableName, err)
-		}
-	}
-	return nil
+// Database-specific query executors
+func (ar *ApplicationRepository) executeScyllaQuery(query string) error {
+	return ar.db.(*scylla.ScyllaConnection).Session.Query(query).Exec()
+}
+
+func (ar *ApplicationRepository) executePostgresQuery(query string) error {
+	_, err := ar.db.(*postgres.PostgresConnection).DB.Exec(query)
+	return err
 }
 
 func newPostgresRepository(connectionString string) (*ApplicationRepository, error) {

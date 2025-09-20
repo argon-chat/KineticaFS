@@ -20,7 +20,7 @@ func migrateScyllaModel(model *migration) string {
 	}
 	sql += fmt.Sprintf(" ( %s, PRIMARY KEY (id) );", strings.Join(fields, ", "))
 
-	log.Printf("executing query: [ `%s` ]\n", sql)
+	log.Printf("executing Scylla query: [ `%s` ]\n", sql)
 	return sql
 }
 
