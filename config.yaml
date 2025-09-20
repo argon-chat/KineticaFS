@@ -9,15 +9,10 @@ database: "scylla"      # Database backend type (scylla, postgres etc.)
 
 # ScyllaDB configuration
 scylla: "localhost:9042"  # ScyllaDB connection string (host:port or host1:port1,host2:port2)
-# scylla_keyspace: "kineticafs"  # Optional: Custom keyspace name (defaults to "kineticafs")
+scylla_keyspace: "kineticafs"  # Optional: Custom keyspace name (defaults to "kineticafs")
 
 # PostgreSQL configuration
-# postgres: "localhost:5432"           # PostgreSQL connection string (host:port or full URL)
-# postgres_database: "kineticafs"      # PostgreSQL database name (defaults to "kineticafs")  
-# postgres_user: "postgres"            # PostgreSQL username (defaults to "postgres")
-# postgres_password: ""                # PostgreSQL password
-# postgres_port: "5432"                # PostgreSQL port when using simple host format
-# postgres_sslmode: "disable"          # PostgreSQL SSL mode (disable, require, verify-ca, verify-full)
+postgres: "postgres://postgres:postgres@localhost:5432/kineticafs?sslmode=disable"           # PostgreSQL connection string (host:port or full URL)
 
 # Authentication
 token: ""            # Authorization token (leave empty for no token)
@@ -33,10 +28,5 @@ migrate: false       # Set to true to run database migrations
 # KINETICAFS_SCYLLA=192.168.1.100:9042
 # KINETICAFS_SCYLLA_KEYSPACE=my_keyspace
 # KINETICAFS_POSTGRES=postgres://user:pass@host:5432/dbname?sslmode=disable
-# KINETICAFS_POSTGRES_DATABASE=kineticafs
-# KINETICAFS_POSTGRES_USER=myuser
-# KINETICAFS_POSTGRES_PASSWORD=mypassword
-# KINETICAFS_POSTGRES_PORT=5432
-# KINETICAFS_POSTGRES_SSLMODE=require
 # KINETICAFS_TOKEN=your-auth-token
 # KINETICAFS_MIGRATE=true
