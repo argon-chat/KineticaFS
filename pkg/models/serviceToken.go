@@ -9,11 +9,3 @@ type ServiceToken struct {
 func (st ServiceToken) GetID() string {
 	return st.ID
 }
-
-type IServiceTokenRepository interface {
-	GetServiceTokenById(id string) (*ServiceToken, error)
-	GetServiceTokenByName(name string) (*ServiceToken, error)
-	CreateServiceToken(token *ServiceToken) error
-	UpdateServiceToken(token *ServiceToken) error
-	RevokeServiceToken(id string) error
-}

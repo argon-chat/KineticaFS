@@ -15,12 +15,3 @@ type Bucket struct {
 func (bu Bucket) GetID() string {
 	return bu.ID
 }
-
-type IBucketRepository interface {
-	GetBucketByID(id string) (*Bucket, error)
-	GetBucketByName(name string) (*Bucket, error)
-	CreateBucket(bucket *Bucket) error
-	UpdateBucket(bucket *Bucket) error
-	DeleteBucket(id string) error
-	ListBuckets() ([]*Bucket, error)
-}

@@ -1,14 +1,5 @@
 package models
 
-type IFileRepository interface {
-	GetFileByID(id string) (*File, error)
-	GetFileByName(bucketID, name string) (*File, error)
-	CreateFile(file *File) error
-	UpdateFile(file *File) error
-	DeleteFile(id string) error
-	ListFiles(bucketID string) ([]*File, error)
-}
-
 type File struct {
 	ApplicationModel
 	BucketID    string `json:"bucket_id" binding:"required"`
