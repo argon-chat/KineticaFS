@@ -34,7 +34,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 5s
-  # endregion
+  # endregion storage
   # region databases
   scylla:
     image: scylladb/scylla:latest
@@ -47,6 +47,18 @@ services:
     environment:
       SCYLLA_CLUSTER_NAME: 'scylla_cluster'
       SCYLLA_SEEDS: 'scylla'
+  pg:
+    image: postgres:17.2-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: kineticafs
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  # endregion databases
+  # region application
   kineticafs:
     build: .
     ports:
@@ -56,9 +68,8 @@ services:
       - region2
       - scylla
     restart: unless-stopped
-  # endregion
-
+  # endregion application
 volumes:
-  region1: { }
-  region2: { }
-  scylla: { }
+  region1: {}
+  region2: {}
+  scylla: {}
