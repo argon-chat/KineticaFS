@@ -1,0 +1,22 @@
+# KineticaFS Configuration File
+
+# Server configuration
+server: false         # Set to true to run as server
+port: 3000           # Port on which the server will listen
+
+# Database configuration
+scylla: "localhost:9042"  # ScyllaDB connection string (host:port)
+
+# Authentication
+token: ""            # Authorization token (leave empty for no token)
+
+# Migration settings
+migrate: false       # Set to true to run database migrations
+
+# Environment variable prefix: KINETICAFS_
+# Examples:
+# KINETICAFS_SERVER=true
+# KINETICAFS_PORT=8080
+# KINETICAFS_SCYLLA=192.168.1.100:9042
+# KINETICAFS_TOKEN=your-auth-token
+# KINETICAFS_MIGRATE=true

@@ -1,46 +1,53 @@
 package main
 
 import (
-	"flag"
+	"log"
 
 	_ "github.com/argon-chat/KineticaFS/docs"
 	"github.com/argon-chat/KineticaFS/pkg/router"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
-type params struct {
-	Server           bool
-	Token            string
-	ScillaConnection string
-	Migrate          bool
-	Port             int
-}
-
-var args = &params{}
-
 func main() {
-	props := parseArgs()
-	for i, prop := range props {
-		println(i, prop)
-	}
-	if args.Server {
-		router.Run(args.Port)
+	initConfig()
+	if viper.GetBool("server") {
+		router.Run(viper.GetInt("port"))
 	}
 }
 
-func parseArgs() []string {
-	server := flag.Bool("server", false, "Run as server")
-	s := flag.Bool("s", false, "Alias for --server")
-	token := flag.String("token", "", "Authorization token")
-	port := flag.Int("port", 3000, "Server port")
-	scylla := flag.String("scylla", "localhost:9042", "ScyllaDB host:port")
-	migrate := flag.Bool("migrate", false, "Run migrations")
+func initConfig() {
+	viper.SetDefault("server", false)
+	viper.SetDefault("token", "")
+	viper.SetDefault("scylla", "localhost:9042")
+	viper.SetDefault("migrate", false)
+	viper.SetDefault("port", 3000)
 
-	flag.Parse()
+	pflag.BoolP("server", "s", false, "Run as server")
+	pflag.String("token", "", "Authorization token")
+	pflag.String("scylla", "localhost:9042", "ScyllaDB host:port")
+	pflag.Bool("migrate", false, "Run migrations")
+	pflag.Int("port", 3000, "Server port")
 
-	args.Server = *server || *s
-	args.Token = *token
-	args.ScillaConnection = *scylla
-	args.Migrate = *migrate
-	args.Port = *port
-	return flag.Args()
+	pflag.Parse()
+	viper.BindPFlags(pflag.CommandLine)
+
+	viper.SetEnvPrefix("KINETICAFS")
+	viper.AutomaticEnv()
+
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("$HOME/.kineticafs")
+	viper.AddConfigPath("/etc/kineticafs")
+
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			log.Println("No config file found, using defaults and command-line flags")
+		} else {
+			log.Fatalf("Error reading config file: %v", err)
+		}
+	} else {
+		log.Printf("Using config file: %s", viper.ConfigFileUsed())
+	}
 }
