@@ -12,6 +12,10 @@ import (
 
 var migrationTypes []models.ApplicationRecord
 
+type migration struct {
+	TableName string
+	Fields    map[string]string
+}
 type IDatabase interface {
 	Connect() error
 	Close() error
@@ -64,7 +68,7 @@ func (ar *ApplicationRepository) Migrate() error {
 func (ar *ApplicationRepository) migrateScylla() error {
 	for _, e := range migrationTypes {
 		tableName := fmt.Sprintf("%T", e)
-		model := scyllaMigration{
+		model := migration{
 			TableName: tableName,
 			Fields:    make(map[string]string),
 		}
@@ -81,6 +85,21 @@ func (ar *ApplicationRepository) migrateScylla() error {
 }
 
 func (ar *ApplicationRepository) migratePostgres() error {
+	for _, e := range migrationTypes {
+		tableName := fmt.Sprintf("%T", e)
+		model := migration{
+			TableName: tableName,
+			Fields:    make(map[string]string),
+		}
+		t := reflect.TypeOf(e)
+		for _, i := range reflect.VisibleFields(t) {
+			model.Fields[i.Name] = i.Type.Name()
+		}
+		query := migratePostgresModel(&model)
+		if _, err := ar.db.(*postgres.PostgresConnection).DB.Exec(query); err != nil {
+			return fmt.Errorf("failed to migrate table %s: %w", tableName, err)
+		}
+	}
 	return nil
 }
 

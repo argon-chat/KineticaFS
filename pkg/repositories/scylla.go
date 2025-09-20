@@ -6,12 +6,7 @@ import (
 	"strings"
 )
 
-type scyllaMigration struct {
-	TableName string
-	Fields    map[string]string
-}
-
-func migrateScyllaModel(model *scyllaMigration) string {
+func migrateScyllaModel(model *migration) string {
 	sql := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s",
 		strings.ReplaceAll(model.TableName, "models.", ""),
 	)
