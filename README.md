@@ -1,7 +1,6 @@
 # KineticaFS
 
 [![CI](https://github.com/argon-chat/KineticaFS/actions/workflows/ci.yml/badge.svg)](https://github.com/argon-chat/KineticaFS/actions/workflows/ci.yml)
-[![Docker](https://github.com/argon-chat/KineticaFS/actions/workflows/ci.yml/badge.svg)](https://github.com/argon-chat/KineticaFS/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/argon-chat/KineticaFS)](https://goreportcard.com/report/github.com/argon-chat/KineticaFS)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
