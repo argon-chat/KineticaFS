@@ -3,8 +3,6 @@ package router
 import (
 	"fmt"
 
-	"github.com/argon-chat/KineticaFS/pkg/migrator"
-	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -15,12 +13,6 @@ var router = gin.Default()
 func Run(port int) {
 	getRoutes()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	migrator.MigrationTypes = []models.ApplicationRecord{
-		models.ServiceToken{},
-		models.File{},
-		models.Bucket{},
-	}
-	migrator.Migrate()
 	err := router.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		panic(err)
