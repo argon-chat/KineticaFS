@@ -12,12 +12,16 @@ import (
 
 func main() {
 	initConfig()
-	_, err := repositories.NewApplicationRepository()
+	repo, err := repositories.NewApplicationRepository()
 	if err != nil {
 		log.Fatalf("Failed to initialize repository: %v", err)
 	}
 	if viper.GetBool("migrate") {
-
+		err = repo.Migrate()
+		if err != nil {
+			log.Fatalf("Migration failed: %v", err)
+		}
+		log.Println("Migration completed successfully")
 	}
 	if viper.GetBool("server") {
 		router.Run(viper.GetInt("port"))
