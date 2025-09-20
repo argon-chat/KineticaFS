@@ -24,6 +24,5 @@ type IServiceTokenRepository interface {
 	GetServiceTokenById(id string) (*models.ServiceToken, error)
 	GetServiceTokenByName(name string) (*models.ServiceToken, error)
 	CreateServiceToken(token *models.ServiceToken) error
-	UpdateServiceToken(token *models.ServiceToken) error
 	RevokeServiceToken(id string) error
 }
