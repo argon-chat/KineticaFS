@@ -59,17 +59,21 @@ services:
       - pgdata:/var/lib/postgresql/data
   # endregion databases
   # region application
-  kineticafs:
-    build: .
-    ports:
-      - "3000:3000"
-    depends_on:
-      - region1
-      - region2
-      - scylla
-    restart: unless-stopped
+  # kineticafs:
+  #   build: .
+  #   tty: true
+  #   stdin_open: true
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - region1
+  #     - region2
+  #     - scylla
+  #     - pg
+  #   restart: unless-stopped
   # endregion application
 volumes:
+  pgdata: {}
   region1: {}
   region2: {}
   scylla: {}
