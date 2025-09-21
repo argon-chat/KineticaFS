@@ -85,15 +85,18 @@ build-linux: deps docs
 	@echo "$(GREEN)Linux build completed: $(BINARY_UNIX)$(NC)"
 
 ## Run tests with coverage
+
+## Run tests with coverage (Go 1.22+ covdata format)
 test: docs
 	@echo "$(BLUE)Running tests...$(NC)"
-	$(GOTEST) -v -race -coverprofile=coverage.out ./...
+	$(GOTEST) -v -race -cover ./...
 	@echo "$(GREEN)Tests completed$(NC)"
 
-## Generate test coverage report
+## Generate test coverage report (Go 1.22+ covdata format)
 coverage: test
 	@echo "$(BLUE)Generating coverage report...$(NC)"
-	$(GOCMD) tool cover -html=coverage.out -o coverage.html
+	$(GOCMD) tool covdata textfmt -i=default -o coverage.txt
+	$(GOCMD) tool cover -html=coverage.txt -o coverage.html
 	@echo "$(GREEN)Coverage report generated: coverage.html$(NC)"
 
 ## Run linters
