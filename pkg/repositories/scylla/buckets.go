@@ -9,26 +9,30 @@ type ScyllaBucketRepository struct {
 	session *gocql.Session
 }
 
-func (s ScyllaBucketRepository) GetBucketByID(id string) (*models.Bucket, error) {
+func NewScyllaBucketRepository(session *gocql.Session) *ScyllaBucketRepository {
+	return &ScyllaBucketRepository{session: session}
+}
+
+func (s *ScyllaBucketRepository) GetBucketByID(id string) (*models.Bucket, error) {
 	panic("implement me")
 }
 
-func (s ScyllaBucketRepository) GetBucketByName(name string) (*models.Bucket, error) {
+func (s *ScyllaBucketRepository) GetBucketByName(name string) (*models.Bucket, error) {
 	panic("implement me")
 }
 
-func (s ScyllaBucketRepository) CreateBucket(bucket *models.Bucket) error {
+func (s *ScyllaBucketRepository) CreateBucket(bucket *models.Bucket) error {
 	panic("implement me")
 }
 
-func (s ScyllaBucketRepository) UpdateBucket(bucket *models.Bucket) error {
+func (s *ScyllaBucketRepository) UpdateBucket(bucket *models.Bucket) error {
 	panic("implement me")
 }
 
-func (s ScyllaBucketRepository) DeleteBucket(id string) error {
+func (s *ScyllaBucketRepository) DeleteBucket(id string) error {
 	panic("implement me")
 }
 
-func (s ScyllaBucketRepository) ListBuckets() ([]*models.Bucket, error) {
+func (s *ScyllaBucketRepository) ListBuckets() ([]*models.Bucket, error) {
 	panic("implement me")
 }

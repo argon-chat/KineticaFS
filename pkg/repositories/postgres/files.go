@@ -6,30 +6,34 @@ import (
 	"github.com/argon-chat/KineticaFS/pkg/models"
 )
 
-type PostgresFileRepostiory struct {
+type PostgresFileRepository struct {
 	session *sql.DB
 }
 
-func (p PostgresFileRepostiory) GetFileByID(id string) (*models.File, error) {
+func NewPostgresFileRepository(session *sql.DB) *PostgresFileRepository {
+	return &PostgresFileRepository{session: session}
+}
+
+func (p *PostgresFileRepository) GetFileByID(id string) (*models.File, error) {
 	panic("implement me")
 }
 
-func (p PostgresFileRepostiory) GetFileByName(bucketID, name string) (*models.File, error) {
+func (p *PostgresFileRepository) GetFileByName(bucketID, name string) (*models.File, error) {
 	panic("implement me")
 }
 
-func (p PostgresFileRepostiory) CreateFile(file *models.File) error {
+func (p *PostgresFileRepository) CreateFile(file *models.File) error {
 	panic("implement me")
 }
 
-func (p PostgresFileRepostiory) UpdateFile(file *models.File) error {
+func (p *PostgresFileRepository) UpdateFile(file *models.File) error {
 	panic("implement me")
 }
 
-func (p PostgresFileRepostiory) DeleteFile(id string) error {
+func (p *PostgresFileRepository) DeleteFile(id string) error {
 	panic("implement me")
 }
 
-func (p PostgresFileRepostiory) ListFiles(bucketID string) ([]*models.File, error) {
+func (p *PostgresFileRepository) ListFiles(bucketID string) ([]*models.File, error) {
 	panic("implement me")
 }

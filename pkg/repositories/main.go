@@ -107,9 +107,9 @@ func newPostgresRepository(connectionString string) (*ApplicationRepository, err
 		db:     repository,
 		dbType: "postgres",
 
-		ServiceTokens: nil,
-		Buckets:       nil,
-		Files:         nil,
+		ServiceTokens: postgres.NewPostgresServiceTokenRepository(repository.DB),
+		Buckets:       postgres.NewPostgresBucketRepository(repository.DB),
+		Files:         postgres.NewPostgresFileRepository(repository.DB),
 	}
 	return ar, nil
 }
@@ -124,9 +124,9 @@ func newScyllaRepository(connectionString string) (*ApplicationRepository, error
 		db:     repository,
 		dbType: "scylla",
 
-		ServiceTokens: nil,
-		Buckets:       nil,
-		Files:         nil,
+		ServiceTokens: scylla.NewScyllaServiceTokenRepository(repository.Session),
+		Buckets:       scylla.NewScyllaBucketRepository(repository.Session),
+		Files:         scylla.NewScyllaFileRepository(repository.Session),
 	}
 	return ar, nil
 }

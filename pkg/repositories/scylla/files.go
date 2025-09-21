@@ -9,26 +9,30 @@ type ScyllaFileRepository struct {
 	session *gocql.Session
 }
 
-func (s ScyllaFileRepository) GetFileByID(id string) (*models.File, error) {
+func NewScyllaFileRepository(session *gocql.Session) *ScyllaFileRepository {
+	return &ScyllaFileRepository{session: session}
+}
+
+func (s *ScyllaFileRepository) GetFileByID(id string) (*models.File, error) {
 	panic("implement me")
 }
 
-func (s ScyllaFileRepository) GetFileByName(bucketID, name string) (*models.File, error) {
+func (s *ScyllaFileRepository) GetFileByName(bucketID, name string) (*models.File, error) {
 	panic("implement me")
 }
 
-func (s ScyllaFileRepository) CreateFile(file *models.File) error {
+func (s *ScyllaFileRepository) CreateFile(file *models.File) error {
 	panic("implement me")
 }
 
-func (s ScyllaFileRepository) UpdateFile(file *models.File) error {
+func (s *ScyllaFileRepository) UpdateFile(file *models.File) error {
 	panic("implement me")
 }
 
-func (s ScyllaFileRepository) DeleteFile(id string) error {
+func (s *ScyllaFileRepository) DeleteFile(id string) error {
 	panic("implement me")
 }
 
-func (s ScyllaFileRepository) ListFiles(bucketID string) ([]*models.File, error) {
+func (s *ScyllaFileRepository) ListFiles(bucketID string) ([]*models.File, error) {
 	panic("implement me")
 }
