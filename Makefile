@@ -118,7 +118,7 @@ format:
 	@echo "$(GREEN)Code formatted$(NC)"
 
 ## Generate swagger documentation
-docs:
+docs: deps
 	@echo "$(BLUE)Generating API documentation...$(NC)"
 	@export PATH=$$PATH:$(shell go env GOPATH)/bin && \
 	if command -v swag > /dev/null; then \
