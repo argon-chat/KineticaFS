@@ -66,6 +66,8 @@ definitions:
         type: string
       name:
         type: string
+      token_type:
+        type: integer
       updated_at:
         type: string
     required:
@@ -293,6 +295,24 @@ paths:
       tags:
       - files
   /v1/st/:
+    get:
+      description: List all service tokens (admin only).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ServiceToken'
+            type: array
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: List all service tokens
+      tags:
+      - service-tokens
     post:
       consumes:
       - application/json
@@ -363,6 +383,37 @@ paths:
           schema:
             $ref: '#/definitions/router.ErrorResponse'
       summary: Get service token
+      tags:
+      - service-tokens
+  /v1/st/bootstrap:
+    post:
+      consumes:
+      - application/json
+      description: Create the initial admin service token. Only allowed if no admin
+        token exists. Used for first-time setup.
+      parameters:
+      - description: Admin Service Token
+        in: body
+        name: token
+        required: true
+        schema:
+          $ref: '#/definitions/models.ServiceToken'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ServiceToken'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "409":
+          description: Admin token already exists
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Bootstrap admin token
       tags:
       - service-tokens
   /v1/upload/{blob}:

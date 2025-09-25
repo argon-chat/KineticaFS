@@ -328,6 +328,33 @@ const docTemplate = `{
             }
         },
         "/v1/st/": {
+            "get": {
+                "description": "List all service tokens (admin only).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "service-tokens"
+                ],
+                "summary": "List all service tokens",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ServiceToken"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new service token. Only one admin token can exist. Only admin can create/delete other tokens. Admin token cannot be deleted.",
                 "consumes": [
@@ -360,6 +387,52 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/st/bootstrap": {
+            "post": {
+                "description": "Create the initial admin service token. Only allowed if no admin token exists. Used for first-time setup.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "service-tokens"
+                ],
+                "summary": "Bootstrap admin token",
+                "parameters": [
+                    {
+                        "description": "Admin Service Token",
+                        "name": "token",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ServiceToken"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.ServiceToken"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Admin token already exists",
                         "schema": {
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
@@ -599,6 +672,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "token_type": {
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
