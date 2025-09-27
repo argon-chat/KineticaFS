@@ -74,6 +74,14 @@ definitions:
     - access_key
     - name
     type: object
+  router.CreateServiceTokenRequestDto:
+    properties:
+      name:
+        example: my-token
+        type: string
+    required:
+    - name
+    type: object
   router.ErrorResponse:
     properties:
       code:
@@ -319,12 +327,12 @@ paths:
       description: Create a new service token. Only one admin token can exist. Only
         admin can create/delete other tokens. Admin token cannot be deleted.
       parameters:
-      - description: Service Token
+      - description: Service Token Request
         in: body
-        name: token
+        name: request
         required: true
         schema:
-          $ref: '#/definitions/models.ServiceToken'
+          $ref: '#/definitions/router.CreateServiceTokenRequestDto'
       produces:
       - application/json
       responses:
@@ -387,17 +395,8 @@ paths:
       - service-tokens
   /v1/st/bootstrap:
     post:
-      consumes:
-      - application/json
       description: Create the initial admin service token. Only allowed if no admin
         token exists. Used for first-time setup.
-      parameters:
-      - description: Admin Service Token
-        in: body
-        name: token
-        required: true
-        schema:
-          $ref: '#/definitions/models.ServiceToken'
       produces:
       - application/json
       responses:

@@ -369,12 +369,12 @@ const docTemplate = `{
                 "summary": "Create service token",
                 "parameters": [
                     {
-                        "description": "Service Token",
-                        "name": "token",
+                        "description": "Service Token Request",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ServiceToken"
+                            "$ref": "#/definitions/router.CreateServiceTokenRequestDto"
                         }
                     }
                 ],
@@ -397,9 +397,6 @@ const docTemplate = `{
         "/v1/st/bootstrap": {
             "post": {
                 "description": "Create the initial admin service token. Only allowed if no admin token exists. Used for first-time setup.",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -407,17 +404,6 @@ const docTemplate = `{
                     "service-tokens"
                 ],
                 "summary": "Bootstrap admin token",
-                "parameters": [
-                    {
-                        "description": "Admin Service Token",
-                        "name": "token",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.ServiceToken"
-                        }
-                    }
-                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -678,6 +664,18 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "router.CreateServiceTokenRequestDto": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "my-token"
                 }
             }
         },

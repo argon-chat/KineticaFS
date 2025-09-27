@@ -10,6 +10,10 @@ type ErrorResponse struct {
 	Message string `json:"message" example:"error message"`
 }
 
+type CreateServiceTokenRequestDto struct {
+	Name string `json:"name" binding:"required" example:"my-token"`
+}
+
 // AddServiceTokenRoutes sets up the service token endpoints.
 func AddServiceTokenRoutes(v1 *gin.RouterGroup) {
 	st := v1.Group("/st")
@@ -23,9 +27,7 @@ func AddServiceTokenRoutes(v1 *gin.RouterGroup) {
 // @Summary Bootstrap admin token
 // @Description Create the initial admin service token. Only allowed if no admin token exists. Used for first-time setup.
 // @Tags service-tokens
-// @Accept json
 // @Produce json
-// @Param token body models.ServiceToken true "Admin Service Token"
 // @Success 201 {object} models.ServiceToken
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 409 {object} router.ErrorResponse "Admin token already exists"
@@ -51,7 +53,7 @@ func ListAllServiceTokens(c *gin.Context) {
 // @Tags service-tokens
 // @Accept json
 // @Produce json
-// @Param token body models.ServiceToken true "Service Token"
+// @Param request body CreateServiceTokenRequestDto true "Service Token Request"
 // @Success 201 {object} models.ServiceToken
 // @Failure 400 {object} router.ErrorResponse
 // @Router /v1/st/ [post]
