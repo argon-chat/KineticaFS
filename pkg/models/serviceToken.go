@@ -4,7 +4,7 @@ type ServiceToken struct {
 	ApplicationModel
 	Name      string `json:"name" binding:"required" gorm:"uniqueIndex"`
 	AccessKey string `json:"access_key" binding:"required"`
-	TokenType int8   `json:"token_type"`
+	TokenType int8   `json:"token_type"` // 0 = admin, 1 = regular
 }
 
 func (st ServiceToken) GetID() string {

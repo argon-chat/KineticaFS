@@ -24,7 +24,7 @@ func main() {
 		log.Println("Migration completed successfully")
 	}
 	if viper.GetBool("server") {
-		router.Run(viper.GetInt("port"))
+		router.Run(viper.GetInt("port"), repo)
 	}
 }
 

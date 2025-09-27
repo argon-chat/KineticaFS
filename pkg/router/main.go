@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 
+	"github.com/argon-chat/KineticaFS/pkg/repositories"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -10,7 +11,10 @@ import (
 
 var router = gin.Default()
 
-func Run(port int) {
+var applicationRepository *repositories.ApplicationRepository
+
+func Run(port int, repo *repositories.ApplicationRepository) {
+	applicationRepository = repo
 	getRoutes()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	err := router.Run(fmt.Sprintf(":%d", port))
