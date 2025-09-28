@@ -1,7 +1,12 @@
 package router
 
 import (
+	"fmt"
+	"time"
+
+	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // ErrorResponse represents a standard error response for the API
@@ -33,7 +38,38 @@ func AddServiceTokenRoutes(v1 *gin.RouterGroup) {
 // @Failure 409 {object} router.ErrorResponse "Admin token already exists"
 // @Router /v1/st/bootstrap [post]
 func CreateAdminServiceTokenHandler(c *gin.Context) {
-
+	existingToken, err := applicationRepository.ServiceTokens.GetServiceTokenByName("admin")
+	if err != nil {
+		c.JSON(400, ErrorResponse{
+			Code:    400,
+			Message: fmt.Sprintf("failed to check existing admin token: %v", err),
+		})
+		return
+	}
+	if existingToken != nil {
+		c.JSON(409, ErrorResponse{
+			Code:    409,
+			Message: "Admin token already exists",
+		})
+		return
+	}
+	token := models.ServiceToken{
+		Name:      "admin",
+		AccessKey: uuid.NewString(),
+		TokenType: models.AdminToken,
+	}
+	token.ID = uuid.NewString()
+	token.CreatedAt = time.Now()
+	token.UpdatedAt = token.CreatedAt
+	err = applicationRepository.ServiceTokens.CreateServiceToken(&token)
+	if err != nil {
+		c.JSON(400, ErrorResponse{
+			Code:    400,
+			Message: fmt.Sprintf("failed to create admin token: %v", err),
+		})
+		return
+	}
+	c.JSON(201, token)
 }
 
 // @Summary List all service tokens

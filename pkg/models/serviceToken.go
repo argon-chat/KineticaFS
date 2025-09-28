@@ -1,10 +1,17 @@
 package models
 
+type TokenType int8
+
+const (
+	AdminToken   TokenType = 1 << 0
+	RegularToken TokenType = 1 << 1
+)
+
 type ServiceToken struct {
 	ApplicationModel
-	Name      string `json:"name" binding:"required" gorm:"uniqueIndex"`
-	AccessKey string `json:"access_key" binding:"required"`
-	TokenType int8   `json:"token_type"` // 0 = admin, 1 = regular
+	Name      string    `json:"name" binding:"required" gorm:"uniqueIndex"`
+	AccessKey string    `json:"access_key" binding:"required"`
+	TokenType TokenType `json:"token_type"`
 }
 
 func (st ServiceToken) GetID() string {
