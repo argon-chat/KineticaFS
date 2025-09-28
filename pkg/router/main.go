@@ -14,7 +14,7 @@ var router = gin.Default()
 var applicationRepository *repositories.ApplicationRepository
 
 func Run(port int, repo *repositories.ApplicationRepository) {
-	applicationRepository = repo
+	initializeRepo(repo)
 	getRoutes()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	err := router.Run(fmt.Sprintf(":%d", port))
@@ -26,6 +26,13 @@ func Run(port int, repo *repositories.ApplicationRepository) {
 func getRoutes() {
 	v1 := router.Group("/v1")
 	addV1Routes(v1)
+}
+
+func initializeRepo(repo *repositories.ApplicationRepository) {
+	applicationRepository = repo
+	applicationRepository.ServiceTokens.CreateIndices()
+	applicationRepository.Buckets.CreateIndices()
+	applicationRepository.Files.CreateIndices()
 }
 
 func addV1Routes(v1 *gin.RouterGroup) {

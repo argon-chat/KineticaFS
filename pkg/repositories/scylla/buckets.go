@@ -1,6 +1,8 @@
 package scylla
 
 import (
+	"log"
+
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gocql/gocql"
 )
@@ -13,6 +15,15 @@ func NewScyllaBucketRepository(session *gocql.Session) *ScyllaBucketRepository {
 	return &ScyllaBucketRepository{session: session}
 }
 
+func (s *ScyllaBucketRepository) CreateIndices() {
+	indexQueries := []string{}
+	for _, indexQuery := range indexQueries {
+		log.Printf("Executing index creation query: %s", indexQuery)
+		if err := s.session.Query(indexQuery).Exec(); err != nil {
+			log.Printf("Error creating index: %v", err)
+		}
+	}
+}
 func (s *ScyllaBucketRepository) GetBucketByID(id string) (*models.Bucket, error) {
 	panic("implement me")
 }

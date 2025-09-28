@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"log"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
 )
@@ -14,6 +15,15 @@ func NewPostgresServiceTokenRepository(session *sql.DB) *PostgresServiceTokenRep
 	return &PostgresServiceTokenRepository{session: session}
 }
 
+func (s *PostgresServiceTokenRepository) CreateIndices() {
+	indexQueries := []string{}
+	for _, indexQuery := range indexQueries {
+		log.Printf("Executing index creation query: %s", indexQuery)
+		if _, err := s.session.Exec(indexQuery); err != nil {
+			log.Printf("Error creating index: %v", err)
+		}
+	}
+}
 func (p *PostgresServiceTokenRepository) GetServiceTokenById(id string) (*models.ServiceToken, error) {
 	panic("implement me")
 }

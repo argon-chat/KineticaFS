@@ -1,6 +1,8 @@
 package scylla
 
 import (
+	"log"
+
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gocql/gocql"
 )
@@ -11,6 +13,16 @@ type ScyllaFileRepository struct {
 
 func NewScyllaFileRepository(session *gocql.Session) *ScyllaFileRepository {
 	return &ScyllaFileRepository{session: session}
+}
+
+func (s *ScyllaFileRepository) CreateIndices() {
+	indexQueries := []string{}
+	for _, indexQuery := range indexQueries {
+		log.Printf("Executing index creation query: %s", indexQuery)
+		if err := s.session.Query(indexQuery).Exec(); err != nil {
+			log.Printf("Error creating index: %v", err)
+		}
+	}
 }
 
 func (s *ScyllaFileRepository) GetFileByID(id string) (*models.File, error) {

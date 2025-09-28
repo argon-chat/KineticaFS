@@ -2,7 +2,12 @@ package repositories
 
 import "github.com/argon-chat/KineticaFS/pkg/models"
 
+type IRepository interface {
+	CreateIndices()
+}
+
 type IBucketRepository interface {
+	IRepository
 	GetBucketByID(id string) (*models.Bucket, error)
 	GetBucketByName(name string) (*models.Bucket, error)
 	CreateBucket(bucket *models.Bucket) error
@@ -12,6 +17,7 @@ type IBucketRepository interface {
 }
 
 type IFileRepository interface {
+	IRepository
 	GetFileByID(id string) (*models.File, error)
 	GetFileByName(bucketID, name string) (*models.File, error)
 	CreateFile(file *models.File) error
@@ -21,6 +27,7 @@ type IFileRepository interface {
 }
 
 type IServiceTokenRepository interface {
+	IRepository
 	GetServiceTokenById(id string) (*models.ServiceToken, error)
 	GetServiceTokenByName(name string) (*models.ServiceToken, error)
 	CreateServiceToken(token *models.ServiceToken) error

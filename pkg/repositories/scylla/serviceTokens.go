@@ -1,6 +1,8 @@
 package scylla
 
 import (
+	"log"
+
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gocql/gocql"
 )
@@ -24,6 +26,18 @@ func NewScyllaServiceTokenRepository(session *gocql.Session) *ScyllaServiceToken
 	return &ScyllaServiceTokenRepository{session: session}
 }
 
+func (s *ScyllaServiceTokenRepository) CreateIndices() {
+	indexQueries := []string{
+		"CREATE INDEX IF NOT EXISTS servicetoken_name_idx ON servicetoken (name)",
+	}
+	for _, indexQuery := range indexQueries {
+		log.Printf("Executing index creation query: %s", indexQuery)
+		if err := s.session.Query(indexQuery).Exec(); err != nil {
+			log.Printf("Error creating index: %v", err)
+		}
+	}
+}
+
 func (s *ScyllaServiceTokenRepository) GetServiceTokenById(id string) (*models.ServiceToken, error) {
 	panic("implement me")
 }
@@ -33,6 +47,9 @@ func (s *ScyllaServiceTokenRepository) GetServiceTokenByName(name string) (*mode
 	var token models.ServiceToken
 	var tokenType int8
 	if err := query.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt); err != nil {
+		if err == gocql.ErrNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 	token.TokenType = models.TokenType(tokenType)
