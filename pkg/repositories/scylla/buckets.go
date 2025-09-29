@@ -6,6 +6,7 @@ import (
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gocql/gocql"
+	"github.com/google/uuid"
 )
 
 // DDL
@@ -81,6 +82,7 @@ func (s *ScyllaBucketRepository) CreateBucket(bucket *models.Bucket) error {
 	now := time.Now()
 	bucket.CreatedAt = now
 	bucket.UpdatedAt = now
+	bucket.ID = uuid.NewString()
 	query := s.session.Query(
 		"insert into bucket (id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		bucket.ID, bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, bucket.CreatedAt, bucket.UpdatedAt)

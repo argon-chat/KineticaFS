@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
+	"github.com/google/uuid"
 )
 
 // DDL
@@ -84,6 +85,7 @@ func (p *PostgresBucketRepository) CreateBucket(bucket *models.Bucket) error {
 	now := time.Now()
 	bucket.CreatedAt = now
 	bucket.UpdatedAt = now
+	bucket.ID = uuid.NewString()
 	_, err := p.session.Exec(
 		"insert into bucket (id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
 		bucket.ID, bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, bucket.CreatedAt, bucket.UpdatedAt)

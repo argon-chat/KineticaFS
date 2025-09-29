@@ -5,7 +5,6 @@ import (
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // AddBucketsRoutes sets up the bucket endpoints.
@@ -67,7 +66,6 @@ func CreateBucketHandler(c *gin.Context) {
 		})
 		return
 	}
-	bucket.ID = uuid.NewString()
 	err = applicationRepository.Buckets.CreateBucket(&bucket)
 	if err != nil {
 		c.JSON(400, ErrorResponse{
