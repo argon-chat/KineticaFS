@@ -2,9 +2,11 @@ package scylla
 
 import (
 	"log"
+	"time"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gocql/gocql"
+	"github.com/google/uuid"
 )
 
 // DDL
@@ -105,6 +107,9 @@ func (s *ScyllaServiceTokenRepository) GetServiceTokenByName(name string) (*mode
 }
 
 func (s *ScyllaServiceTokenRepository) CreateServiceToken(token *models.ServiceToken) error {
+	token.ID = uuid.NewString()
+	token.CreatedAt = time.Now()
+	token.UpdatedAt = token.CreatedAt
 	query := s.session.Query(
 		"insert into servicetoken (id, name, accesskey, tokentype, createdat, updatedat) values (?, ?, ?, ?, ?, ?)",
 		token.ID, token.Name, token.AccessKey, int8(token.TokenType), token.CreatedAt, token.UpdatedAt)

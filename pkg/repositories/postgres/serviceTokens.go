@@ -3,8 +3,10 @@ package postgres
 import (
 	"database/sql"
 	"log"
+	"time"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
+	"github.com/google/uuid"
 )
 
 // DDL
@@ -116,6 +118,9 @@ func (p *PostgresServiceTokenRepository) GetServiceTokenByName(name string) (*mo
 }
 
 func (p *PostgresServiceTokenRepository) CreateServiceToken(token *models.ServiceToken) error {
+	token.ID = uuid.NewString()
+	token.CreatedAt = time.Now()
+	token.UpdatedAt = token.CreatedAt
 	_, err := p.session.Exec(
 		"insert into servicetoken (id, name, accesskey, tokentype, createdat, updatedat) values ($1, $2, $3, $4, $5, $6)",
 		token.ID, token.Name, token.AccessKey, int8(token.TokenType), token.CreatedAt, token.UpdatedAt)

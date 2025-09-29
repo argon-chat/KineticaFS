@@ -3,7 +3,6 @@ package router
 import (
 	"crypto/sha256"
 	"fmt"
-	"time"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gin-gonic/gin"
@@ -59,9 +58,6 @@ func CreateAdminServiceTokenHandler(c *gin.Context) {
 		AccessKey: fmt.Sprintf("%x", sha256.Sum256([]byte(uuid.NewString()))),
 		TokenType: models.AdminToken | models.UserToken,
 	}
-	token.ID = uuid.NewString()
-	token.CreatedAt = time.Now()
-	token.UpdatedAt = token.CreatedAt
 	err = applicationRepository.ServiceTokens.CreateServiceToken(&token)
 	if err != nil {
 		c.JSON(400, ErrorResponse{
@@ -136,9 +132,6 @@ func CreateServiceTokenHandler(c *gin.Context) {
 		AccessKey: fmt.Sprintf("%x", sha256.Sum256([]byte(uuid.NewString()))),
 		TokenType: models.UserToken,
 	}
-	token.ID = uuid.NewString()
-	token.CreatedAt = time.Now()
-	token.UpdatedAt = token.CreatedAt
 	err = applicationRepository.ServiceTokens.CreateServiceToken(&token)
 	if err != nil {
 		c.JSON(400, ErrorResponse{
