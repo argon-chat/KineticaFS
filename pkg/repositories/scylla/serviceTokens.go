@@ -112,5 +112,5 @@ func (s *ScyllaServiceTokenRepository) CreateServiceToken(token *models.ServiceT
 }
 
 func (s *ScyllaServiceTokenRepository) RevokeServiceToken(id string) error {
-	panic("implement me")
+	return s.session.Query("delete from servicetoken where id = ?", id).Exec()
 }

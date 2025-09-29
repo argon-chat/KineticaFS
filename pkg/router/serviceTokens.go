@@ -194,5 +194,36 @@ func GetServiceTokenHandler(c *gin.Context) {
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/st/{id} [delete]
 func DeleteServiceTokenHandler(c *gin.Context) {
-	// Implementation goes here
+	id := c.Param("id")
+	token, err := applicationRepository.ServiceTokens.GetServiceTokenById(id)
+	if err != nil {
+		c.JSON(500, ErrorResponse{
+			Code:    500,
+			Message: fmt.Sprintf("failed to get service token: %v", err),
+		})
+		return
+	}
+	if token == nil {
+		c.JSON(404, ErrorResponse{
+			Code:    404,
+			Message: "Service token not found",
+		})
+		return
+	}
+	if token.TokenType&models.AdminToken == models.AdminToken {
+		c.JSON(403, ErrorResponse{
+			Code:    403,
+			Message: "Cannot delete admin token",
+		})
+		return
+	}
+	err = applicationRepository.ServiceTokens.RevokeServiceToken(id)
+	if err != nil {
+		c.JSON(500, ErrorResponse{
+			Code:    500,
+			Message: fmt.Sprintf("failed to delete service token: %v", err),
+		})
+		return
+	}
+	c.Status(204)
 }
