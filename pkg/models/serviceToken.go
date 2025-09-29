@@ -3,8 +3,8 @@ package models
 type TokenType int8
 
 const (
-	AdminToken   TokenType = 1 << 0
-	RegularToken TokenType = 1 << 1
+	AdminToken TokenType = 1 << 0
+	UserToken  TokenType = 1 << 1
 )
 
 type ServiceToken struct {

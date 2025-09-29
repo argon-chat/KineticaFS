@@ -56,7 +56,7 @@ func CreateAdminServiceTokenHandler(c *gin.Context) {
 	token := models.ServiceToken{
 		Name:      "admin",
 		AccessKey: uuid.NewString(),
-		TokenType: models.AdminToken,
+		TokenType: models.AdminToken | models.UserToken,
 	}
 	token.ID = uuid.NewString()
 	token.CreatedAt = time.Now()
