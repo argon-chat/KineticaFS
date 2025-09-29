@@ -33,7 +33,10 @@ func NewScyllaBucketRepository(session *gocql.Session) *ScyllaBucketRepository {
 }
 
 func (s *ScyllaBucketRepository) CreateIndices() {
-	indexQueries := []string{}
+	indexQueries := []string{
+		"CREATE INDEX IF NOT EXISTS bucket_name_idx ON bucket (name)",
+		"CREATE INDEX IF NOT EXISTS bucket_region_idx ON bucket (region)",
+	}
 	for _, indexQuery := range indexQueries {
 		log.Printf("Executing index creation query: %s", indexQuery)
 		if err := s.session.Query(indexQuery).Exec(); err != nil {
@@ -42,25 +45,80 @@ func (s *ScyllaBucketRepository) CreateIndices() {
 	}
 }
 func (s *ScyllaBucketRepository) GetBucketByID(id string) (*models.Bucket, error) {
-	panic("implement me")
+	query := s.session.Query("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket where id = ?", id)
+	var bucket models.Bucket
+	var storageType int8
+	var useSSL bool
+	if err := query.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &useSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt); err != nil {
+		if err == gocql.ErrNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	bucket.StorageType = models.StorageType(storageType)
+	bucket.UseSSL = useSSL
+	return &bucket, nil
 }
 
 func (s *ScyllaBucketRepository) GetBucketByName(name string) (*models.Bucket, error) {
-	panic("implement me")
+	query := s.session.Query("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket where name = ?", name)
+	var bucket models.Bucket
+	var storageType int8
+	var useSSL bool
+	if err := query.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &useSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt); err != nil {
+		if err == gocql.ErrNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	bucket.StorageType = models.StorageType(storageType)
+	bucket.UseSSL = useSSL
+	return &bucket, nil
 }
 
 func (s *ScyllaBucketRepository) CreateBucket(bucket *models.Bucket) error {
-	panic("implement me")
+	query := s.session.Query(
+		"insert into bucket (id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		bucket.ID, bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, bucket.CreatedAt, bucket.UpdatedAt)
+	return query.Exec()
 }
 
 func (s *ScyllaBucketRepository) UpdateBucket(bucket *models.Bucket) error {
-	panic("implement me")
+	query := s.session.Query(
+		"update bucket set name = ?, region = ?, endpoint = ?, s3provider = ?, accesskey = ?, secretkey = ?, storagetype = ?, usessl = ?, customconfig = ?, updatedat = ? where id = ?",
+		bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, bucket.UpdatedAt, bucket.ID)
+	return query.Exec()
 }
 
 func (s *ScyllaBucketRepository) DeleteBucket(id string) error {
-	panic("implement me")
+	return s.session.Query("delete from bucket where id = ?", id).Exec()
 }
 
 func (s *ScyllaBucketRepository) ListBuckets() ([]*models.Bucket, error) {
-	panic("implement me")
+	var buckets []*models.Bucket
+	iter := s.session.Query("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket").Iter()
+	var bucket models.Bucket
+	var storageType int8
+	var useSSL bool
+	for iter.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &useSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt) {
+		bucket.StorageType = models.StorageType(storageType)
+		bucket.UseSSL = useSSL
+		newBucket := &models.Bucket{
+			ApplicationModel: bucket.ApplicationModel,
+			Name:             bucket.Name,
+			Region:           bucket.Region,
+			Endpoint:         bucket.Endpoint,
+			S3Provider:       bucket.S3Provider,
+			AccessKey:        bucket.AccessKey,
+			SecretKey:        bucket.SecretKey,
+			StorageType:      bucket.StorageType,
+			UseSSL:           bucket.UseSSL,
+			CustomConfig:     bucket.CustomConfig,
+		}
+		buckets = append(buckets, newBucket)
+	}
+	if err := iter.Close(); err != nil {
+		return nil, err
+	}
+	return buckets, nil
 }

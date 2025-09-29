@@ -34,7 +34,10 @@ func NewPostgresBucketRepository(session *sql.DB) *PostgresBucketRepository {
 }
 
 func (s *PostgresBucketRepository) CreateIndices() {
-	indexQueries := []string{}
+	indexQueries := []string{
+		"create index if not exists bucket_name_idx on bucket (name)",
+		"create index if not exists bucket_region_idx on bucket (region)",
+	}
 	for _, indexQuery := range indexQueries {
 		log.Printf("Executing index creation query: %s", indexQuery)
 		if _, err := s.session.Exec(indexQuery); err != nil {
@@ -43,25 +46,91 @@ func (s *PostgresBucketRepository) CreateIndices() {
 	}
 }
 func (p *PostgresBucketRepository) GetBucketByID(id string) (*models.Bucket, error) {
-	panic("implement me")
+	row := p.session.QueryRow("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket where id = $1", id)
+	var bucket models.Bucket
+	var storageType int8
+	var useSSL bool
+	err := row.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &useSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	bucket.StorageType = models.StorageType(storageType)
+	bucket.UseSSL = useSSL
+	return &bucket, nil
 }
 
 func (p *PostgresBucketRepository) GetBucketByName(name string) (*models.Bucket, error) {
-	panic("implement me")
+	row := p.session.QueryRow("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket where name = $1", name)
+	var bucket models.Bucket
+	var storageType int8
+	var useSSL bool
+	err := row.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &useSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	bucket.StorageType = models.StorageType(storageType)
+	bucket.UseSSL = useSSL
+	return &bucket, nil
 }
 
 func (p *PostgresBucketRepository) CreateBucket(bucket *models.Bucket) error {
-	panic("implement me")
+	_, err := p.session.Exec(
+		"insert into bucket (id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+		bucket.ID, bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, bucket.CreatedAt, bucket.UpdatedAt)
+	return err
 }
 
 func (p *PostgresBucketRepository) UpdateBucket(bucket *models.Bucket) error {
-	panic("implement me")
+	_, err := p.session.Exec(
+		"update bucket set name = $1, region = $2, endpoint = $3, s3provider = $4, accesskey = $5, secretkey = $6, storagetype = $7, usessl = $8, customconfig = $9, updatedat = $10 where id = $11",
+		bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, bucket.UpdatedAt, bucket.ID)
+	return err
 }
 
 func (p *PostgresBucketRepository) DeleteBucket(id string) error {
-	panic("implement me")
+	_, err := p.session.Exec("delete from bucket where id = $1", id)
+	return err
 }
 
 func (p *PostgresBucketRepository) ListBuckets() ([]*models.Bucket, error) {
-	panic("implement me")
+	rows, err := p.session.Query("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var buckets []*models.Bucket
+	for rows.Next() {
+		var bucket models.Bucket
+		var storageType int8
+		var useSSL bool
+		err := rows.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &useSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		bucket.StorageType = models.StorageType(storageType)
+		bucket.UseSSL = useSSL
+		newBucket := &models.Bucket{
+			ApplicationModel: bucket.ApplicationModel,
+			Name:             bucket.Name,
+			Region:           bucket.Region,
+			Endpoint:         bucket.Endpoint,
+			S3Provider:       bucket.S3Provider,
+			AccessKey:        bucket.AccessKey,
+			SecretKey:        bucket.SecretKey,
+			StorageType:      bucket.StorageType,
+			UseSSL:           bucket.UseSSL,
+			CustomConfig:     bucket.CustomConfig,
+		}
+		buckets = append(buckets, newBucket)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return buckets, nil
 }

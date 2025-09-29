@@ -117,6 +117,12 @@ paths:
   /v1/bucket/:
     get:
       description: List all S3 buckets
+      parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -126,6 +132,14 @@ paths:
             items:
               $ref: '#/definitions/models.Bucket'
             type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "403":
+          description: Forbidden - Admin only
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
       summary: List buckets
       tags:
       - buckets
@@ -134,6 +148,11 @@ paths:
       - application/json
       description: Create a new S3 bucket. Only admin users can create buckets.
       parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       - description: Bucket
         in: body
         name: bucket
@@ -151,8 +170,12 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/router.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
         "403":
-          description: Forbidden
+          description: Forbidden - Admin only
           schema:
             $ref: '#/definitions/router.ErrorResponse'
       summary: Create bucket
@@ -162,6 +185,11 @@ paths:
     delete:
       description: Delete a bucket by ID. Only admin users can delete buckets.
       parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       - description: Bucket ID
         in: path
         name: id
@@ -170,8 +198,12 @@ paths:
       responses:
         "204":
           description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
         "403":
-          description: Forbidden
+          description: Forbidden - Admin only
           schema:
             $ref: '#/definitions/router.ErrorResponse'
         "404":
@@ -184,6 +216,11 @@ paths:
     get:
       description: Get a bucket by ID
       parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       - description: Bucket ID
         in: path
         name: id
@@ -196,6 +233,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.Bucket'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "403":
+          description: Forbidden - Admin only
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -208,6 +253,11 @@ paths:
       - application/json
       description: Update a bucket by ID. Only admin users can update buckets.
       parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       - description: Bucket ID
         in: path
         name: id
@@ -230,8 +280,12 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/router.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
         "403":
-          description: Forbidden
+          description: Forbidden - Admin only
           schema:
             $ref: '#/definitions/router.ErrorResponse'
         "404":

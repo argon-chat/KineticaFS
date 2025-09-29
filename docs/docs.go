@@ -25,6 +25,15 @@ const docTemplate = `{
                     "buckets"
                 ],
                 "summary": "List buckets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -33,6 +42,18 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.Bucket"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
                         }
                     }
                 }
@@ -50,6 +71,13 @@ const docTemplate = `{
                 ],
                 "summary": "Create bucket",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Bucket",
                         "name": "bucket",
@@ -73,8 +101,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Forbidden - Admin only",
                         "schema": {
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
@@ -95,6 +129,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Bucket ID",
                         "name": "id",
                         "in": "path",
@@ -106,6 +147,18 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Bucket"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
                         }
                     },
                     "404": {
@@ -125,6 +178,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Bucket ID",
                         "name": "id",
                         "in": "path",
@@ -135,8 +195,14 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content"
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Forbidden - Admin only",
                         "schema": {
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
@@ -164,6 +230,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Bucket ID",
                         "name": "id",
                         "in": "path",
@@ -192,8 +265,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Forbidden - Admin only",
                         "schema": {
                             "$ref": "#/definitions/router.ErrorResponse"
                         }

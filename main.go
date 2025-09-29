@@ -94,7 +94,7 @@ func init() {
 	pflag.String("scylla", "localhost:9042", "ScyllaDB host:port")
 	pflag.BoolP("migrate", "m", false, "Run migrations")
 	pflag.Int("port", 3000, "Server port")
-	pflag.String("database", "scylla", "Database backend type (scylla, postgres)")
+	pflag.StringP("database", "d", "scylla", "Database backend type (scylla, postgres)")
 	pflag.BoolP("bootstrap", "b", false, "Bootstrap admin service token (makes HTTP request to /v1/st/bootstrap)")
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
