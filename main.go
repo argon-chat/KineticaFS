@@ -1,7 +1,11 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"log"
+	"net/http"
 
 	_ "github.com/argon-chat/KineticaFS/docs"
 	"github.com/argon-chat/KineticaFS/pkg/repositories"
@@ -11,7 +15,11 @@ import (
 )
 
 func main() {
-	initConfig()
+	// initConfig()
+	if viper.GetBool("bootstrap") {
+		bootstrapAdminToken()
+		return
+	}
 	repo, err := repositories.NewApplicationRepository()
 	if err != nil {
 		log.Fatalf("Failed to initialize repository: %v", err)
@@ -28,7 +36,40 @@ func main() {
 	}
 }
 
-func initConfig() {
+func bootstrapAdminToken() {
+	port := viper.GetInt("port")
+	url := "http://localhost:" + fmt.Sprint(port) + "/v1/st/bootstrap"
+	resp, err := http.Post(url, "application/json", nil)
+	if err != nil {
+		log.Fatalf("Failed to make bootstrap request: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 201 {
+		body, _ := io.ReadAll(resp.Body)
+		log.Fatalf("Bootstrap failed: %s\n%s", resp.Status, string(body))
+	}
+	var token struct {
+		ID        string `json:"id"`
+		Name      string `json:"name"`
+		AccessKey string `json:"access_key"`
+		TokenType int8   `json:"token_type"`
+		CreatedAt string `json:"created_at"`
+		UpdatedAt string `json:"updated_at"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
+		log.Fatalf("Failed to decode bootstrap response: %v", err)
+	}
+	log.Println("Admin service token created:")
+	log.Printf("  ID: %s", token.ID)
+	log.Printf("  Name: %s", token.Name)
+	log.Printf("  AccessKey: %s", token.AccessKey)
+	log.Printf("  TokenType: %d", token.TokenType)
+	log.Printf("  CreatedAt: %s", token.CreatedAt)
+	log.Printf("  UpdatedAt: %s", token.UpdatedAt)
+	log.Println("Store the AccessKey securely; it will not be shown again.")
+}
+
+func init() {
 	viper.SetDefault("server", false)
 	viper.SetDefault("token", "")
 	viper.SetDefault("scylla", "localhost:9042")
@@ -42,7 +83,7 @@ func initConfig() {
 	pflag.BoolP("migrate", "m", false, "Run migrations")
 	pflag.Int("port", 3000, "Server port")
 	pflag.String("database", "scylla", "Database backend type (scylla, postgres)")
-
+	pflag.BoolP("bootstrap", "b", false, "Bootstrap admin service token (makes HTTP request to /v1/st/bootstrap)")
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
 
