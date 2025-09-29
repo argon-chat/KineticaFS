@@ -84,7 +84,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Bucket"
+                            "$ref": "#/definitions/router.BucketInsertDTO"
                         }
                     }
                 ],
@@ -248,7 +248,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Bucket"
+                            "$ref": "#/definitions/router.BucketInsertDTO"
                         }
                     }
                 ],
@@ -783,6 +783,9 @@ const docTemplate = `{
                 "path": {
                     "type": "string"
                 },
+                "references": {
+                    "type": "integer"
+                },
                 "updated_at": {
                     "type": "string"
                 }
@@ -838,6 +841,45 @@ const docTemplate = `{
                 "AdminToken",
                 "UserToken"
             ]
+        },
+        "router.BucketInsertDTO": {
+            "type": "object",
+            "required": [
+                "access_key",
+                "endpoint",
+                "name",
+                "region",
+                "secret_key"
+            ],
+            "properties": {
+                "access_key": {
+                    "type": "string"
+                },
+                "custom_config": {
+                    "type": "string"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "s3_provider": {
+                    "type": "string"
+                },
+                "secret_key": {
+                    "type": "string"
+                },
+                "storage_type": {
+                    "$ref": "#/definitions/models.StorageType"
+                },
+                "use_ssl": {
+                    "type": "boolean"
+                }
+            }
         },
         "router.CreateServiceTokenRequestDto": {
             "type": "object",
