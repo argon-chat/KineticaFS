@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
@@ -111,6 +112,7 @@ func newPostgresRepository(connectionString string) (*ApplicationRepository, err
 		Buckets:       postgres.NewPostgresBucketRepository(repository.DB),
 		Files:         postgres.NewPostgresFileRepository(repository.DB),
 	}
+	log.Printf("Postgres repository created: %+v", ar)
 	return ar, nil
 }
 
@@ -128,5 +130,6 @@ func newScyllaRepository(connectionString string) (*ApplicationRepository, error
 		Buckets:       scylla.NewScyllaBucketRepository(repository.Session),
 		Files:         scylla.NewScyllaFileRepository(repository.Session),
 	}
+	log.Printf("Scylla repository created: %+v", ar)
 	return ar, nil
 }
