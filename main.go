@@ -14,8 +14,16 @@ import (
 	"github.com/spf13/viper"
 )
 
+var asciiArt = `
+  _  __ _          _____  _______  _      
+ | |/ /(_)        / ____||__   __|| |     
+ | ' /  _  _ __  | |        | |   | |     
+ |  <  | || '_ \ | |        | |   | |     
+ | . \ | || | | || |____    | |   | |____ 
+ |_|\_\|_||_| |_| \_____|   |_|   |______|                                                                               
+`
+
 func main() {
-	// initConfig()
 	if viper.GetBool("bootstrap") {
 		bootstrapAdminToken()
 		return
@@ -70,6 +78,10 @@ func bootstrapAdminToken() {
 }
 
 func init() {
+	fmt.Println(asciiArt)
+	fmt.Println("Welcome to KineticaFS!")
+	fmt.Println("Initializing configuration...")
+	fmt.Println()
 	viper.SetDefault("server", false)
 	viper.SetDefault("token", "")
 	viper.SetDefault("scylla", "localhost:9042")
