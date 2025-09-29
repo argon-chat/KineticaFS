@@ -1,6 +1,7 @@
 package router
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"time"
 
@@ -55,7 +56,7 @@ func CreateAdminServiceTokenHandler(c *gin.Context) {
 	}
 	token := models.ServiceToken{
 		Name:      "admin",
-		AccessKey: uuid.NewString(),
+		AccessKey: fmt.Sprintf("%x", sha256.Sum256([]byte(uuid.NewString()))),
 		TokenType: models.AdminToken | models.UserToken,
 	}
 	token.ID = uuid.NewString()

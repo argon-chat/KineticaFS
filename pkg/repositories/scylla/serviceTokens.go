@@ -29,6 +29,7 @@ func NewScyllaServiceTokenRepository(session *gocql.Session) *ScyllaServiceToken
 func (s *ScyllaServiceTokenRepository) CreateIndices() {
 	indexQueries := []string{
 		"CREATE INDEX IF NOT EXISTS servicetoken_name_idx ON servicetoken (name)",
+		"CREATE INDEX IF NOT EXISTS servicetoken_accesskey_idx ON servicetoken (accesskey)",
 	}
 	for _, indexQuery := range indexQueries {
 		log.Printf("Executing index creation query: %s", indexQuery)
@@ -36,6 +37,10 @@ func (s *ScyllaServiceTokenRepository) CreateIndices() {
 			log.Printf("Error creating index: %v", err)
 		}
 	}
+}
+
+func (s *ScyllaServiceTokenRepository) GetServiceTokenByAccessKey(accessKey string) (*models.ServiceToken, error) {
+	return nil, nil
 }
 
 func (s *ScyllaServiceTokenRepository) GetServiceTokenById(id string) (*models.ServiceToken, error) {

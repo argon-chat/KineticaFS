@@ -28,6 +28,9 @@ func (p *PostgresServiceTokenRepository) GetServiceTokenById(id string) (*models
 	panic("implement me")
 }
 
+func (s *PostgresServiceTokenRepository) GetServiceTokenByAccessKey(accessKey string) (*models.ServiceToken, error) {
+	return nil, nil
+}
 func (p *PostgresServiceTokenRepository) GetServiceTokenByName(name string) (*models.ServiceToken, error) {
 	panic("implement me")
 }
