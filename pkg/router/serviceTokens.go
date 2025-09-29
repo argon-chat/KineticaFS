@@ -163,7 +163,23 @@ func CreateServiceTokenHandler(c *gin.Context) {
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/st/{id} [get]
 func GetServiceTokenHandler(c *gin.Context) {
-	// Implementation goes here
+	id := c.Param("id")
+	token, err := applicationRepository.ServiceTokens.GetServiceTokenById(id)
+	if err != nil {
+		c.JSON(500, ErrorResponse{
+			Code:    500,
+			Message: fmt.Sprintf("failed to get service token: %v", err),
+		})
+		return
+	}
+	if token == nil {
+		c.JSON(404, ErrorResponse{
+			Code:    404,
+			Message: "Service token not found",
+		})
+		return
+	}
+	c.JSON(200, token)
 }
 
 // DeleteServiceTokenHandler deletes a service token by ID
