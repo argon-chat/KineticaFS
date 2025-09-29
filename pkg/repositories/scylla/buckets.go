@@ -2,6 +2,7 @@ package scylla
 
 import (
 	"log"
+	"time"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gocql/gocql"
@@ -77,6 +78,9 @@ func (s *ScyllaBucketRepository) GetBucketByName(name string) (*models.Bucket, e
 }
 
 func (s *ScyllaBucketRepository) CreateBucket(bucket *models.Bucket) error {
+	now := time.Now()
+	bucket.CreatedAt = now
+	bucket.UpdatedAt = now
 	query := s.session.Query(
 		"insert into bucket (id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		bucket.ID, bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, bucket.CreatedAt, bucket.UpdatedAt)
@@ -86,7 +90,7 @@ func (s *ScyllaBucketRepository) CreateBucket(bucket *models.Bucket) error {
 func (s *ScyllaBucketRepository) UpdateBucket(bucket *models.Bucket) error {
 	query := s.session.Query(
 		"update bucket set name = ?, region = ?, endpoint = ?, s3provider = ?, accesskey = ?, secretkey = ?, storagetype = ?, usessl = ?, customconfig = ?, updatedat = ? where id = ?",
-		bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, bucket.UpdatedAt, bucket.ID)
+		bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, time.Now(), bucket.ID)
 	return query.Exec()
 }
 

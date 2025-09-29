@@ -2,7 +2,6 @@ package router
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gin-gonic/gin"
@@ -19,6 +18,18 @@ func AddBucketsRoutes(v1 *gin.RouterGroup) {
 	bucket.DELETE("/:id", AuthMiddleware, AdminOnlyMiddleware, DeleteBucketHandler)
 }
 
+type BucketInsertDTO struct {
+	Name         string             `json:"name" binding:"required" gorm:"uniqueIndex"`
+	Region       string             `json:"region" binding:"required"`
+	Endpoint     string             `json:"endpoint" binding:"required"`
+	AccessKey    string             `json:"access_key" binding:"required"`
+	SecretKey    string             `json:"secret_key" binding:"required"`
+	UseSSL       bool               `json:"use_ssl"`
+	S3Provider   string             `json:"s3_provider"`
+	CustomConfig string             `json:"custom_config,omitempty"`
+	StorageType  models.StorageType `json:"storage_type" gorm:"default:0"`
+}
+
 // CreateBucketHandler creates a new bucket
 // @Summary Create bucket
 // @Description Create a new S3 bucket. Only admin users can create buckets.
@@ -26,7 +37,7 @@ func AddBucketsRoutes(v1 *gin.RouterGroup) {
 // @Param x-api-token header string true "API Token"
 // @Accept json
 // @Produce json
-// @Param bucket body models.Bucket true "Bucket"
+// @Param bucket body BucketInsertDTO true "Bucket"
 // @Success 201 {object} models.Bucket
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
@@ -57,8 +68,6 @@ func CreateBucketHandler(c *gin.Context) {
 		return
 	}
 	bucket.ID = uuid.NewString()
-	bucket.CreatedAt = time.Now()
-	bucket.UpdatedAt = bucket.CreatedAt
 	err = applicationRepository.Buckets.CreateBucket(&bucket)
 	if err != nil {
 		c.JSON(400, ErrorResponse{
@@ -132,7 +141,7 @@ func GetBucketHandler(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Bucket ID"
-// @Param bucket body models.Bucket true "Bucket"
+// @Param bucket body BucketInsertDTO true "Bucket"
 // @Success 200 {object} models.Bucket
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
@@ -164,7 +173,6 @@ func UpdateBucketHandler(c *gin.Context) {
 		})
 		return
 	}
-	// Only update allowed fields
 	bucket.Name = req.Name
 	bucket.Region = req.Region
 	bucket.Endpoint = req.Endpoint
@@ -174,7 +182,6 @@ func UpdateBucketHandler(c *gin.Context) {
 	bucket.S3Provider = req.S3Provider
 	bucket.CustomConfig = req.CustomConfig
 	bucket.StorageType = req.StorageType
-	bucket.UpdatedAt = time.Now()
 	err = applicationRepository.Buckets.UpdateBucket(bucket)
 	if err != nil {
 		c.JSON(400, ErrorResponse{
