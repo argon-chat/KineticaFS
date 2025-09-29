@@ -24,10 +24,10 @@ type CreateServiceTokenRequestDto struct {
 func AddServiceTokenRoutes(v1 *gin.RouterGroup) {
 	st := v1.Group("/st")
 	st.POST("/bootstrap", CreateAdminServiceTokenHandler)
-	st.GET("/", ListAllServiceTokens)
-	st.POST("/", CreateServiceTokenHandler)
-	st.GET("/:id", GetServiceTokenHandler)
-	st.DELETE("/:id", DeleteServiceTokenHandler)
+	st.GET("/", AuthMiddleware, AdminOnlyMiddleware, ListAllServiceTokens)
+	st.POST("/", AuthMiddleware, AdminOnlyMiddleware, CreateServiceTokenHandler)
+	st.GET("/:id", AuthMiddleware, AdminOnlyMiddleware, GetServiceTokenHandler)
+	st.DELETE("/:id", AuthMiddleware, AdminOnlyMiddleware, DeleteServiceTokenHandler)
 }
 
 // @Summary Bootstrap admin token
