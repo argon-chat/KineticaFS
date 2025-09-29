@@ -108,7 +108,46 @@ func ListAllServiceTokens(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Router /v1/st/ [post]
 func CreateServiceTokenHandler(c *gin.Context) {
-	// Implementation goes here
+	var req CreateServiceTokenRequestDto
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, ErrorResponse{
+			Code:    400,
+			Message: fmt.Sprintf("invalid request body: %v", err),
+		})
+		return
+	}
+	existingToken, err := applicationRepository.ServiceTokens.GetServiceTokenByName(req.Name)
+	if err != nil {
+		c.JSON(400, ErrorResponse{
+			Code:    400,
+			Message: fmt.Sprintf("failed to check existing token: %v", err),
+		})
+		return
+	}
+	if existingToken != nil {
+		c.JSON(409, ErrorResponse{
+			Code:    409,
+			Message: "Service token with the same name already exists",
+		})
+		return
+	}
+	token := models.ServiceToken{
+		Name:      req.Name,
+		AccessKey: fmt.Sprintf("%x", sha256.Sum256([]byte(uuid.NewString()))),
+		TokenType: models.UserToken,
+	}
+	token.ID = uuid.NewString()
+	token.CreatedAt = time.Now()
+	token.UpdatedAt = token.CreatedAt
+	err = applicationRepository.ServiceTokens.CreateServiceToken(&token)
+	if err != nil {
+		c.JSON(400, ErrorResponse{
+			Code:    400,
+			Message: fmt.Sprintf("failed to create service token: %v", err),
+		})
+		return
+	}
+	c.JSON(201, token)
 }
 
 // GetServiceTokenHandler gets a service token by ID
