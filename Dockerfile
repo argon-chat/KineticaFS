@@ -14,4 +14,4 @@ WORKDIR /app
 COPY --from=builder /app/kinctl /usr/local/bin/kinctl
 COPY --from=builder /app/docs /usr/local/bin/docs
 EXPOSE 3000
-CMD ["kinctl", "--server", "--port", "3000"]
+CMD ["kinctl", "--server", "--migrate", "--port", "3000"]
