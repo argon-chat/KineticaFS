@@ -34,7 +34,7 @@ func convertGoTypeToPostgres(goType string) string {
 	switch goType {
 	case "string":
 		return "TEXT"
-	case "int", "int8", "int16", "int32":
+	case "int", "int8", "int16", "int32", "StorageType", "TokenType":
 		return "INTEGER"
 	case "int64":
 		return "BIGINT"

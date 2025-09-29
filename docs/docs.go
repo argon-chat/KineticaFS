@@ -659,6 +659,9 @@ const docTemplate = `{
                 "secret_key": {
                     "type": "string"
                 },
+                "storage_type": {
+                    "$ref": "#/definitions/models.StorageType"
+                },
                 "updated_at": {
                     "type": "string"
                 },
@@ -732,6 +735,18 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.StorageType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "HotStorage",
+                "ColdStorage"
+            ]
         },
         "models.TokenType": {
             "type": "integer",

@@ -7,6 +7,24 @@ import (
 	"github.com/argon-chat/KineticaFS/pkg/models"
 )
 
+// DDL
+// bucket
+// (
+//     createdat    timestamp,
+//     updatedat    timestamp,
+//     region       text,
+//     endpoint     text,
+//     accesskey    text,
+//     s3provider   text,
+//     storagetype  integer,
+//     id           text not null
+//         primary key,
+//     name         text,
+//     secretkey    text,
+//     usessl       boolean,
+//     customconfig text
+// )
+
 type PostgresBucketRepository struct {
 	session *sql.DB
 }

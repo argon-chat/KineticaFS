@@ -28,7 +28,7 @@ func convertGoTypeToScylla(goType string) string {
 	switch goType {
 	case "string":
 		return "text"
-	case "int", "int8", "int16", "int32", "int64", "TokenType":
+	case "int", "int8", "int16", "int32", "int64", "TokenType", "StorageType":
 		return "int"
 	case "uint", "uint8", "uint16", "uint32", "uint64":
 		return "varint"

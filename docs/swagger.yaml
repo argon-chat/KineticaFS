@@ -19,6 +19,8 @@ definitions:
         type: string
       secret_key:
         type: string
+      storage_type:
+        $ref: '#/definitions/models.StorageType'
       updated_at:
         type: string
       use_ssl:
@@ -74,6 +76,15 @@ definitions:
     - access_key
     - name
     type: object
+  models.StorageType:
+    enum:
+    - 0
+    - 1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - HotStorage
+    - ColdStorage
   models.TokenType:
     enum:
     - 1

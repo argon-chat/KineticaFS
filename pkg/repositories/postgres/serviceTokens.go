@@ -12,7 +12,7 @@ import (
 // (
 //     name      text,
 //     accesskey text,
-//     tokentype text,
+//     tokentype integer,
 //     id        text not null
 //         primary key,
 //     createdat timestamp,
