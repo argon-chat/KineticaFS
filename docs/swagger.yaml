@@ -67,13 +67,22 @@ definitions:
       name:
         type: string
       token_type:
-        type: integer
+        $ref: '#/definitions/models.TokenType'
       updated_at:
         type: string
     required:
     - access_key
     - name
     type: object
+  models.TokenType:
+    enum:
+    - 1
+    - 2
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - AdminToken
+    - UserToken
   router.CreateServiceTokenRequestDto:
     properties:
       name:
@@ -305,6 +314,12 @@ paths:
   /v1/st/:
     get:
       description: List all service tokens (admin only).
+      parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -314,8 +329,12 @@ paths:
             items:
               $ref: '#/definitions/models.ServiceToken'
             type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
         "403":
-          description: Forbidden
+          description: Forbidden - Admin only
           schema:
             $ref: '#/definitions/router.ErrorResponse'
       summary: List all service tokens
@@ -327,6 +346,11 @@ paths:
       description: Create a new service token. Only one admin token can exist. Only
         admin can create/delete other tokens. Admin token cannot be deleted.
       parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       - description: Service Token Request
         in: body
         name: request
@@ -344,6 +368,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/router.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "403":
+          description: Forbidden - Admin only
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
       summary: Create service token
       tags:
       - service-tokens
@@ -352,6 +384,11 @@ paths:
       description: Delete a service token by ID. Only admin can delete other tokens.
         Admin token cannot be deleted.
       parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       - description: Token ID
         in: path
         name: id
@@ -360,8 +397,12 @@ paths:
       responses:
         "204":
           description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
         "403":
-          description: Forbidden
+          description: Forbidden - Admin only
           schema:
             $ref: '#/definitions/router.ErrorResponse'
         "404":
@@ -374,6 +415,11 @@ paths:
     get:
       description: Get a service token by ID
       parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       - description: Token ID
         in: path
         name: id
@@ -386,6 +432,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.ServiceToken'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "403":
+          description: Forbidden - Admin only
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
         "404":
           description: Not Found
           schema:

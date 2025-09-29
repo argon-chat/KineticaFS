@@ -28,6 +28,7 @@ type IFileRepository interface {
 
 type IServiceTokenRepository interface {
 	IRepository
+	GetAllServiceTokens() ([]*models.ServiceToken, error)
 	GetServiceTokenById(id string) (*models.ServiceToken, error)
 	GetServiceTokenByAccessKey(accessKey string) (*models.ServiceToken, error)
 	GetServiceTokenByName(name string) (*models.ServiceToken, error)

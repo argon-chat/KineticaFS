@@ -40,11 +40,46 @@ func (s *ScyllaServiceTokenRepository) CreateIndices() {
 }
 
 func (s *ScyllaServiceTokenRepository) GetServiceTokenByAccessKey(accessKey string) (*models.ServiceToken, error) {
-	return nil, nil
+	query := s.session.Query("select id, name, accesskey, tokentype, createdat, updatedat from servicetoken where accesskey = ?", accessKey)
+	var token models.ServiceToken
+	var tokenType int8
+	if err := query.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt); err != nil {
+		if err == gocql.ErrNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	token.TokenType = models.TokenType(tokenType)
+	return &token, nil
+}
+
+func (s *ScyllaServiceTokenRepository) GetAllServiceTokens() ([]*models.ServiceToken, error) {
+	var tokens []*models.ServiceToken
+	iter := s.session.Query("select id, name, accesskey, tokentype, createdat, updatedat from servicetoken").Iter()
+	var token models.ServiceToken
+	var tokenType int8
+	for iter.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt) {
+		token.TokenType = models.TokenType(tokenType)
+		tokens = append(tokens, &token)
+	}
+	if err := iter.Close(); err != nil {
+		return nil, err
+	}
+	return tokens, nil
 }
 
 func (s *ScyllaServiceTokenRepository) GetServiceTokenById(id string) (*models.ServiceToken, error) {
-	panic("implement me")
+	query := s.session.Query("select id, name, accesskey, tokentype, createdat, updatedat from servicetoken where id = ?", id)
+	var token models.ServiceToken
+	var tokenType int8
+	if err := query.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt); err != nil {
+		if err == gocql.ErrNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	token.TokenType = models.TokenType(tokenType)
+	return &token, nil
 }
 
 func (s *ScyllaServiceTokenRepository) GetServiceTokenByName(name string) (*models.ServiceToken, error) {

@@ -28,6 +28,10 @@ func (p *PostgresServiceTokenRepository) GetServiceTokenById(id string) (*models
 	panic("implement me")
 }
 
+func (s *PostgresServiceTokenRepository) GetAllServiceTokens() ([]*models.ServiceToken, error) {
+	var tokens []*models.ServiceToken
+	return tokens, nil
+}
 func (s *PostgresServiceTokenRepository) GetServiceTokenByAccessKey(accessKey string) (*models.ServiceToken, error) {
 	return nil, nil
 }

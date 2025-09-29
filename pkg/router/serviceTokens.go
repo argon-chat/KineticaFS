@@ -76,23 +76,36 @@ func CreateAdminServiceTokenHandler(c *gin.Context) {
 // @Summary List all service tokens
 // @Description List all service tokens (admin only).
 // @Tags service-tokens
+// @Param x-api-token header string true "API Token"
 // @Produce json
 // @Success 200 {array} models.ServiceToken
-// @Failure 403 {object} router.ErrorResponse
+// @Failure 401 {object} router.ErrorResponse "Unauthorized"
+// @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Router /v1/st/ [get]
 func ListAllServiceTokens(c *gin.Context) {
-
+	tokens, err := applicationRepository.ServiceTokens.GetAllServiceTokens()
+	if err != nil {
+		c.JSON(500, ErrorResponse{
+			Code:    500,
+			Message: fmt.Sprintf("failed to list service tokens: %v", err),
+		})
+		return
+	}
+	c.JSON(200, tokens)
 }
 
 // CreateServiceTokenHandler creates a new service token
 // @Summary Create service token
 // @Description Create a new service token. Only one admin token can exist. Only admin can create/delete other tokens. Admin token cannot be deleted.
 // @Tags service-tokens
+// @Param x-api-token header string true "API Token"
 // @Accept json
 // @Produce json
 // @Param request body CreateServiceTokenRequestDto true "Service Token Request"
 // @Success 201 {object} models.ServiceToken
 // @Failure 400 {object} router.ErrorResponse
+// @Failure 401 {object} router.ErrorResponse "Unauthorized"
+// @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Router /v1/st/ [post]
 func CreateServiceTokenHandler(c *gin.Context) {
 	// Implementation goes here
@@ -102,9 +115,12 @@ func CreateServiceTokenHandler(c *gin.Context) {
 // @Summary Get service token
 // @Description Get a service token by ID
 // @Tags service-tokens
+// @Param x-api-token header string true "API Token"
 // @Produce json
 // @Param id path string true "Token ID"
 // @Success 200 {object} models.ServiceToken
+// @Failure 401 {object} router.ErrorResponse "Unauthorized"
+// @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/st/{id} [get]
 func GetServiceTokenHandler(c *gin.Context) {
@@ -115,9 +131,11 @@ func GetServiceTokenHandler(c *gin.Context) {
 // @Summary Delete service token
 // @Description Delete a service token by ID. Only admin can delete other tokens. Admin token cannot be deleted.
 // @Tags service-tokens
+// @Param x-api-token header string true "API Token"
 // @Param id path string true "Token ID"
 // @Success 204 {object} nil
-// @Failure 403 {object} router.ErrorResponse
+// @Failure 401 {object} router.ErrorResponse "Unauthorized"
+// @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/st/{id} [delete]
 func DeleteServiceTokenHandler(c *gin.Context) {

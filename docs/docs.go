@@ -337,6 +337,15 @@ const docTemplate = `{
                     "service-tokens"
                 ],
                 "summary": "List all service tokens",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -347,8 +356,14 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Forbidden - Admin only",
                         "schema": {
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
@@ -369,6 +384,13 @@ const docTemplate = `{
                 "summary": "Create service token",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Service Token Request",
                         "name": "request",
                         "in": "body",
@@ -387,6 +409,18 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only",
                         "schema": {
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
@@ -439,6 +473,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Token ID",
                         "name": "id",
                         "in": "path",
@@ -450,6 +491,18 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.ServiceToken"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
                         }
                     },
                     "404": {
@@ -469,6 +522,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Token ID",
                         "name": "id",
                         "in": "path",
@@ -479,8 +539,14 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content"
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Forbidden - Admin only",
                         "schema": {
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
@@ -660,12 +726,24 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "token_type": {
-                    "type": "integer"
+                    "$ref": "#/definitions/models.TokenType"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
+        },
+        "models.TokenType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "AdminToken",
+                "UserToken"
+            ]
         },
         "router.CreateServiceTokenRequestDto": {
             "type": "object",

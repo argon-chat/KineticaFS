@@ -181,7 +181,7 @@ docker-run: docker-build
 	docker run -p 3000:3000 $(DOCKER_IMAGE):latest
 
 ## Run dev with docker compose
-docker-dev:
+docker-dev: docs
 	@echo "$(BLUE)Starting development environment with Docker Compose...$(NC)"
 	docker compose down; docker volume prune -af; docker compose up -d; sleep 10; go run . -m -s
 
