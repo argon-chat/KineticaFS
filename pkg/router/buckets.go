@@ -51,7 +51,8 @@ func CreateBucketHandler(c *gin.Context) {
 		})
 		return
 	}
-	existing, err := applicationRepository.Buckets.GetBucketByName(bucket.Name)
+	ctx := c.Request.Context()
+	existing, err := applicationRepository.Buckets.GetBucketByName(ctx, bucket.Name)
 	if err != nil {
 		c.JSON(400, ErrorResponse{
 			Code:    400,
@@ -66,7 +67,7 @@ func CreateBucketHandler(c *gin.Context) {
 		})
 		return
 	}
-	err = applicationRepository.Buckets.CreateBucket(&bucket)
+	err = applicationRepository.Buckets.CreateBucket(ctx, &bucket)
 	if err != nil {
 		c.JSON(400, ErrorResponse{
 			Code:    400,
@@ -88,7 +89,7 @@ func CreateBucketHandler(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Router /v1/bucket/ [get]
 func ListBucketsHandler(c *gin.Context) {
-	buckets, err := applicationRepository.Buckets.ListBuckets()
+	buckets, err := applicationRepository.Buckets.ListBuckets(c.Request.Context())
 	if err != nil {
 		c.JSON(500, ErrorResponse{
 			Code:    500,
@@ -113,7 +114,7 @@ func ListBucketsHandler(c *gin.Context) {
 // @Router /v1/bucket/{id} [get]
 func GetBucketHandler(c *gin.Context) {
 	id := c.Param("id")
-	bucket, err := applicationRepository.Buckets.GetBucketByID(id)
+	bucket, err := applicationRepository.Buckets.GetBucketByID(c.Request.Context(), id)
 	if err != nil {
 		c.JSON(500, ErrorResponse{
 			Code:    500,
@@ -156,7 +157,9 @@ func UpdateBucketHandler(c *gin.Context) {
 		})
 		return
 	}
-	bucket, err := applicationRepository.Buckets.GetBucketByID(id)
+
+	ctx := c.Request.Context()
+	bucket, err := applicationRepository.Buckets.GetBucketByID(ctx, id)
 	if err != nil {
 		c.JSON(500, ErrorResponse{
 			Code:    500,
@@ -180,7 +183,7 @@ func UpdateBucketHandler(c *gin.Context) {
 	bucket.S3Provider = req.S3Provider
 	bucket.CustomConfig = req.CustomConfig
 	bucket.StorageType = req.StorageType
-	err = applicationRepository.Buckets.UpdateBucket(bucket)
+	err = applicationRepository.Buckets.UpdateBucket(ctx, bucket)
 	if err != nil {
 		c.JSON(400, ErrorResponse{
 			Code:    400,
@@ -204,7 +207,8 @@ func UpdateBucketHandler(c *gin.Context) {
 // @Router /v1/bucket/{id} [delete]
 func DeleteBucketHandler(c *gin.Context) {
 	id := c.Param("id")
-	bucket, err := applicationRepository.Buckets.GetBucketByID(id)
+	ctx := c.Request.Context()
+	bucket, err := applicationRepository.Buckets.GetBucketByID(ctx, id)
 	if err != nil {
 		c.JSON(500, ErrorResponse{
 			Code:    500,
@@ -219,7 +223,7 @@ func DeleteBucketHandler(c *gin.Context) {
 		})
 		return
 	}
-	err = applicationRepository.Buckets.DeleteBucket(id)
+	err = applicationRepository.Buckets.DeleteBucket(ctx, id)
 	if err != nil {
 		c.JSON(500, ErrorResponse{
 			Code:    500,

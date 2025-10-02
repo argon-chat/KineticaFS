@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/argon-chat/KineticaFS/pkg/repositories"
@@ -13,8 +14,8 @@ var router = gin.Default()
 
 var applicationRepository *repositories.ApplicationRepository
 
-func Run(port int, repo *repositories.ApplicationRepository) {
-	initializeRepo(repo)
+func Run(ctx context.Context, port int, repo *repositories.ApplicationRepository) {
+	initializeRepo(ctx, repo)
 	getRoutes()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	err := router.Run(fmt.Sprintf(":%d", port))
@@ -28,11 +29,11 @@ func getRoutes() {
 	addV1Routes(v1)
 }
 
-func initializeRepo(repo *repositories.ApplicationRepository) {
+func initializeRepo(ctx context.Context, repo *repositories.ApplicationRepository) {
 	applicationRepository = repo
-	applicationRepository.ServiceTokens.CreateIndices()
-	applicationRepository.Buckets.CreateIndices()
-	applicationRepository.Files.CreateIndices()
+	applicationRepository.ServiceTokens.CreateIndices(ctx)
+	applicationRepository.Buckets.CreateIndices(ctx)
+	applicationRepository.Files.CreateIndices(ctx)
 }
 
 func addV1Routes(v1 *gin.RouterGroup) {

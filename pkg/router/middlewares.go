@@ -15,7 +15,7 @@ func AuthMiddleware(c *gin.Context) {
 		return
 	}
 
-	serviceToken, err := applicationRepository.ServiceTokens.GetServiceTokenByAccessKey(token)
+	serviceToken, err := applicationRepository.ServiceTokens.GetServiceTokenByAccessKey(c.Request.Context(), token)
 	if err != nil {
 		c.AbortWithStatusJSON(500, ErrorResponse{
 			Code:    500,

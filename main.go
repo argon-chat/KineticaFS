@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -24,6 +25,7 @@ var asciiArt = `
 `
 
 func main() {
+	ctx := context.Background()
 	if viper.GetBool("bootstrap") {
 		bootstrapAdminToken()
 		return
@@ -40,7 +42,7 @@ func main() {
 		log.Println("Migration completed successfully")
 	}
 	if viper.GetBool("server") {
-		router.Run(viper.GetInt("port"), repo)
+		router.Run(ctx, viper.GetInt("port"), repo)
 	}
 }
 
