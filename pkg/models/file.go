@@ -12,6 +12,11 @@ type File struct {
 	Metadata    string `json:"metadata,omitempty"`
 }
 
+type FileReferences struct {
+	FileID string `json:"file_id" binding:"required"`
+	Metadata string `json:"metadata,omitempty"`
+}
+
 func (f File) GetID() string {
 	return f.ID
 }
