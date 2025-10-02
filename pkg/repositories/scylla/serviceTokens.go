@@ -122,5 +122,5 @@ func (s *ScyllaServiceTokenRepository) CreateServiceToken(ctx context.Context, t
 }
 
 func (s *ScyllaServiceTokenRepository) RevokeServiceToken(ctx context.Context, id string) error {
-	return s.session.Query("delete from servicetoken where id = ?", id).Exec()
+	return s.session.Query("delete from servicetoken where id = ?", id).WithContext(ctx).Exec()
 }
