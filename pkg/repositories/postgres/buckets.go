@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"time"
@@ -35,20 +36,20 @@ func NewPostgresBucketRepository(session *sql.DB) *PostgresBucketRepository {
 	return &PostgresBucketRepository{session: session}
 }
 
-func (s *PostgresBucketRepository) CreateIndices() {
+func (s *PostgresBucketRepository) CreateIndices(ctx context.Context) {
 	indexQueries := []string{
 		"create index if not exists bucket_name_idx on bucket (name)",
 		"create index if not exists bucket_region_idx on bucket (region)",
 	}
 	for _, indexQuery := range indexQueries {
 		log.Printf("Executing index creation query: %s", indexQuery)
-		if _, err := s.session.Exec(indexQuery); err != nil {
+		if _, err := s.session.ExecContext(ctx, indexQuery); err != nil {
 			log.Printf("Error creating index: %v", err)
 		}
 	}
 }
-func (p *PostgresBucketRepository) GetBucketByID(id string) (*models.Bucket, error) {
-	row := p.session.QueryRow("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket where id = $1", id)
+func (p *PostgresBucketRepository) GetBucketByID(ctx context.Context, id string) (*models.Bucket, error) {
+	row := p.session.QueryRowContext(ctx, "select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket where id = $1", id)
 	var bucket models.Bucket
 	var storageType int8
 	var useSSL bool
@@ -64,8 +65,8 @@ func (p *PostgresBucketRepository) GetBucketByID(id string) (*models.Bucket, err
 	return &bucket, nil
 }
 
-func (p *PostgresBucketRepository) GetBucketByName(name string) (*models.Bucket, error) {
-	row := p.session.QueryRow("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket where name = $1", name)
+func (p *PostgresBucketRepository) GetBucketByName(ctx context.Context, name string) (*models.Bucket, error) {
+	row := p.session.QueryRowContext(ctx, "select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket where name = $1", name)
 	var bucket models.Bucket
 	var storageType int8
 	var useSSL bool
@@ -81,31 +82,33 @@ func (p *PostgresBucketRepository) GetBucketByName(name string) (*models.Bucket,
 	return &bucket, nil
 }
 
-func (p *PostgresBucketRepository) CreateBucket(bucket *models.Bucket) error {
+func (p *PostgresBucketRepository) CreateBucket(ctx context.Context, bucket *models.Bucket) error {
 	now := time.Now()
 	bucket.CreatedAt = now
 	bucket.UpdatedAt = now
 	bucket.ID = uuid.NewString()
-	_, err := p.session.Exec(
+	_, err := p.session.ExecContext(
+		ctx,
 		"insert into bucket (id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
 		bucket.ID, bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, bucket.CreatedAt, bucket.UpdatedAt)
 	return err
 }
 
-func (p *PostgresBucketRepository) UpdateBucket(bucket *models.Bucket) error {
-	_, err := p.session.Exec(
+func (p *PostgresBucketRepository) UpdateBucket(ctx context.Context, bucket *models.Bucket) error {
+	_, err := p.session.ExecContext(
+		ctx,
 		"update bucket set name = $1, region = $2, endpoint = $3, s3provider = $4, accesskey = $5, secretkey = $6, storagetype = $7, usessl = $8, customconfig = $9, updatedat = $10 where id = $11",
 		bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, bucket.UpdatedAt, bucket.ID)
 	return err
 }
 
-func (p *PostgresBucketRepository) DeleteBucket(id string) error {
-	_, err := p.session.Exec("delete from bucket where id = $1", id)
+func (p *PostgresBucketRepository) DeleteBucket(ctx context.Context, id string) error {
+	_, err := p.session.ExecContext(ctx, "delete from bucket where id = $1", id)
 	return err
 }
 
-func (p *PostgresBucketRepository) ListBuckets() ([]*models.Bucket, error) {
-	rows, err := p.session.Query("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket")
+func (p *PostgresBucketRepository) ListBuckets(ctx context.Context) ([]*models.Bucket, error) {
+	rows, err := p.session.QueryContext(ctx, "select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket")
 	if err != nil {
 		return nil, err
 	}

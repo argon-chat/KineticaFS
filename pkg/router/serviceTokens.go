@@ -38,7 +38,8 @@ func AddServiceTokenRoutes(v1 *gin.RouterGroup) {
 // @Failure 409 {object} router.ErrorResponse "Admin token already exists"
 // @Router /v1/st/bootstrap [post]
 func CreateAdminServiceTokenHandler(c *gin.Context) {
-	existingToken, err := applicationRepository.ServiceTokens.GetServiceTokenByName("admin")
+	ctx := c.Request.Context()
+	existingToken, err := applicationRepository.ServiceTokens.GetServiceTokenByName(ctx, "admin")
 	if err != nil {
 		c.JSON(400, ErrorResponse{
 			Code:    400,
@@ -58,7 +59,7 @@ func CreateAdminServiceTokenHandler(c *gin.Context) {
 		AccessKey: fmt.Sprintf("%x", sha256.Sum256([]byte(uuid.NewString()))),
 		TokenType: models.AdminToken | models.UserToken,
 	}
-	err = applicationRepository.ServiceTokens.CreateServiceToken(&token)
+	err = applicationRepository.ServiceTokens.CreateServiceToken(ctx, &token)
 	if err != nil {
 		c.JSON(400, ErrorResponse{
 			Code:    400,
@@ -79,7 +80,7 @@ func CreateAdminServiceTokenHandler(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Router /v1/st/ [get]
 func ListAllServiceTokens(c *gin.Context) {
-	tokens, err := applicationRepository.ServiceTokens.GetAllServiceTokens()
+	tokens, err := applicationRepository.ServiceTokens.GetAllServiceTokens(c.Request.Context())
 	if err != nil {
 		c.JSON(500, ErrorResponse{
 			Code:    500,
@@ -112,7 +113,8 @@ func CreateServiceTokenHandler(c *gin.Context) {
 		})
 		return
 	}
-	existingToken, err := applicationRepository.ServiceTokens.GetServiceTokenByName(req.Name)
+	ctx := c.Request.Context()
+	existingToken, err := applicationRepository.ServiceTokens.GetServiceTokenByName(ctx, req.Name)
 	if err != nil {
 		c.JSON(400, ErrorResponse{
 			Code:    400,
@@ -132,7 +134,7 @@ func CreateServiceTokenHandler(c *gin.Context) {
 		AccessKey: fmt.Sprintf("%x", sha256.Sum256([]byte(uuid.NewString()))),
 		TokenType: models.UserToken,
 	}
-	err = applicationRepository.ServiceTokens.CreateServiceToken(&token)
+	err = applicationRepository.ServiceTokens.CreateServiceToken(ctx, &token)
 	if err != nil {
 		c.JSON(400, ErrorResponse{
 			Code:    400,
@@ -157,7 +159,7 @@ func CreateServiceTokenHandler(c *gin.Context) {
 // @Router /v1/st/{id} [get]
 func GetServiceTokenHandler(c *gin.Context) {
 	id := c.Param("id")
-	token, err := applicationRepository.ServiceTokens.GetServiceTokenById(id)
+	token, err := applicationRepository.ServiceTokens.GetServiceTokenById(c.Request.Context(), id)
 	if err != nil {
 		c.JSON(500, ErrorResponse{
 			Code:    500,
@@ -188,7 +190,8 @@ func GetServiceTokenHandler(c *gin.Context) {
 // @Router /v1/st/{id} [delete]
 func DeleteServiceTokenHandler(c *gin.Context) {
 	id := c.Param("id")
-	token, err := applicationRepository.ServiceTokens.GetServiceTokenById(id)
+	ctx := c.Request.Context()
+	token, err := applicationRepository.ServiceTokens.GetServiceTokenById(ctx, id)
 	if err != nil {
 		c.JSON(500, ErrorResponse{
 			Code:    500,
@@ -210,7 +213,7 @@ func DeleteServiceTokenHandler(c *gin.Context) {
 		})
 		return
 	}
-	err = applicationRepository.ServiceTokens.RevokeServiceToken(id)
+	err = applicationRepository.ServiceTokens.RevokeServiceToken(ctx, id)
 	if err != nil {
 		c.JSON(500, ErrorResponse{
 			Code:    500,
