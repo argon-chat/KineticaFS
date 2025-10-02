@@ -6,9 +6,16 @@ import (
 
 	"github.com/argon-chat/KineticaFS/pkg/repositories"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// ErrorResponse represents a standard error response for the API
+type ErrorResponse struct {
+	Code    int    `json:"code" example:"400"`
+	Message string `json:"message" example:"error message"`
+}
 
 var router = gin.Default()
 
@@ -16,12 +23,25 @@ var applicationRepository *repositories.ApplicationRepository
 
 func Run(ctx context.Context, port int, repo *repositories.ApplicationRepository) {
 	initializeRepo(ctx, repo)
+	setupDashboard(ctx)
 	getRoutes()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	err := router.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		panic(err)
 	}
+}
+
+func setupDashboard(ctx context.Context) {
+	dashboardPath := viper.GetString("front-end-path")
+	router.GET("/", func(c *gin.Context) {
+		if c.Query("swagger") == "true" {
+			c.Redirect(302, "/swagger/index.html")
+			return
+		}
+		c.File(dashboardPath + "/index.html")
+	})
+	router.Static("/assets", dashboardPath+"/assets")
 }
 
 func getRoutes() {

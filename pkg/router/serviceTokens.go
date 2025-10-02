@@ -9,12 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// ErrorResponse represents a standard error response for the API
-type ErrorResponse struct {
-	Code    int    `json:"code" example:"400"`
-	Message string `json:"message" example:"error message"`
-}
-
 type CreateServiceTokenRequestDto struct {
 	Name string `json:"name" binding:"required" example:"my-token"`
 }
