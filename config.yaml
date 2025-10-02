@@ -17,7 +17,10 @@ postgres: "postgres://postgres:postgres@localhost:5432/kineticafs?sslmode=disabl
 # Authentication
 token: ""            # Authorization token (leave empty for no token)
 
-# Migration settings
+# Front-end static file serving
+front-end-path: "/var/www"   # Path to front-end folder containing index.html and assets
+
+# Environment variable prefix: KINETICAFS_
 migrate: false       # Set to true to run database migrations
 
 # Environment variable prefix: KINETICAFS_
@@ -30,3 +33,4 @@ migrate: false       # Set to true to run database migrations
 # KINETICAFS_POSTGRES=postgres://user:pass@host:5432/dbname?sslmode=disable
 # KINETICAFS_TOKEN=your-auth-token
 # KINETICAFS_MIGRATE=true
+# KINETICAFS_FRONT-END-PATH=/your/custom/path

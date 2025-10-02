@@ -2,7 +2,7 @@
 FROM oven/bun:1 AS dashboard
 WORKDIR /usr/src/app
 COPY . .
-RUN bun install --production
+RUN bun install
 RUN bun run build
 
 FROM golang:1.24-alpine AS builder
