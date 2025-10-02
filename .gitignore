@@ -34,3 +34,5 @@ go.work.sum
 .idea/
 .vscode/
 data
+node_modules/
+dist/
