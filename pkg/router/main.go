@@ -42,6 +42,9 @@ func setupDashboard(ctx context.Context) {
 		c.File(dashboardPath + "/index.html")
 	})
 	router.Static("/assets", dashboardPath+"/assets")
+	router.GET("/favicon.ico", func(c *gin.Context) {
+		c.File(dashboardPath + "/favicon.ico")
+	})
 }
 
 func getRoutes() {
