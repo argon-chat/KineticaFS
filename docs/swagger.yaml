@@ -140,6 +140,24 @@ definitions:
         example: error message
         type: string
     type: object
+  router.InitiateFileUploadDTO:
+    properties:
+      bucketCode:
+        type: string
+      regionId:
+        type: string
+    required:
+    - bucketCode
+    - regionId
+    type: object
+  router.InitiateFileUploadResponse:
+    properties:
+      ttl:
+        description: seconds
+        type: integer
+      url:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -328,17 +346,22 @@ paths:
     post:
       consumes:
       - application/json
-      description: Initiate a new file upload. Returns a blob ID for the client to
-        upload data. Admin access required.
+      description: Initiate a new file upload. Receives regionId and bucketCode, returns
+        a pre-signed upload URL and TTL (seconds). Admin access required.
+      parameters:
+      - description: Upload initiation data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/router.InitiateFileUploadDTO'
       produces:
       - application/json
       responses:
         "201":
-          description: '{blob: blob_id}'
+          description: Created
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/router.InitiateFileUploadResponse'
         "400":
           description: Bad Request
           schema:

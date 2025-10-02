@@ -16,13 +16,24 @@ func AddFileBlobRoutes(v1 *gin.RouterGroup) {
 	upload.PATCH("/:blob", UploadFileBlobHandler)
 }
 
+type InitiateFileUploadDTO struct {
+	RegionID   string `json:"regionId" binding:"required"`
+	BucketCode string `json:"bucketCode" binding:"required"`
+}
+
+type InitiateFileUploadResponse struct {
+	URL string `json:"url"`
+	TTL int    `json:"ttl"` // seconds
+}
+
 // Initiate a new file upload (admin only)
 // @Summary Initiate file upload
-// @Description Initiate a new file upload. Returns a blob ID for the client to upload data. Admin access required.
+// @Description Initiate a new file upload. Receives regionId and bucketCode, returns a pre-signed upload URL and TTL (seconds). Admin access required.
 // @Tags files
 // @Accept json
 // @Produce json
-// @Success 201 {object} map[string]string "{blob: blob_id}"
+// @Param data body InitiateFileUploadDTO true "Upload initiation data"
+// @Success 201 {object} InitiateFileUploadResponse
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 403 {object} router.ErrorResponse
 // @Router /v1/file/ [post]

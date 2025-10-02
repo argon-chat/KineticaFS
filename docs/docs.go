@@ -288,7 +288,7 @@ const docTemplate = `{
         },
         "/v1/file/": {
             "post": {
-                "description": "Initiate a new file upload. Returns a blob ID for the client to upload data. Admin access required.",
+                "description": "Initiate a new file upload. Receives regionId and bucketCode, returns a pre-signed upload URL and TTL (seconds). Admin access required.",
                 "consumes": [
                     "application/json"
                 ],
@@ -299,14 +299,22 @@ const docTemplate = `{
                     "files"
                 ],
                 "summary": "Initiate file upload",
+                "parameters": [
+                    {
+                        "description": "Upload initiation data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/router.InitiateFileUploadDTO"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
-                        "description": "{blob: blob_id}",
+                        "description": "Created",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/router.InitiateFileUploadResponse"
                         }
                     },
                     "400": {
@@ -903,6 +911,33 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "error message"
+                }
+            }
+        },
+        "router.InitiateFileUploadDTO": {
+            "type": "object",
+            "required": [
+                "bucketCode",
+                "regionId"
+            ],
+            "properties": {
+                "bucketCode": {
+                    "type": "string"
+                },
+                "regionId": {
+                    "type": "string"
+                }
+            }
+        },
+        "router.InitiateFileUploadResponse": {
+            "type": "object",
+            "properties": {
+                "ttl": {
+                    "description": "seconds",
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         }
