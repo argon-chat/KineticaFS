@@ -65,12 +65,13 @@ func (s *ScyllaServiceTokenRepository) GetAllServiceTokens(ctx context.Context) 
 
 	estimatedSize := iter.NumRows()
 	tokens := make([]*models.ServiceToken, 0, estimatedSize)
+	scanner := iter.Scanner()
 
-	for {
+	for scanner.Next() {
 		token := &models.ServiceToken{}
 		var tokenType int8
-		if !iter.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt) {
-			break
+		if err := scanner.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt); err != nil {
+			return nil, err
 		}
 		token.TokenType = models.TokenType(tokenType)
 		tokens = append(tokens, token)
