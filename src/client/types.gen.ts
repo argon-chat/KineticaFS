@@ -502,6 +502,33 @@ export type PostV1StBootstrapResponses = {
 
 export type PostV1StBootstrapResponse = PostV1StBootstrapResponses[keyof PostV1StBootstrapResponses];
 
+export type GetV1StFirstRunData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/st/first-run';
+};
+
+export type GetV1StFirstRunErrors = {
+    /**
+     * Internal server error
+     */
+    500: RouterErrorResponse;
+};
+
+export type GetV1StFirstRunError = GetV1StFirstRunErrors[keyof GetV1StFirstRunErrors];
+
+export type GetV1StFirstRunResponses = {
+    /**
+     * first_run: true if no admin token exists, false otherwise
+     */
+    200: {
+        [key: string]: boolean;
+    };
+};
+
+export type GetV1StFirstRunResponse = GetV1StFirstRunResponses[keyof GetV1StFirstRunResponses];
+
 export type DeleteV1StByIdData = {
     body?: never;
     headers: {

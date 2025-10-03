@@ -536,6 +536,35 @@
                 }
             }
         },
+        "/v1/st/first-run": {
+            "get": {
+                "description": "Returns whether the admin token exists. Used to determine if setup is required.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "service-tokens"
+                ],
+                "summary": "Check if admin token has already been created",
+                "responses": {
+                    "200": {
+                        "description": "first_run: true if no admin token exists, false otherwise",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/st/{id}": {
             "get": {
                 "description": "Get a service token by ID",

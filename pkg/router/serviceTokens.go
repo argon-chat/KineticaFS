@@ -16,11 +16,36 @@ type CreateServiceTokenRequestDto struct {
 // AddServiceTokenRoutes sets up the service token endpoints.
 func AddServiceTokenRoutes(v1 *gin.RouterGroup) {
 	st := v1.Group("/st")
+	st.GET("/first-run", FirstRunCheckHandler)
 	st.POST("/bootstrap", CreateAdminServiceTokenHandler)
 	st.GET("/", AuthMiddleware, AdminOnlyMiddleware, ListAllServiceTokens)
 	st.POST("/", AuthMiddleware, AdminOnlyMiddleware, CreateServiceTokenHandler)
 	st.GET("/:id", AuthMiddleware, AdminOnlyMiddleware, GetServiceTokenHandler)
 	st.DELETE("/:id", AuthMiddleware, AdminOnlyMiddleware, DeleteServiceTokenHandler)
+}
+
+// @Summary Check if admin token has already been created
+// @Description Returns whether the admin token exists. Used to determine if setup is required.
+// @Tags service-tokens
+// @Produce json
+// @Success 200 {object} map[string]bool "first_run: true if no admin token exists, false otherwise"
+// @Failure 500 {object} router.ErrorResponse "Internal server error"
+// @Router /v1/st/first-run [get]
+func FirstRunCheckHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+	existingToken, err := applicationRepository.ServiceTokens.GetServiceTokenByName(ctx, "admin")
+	if err != nil {
+		c.JSON(500, ErrorResponse{
+			Code:    500,
+			Message: fmt.Sprintf("failed to check existing admin token: %v", err),
+		})
+		return
+	}
+	if existingToken != nil {
+		c.JSON(200, gin.H{"first_run": false})
+	} else {
+		c.JSON(200, gin.H{"first_run": true})
+	}
 }
 
 // @Summary Bootstrap admin token

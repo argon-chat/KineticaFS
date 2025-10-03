@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteV1BucketByIdData, DeleteV1BucketByIdErrors, DeleteV1BucketByIdResponses, DeleteV1FileByIdData, DeleteV1FileByIdErrors, DeleteV1FileByIdResponses, DeleteV1StByIdData, DeleteV1StByIdErrors, DeleteV1StByIdResponses, GetV1BucketByIdData, GetV1BucketByIdErrors, GetV1BucketByIdResponses, GetV1BucketData, GetV1BucketErrors, GetV1BucketResponses, GetV1StByIdData, GetV1StByIdErrors, GetV1StByIdResponses, GetV1StData, GetV1StErrors, GetV1StResponses, PatchV1BucketByIdData, PatchV1BucketByIdErrors, PatchV1BucketByIdResponses, PatchV1UploadByBlobData, PatchV1UploadByBlobErrors, PatchV1UploadByBlobResponses, PostV1BucketData, PostV1BucketErrors, PostV1BucketResponses, PostV1FileByIdFinalizeData, PostV1FileByIdFinalizeErrors, PostV1FileByIdFinalizeResponses, PostV1FileData, PostV1FileErrors, PostV1FileResponses, PostV1StBootstrapData, PostV1StBootstrapErrors, PostV1StBootstrapResponses, PostV1StData, PostV1StErrors, PostV1StResponses } from './types.gen';
+import type { DeleteV1BucketByIdData, DeleteV1BucketByIdErrors, DeleteV1BucketByIdResponses, DeleteV1FileByIdData, DeleteV1FileByIdErrors, DeleteV1FileByIdResponses, DeleteV1StByIdData, DeleteV1StByIdErrors, DeleteV1StByIdResponses, GetV1BucketByIdData, GetV1BucketByIdErrors, GetV1BucketByIdResponses, GetV1BucketData, GetV1BucketErrors, GetV1BucketResponses, GetV1StByIdData, GetV1StByIdErrors, GetV1StByIdResponses, GetV1StData, GetV1StErrors, GetV1StFirstRunData, GetV1StFirstRunErrors, GetV1StFirstRunResponses, GetV1StResponses, PatchV1BucketByIdData, PatchV1BucketByIdErrors, PatchV1BucketByIdResponses, PatchV1UploadByBlobData, PatchV1UploadByBlobErrors, PatchV1UploadByBlobResponses, PostV1BucketData, PostV1BucketErrors, PostV1BucketResponses, PostV1FileByIdFinalizeData, PostV1FileByIdFinalizeErrors, PostV1FileByIdFinalizeResponses, PostV1FileData, PostV1FileErrors, PostV1FileResponses, PostV1StBootstrapData, PostV1StBootstrapErrors, PostV1StBootstrapResponses, PostV1StData, PostV1StErrors, PostV1StResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -151,6 +151,17 @@ export const postV1St = <ThrowOnError extends boolean = false>(options: Options<
 export const postV1StBootstrap = <ThrowOnError extends boolean = false>(options?: Options<PostV1StBootstrapData, ThrowOnError>) => {
     return (options?.client ?? client).post<PostV1StBootstrapResponses, PostV1StBootstrapErrors, ThrowOnError>({
         url: '/v1/st/bootstrap',
+        ...options
+    });
+};
+
+/**
+ * Check if admin token has already been created
+ * Returns whether the admin token exists. Used to determine if setup is required.
+ */
+export const getV1StFirstRun = <ThrowOnError extends boolean = false>(options?: Options<GetV1StFirstRunData, ThrowOnError>) => {
+    return (options?.client ?? client).get<GetV1StFirstRunResponses, GetV1StFirstRunErrors, ThrowOnError>({
+        url: '/v1/st/first-run',
         ...options
     });
 };

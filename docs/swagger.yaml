@@ -586,6 +586,26 @@ paths:
       summary: Bootstrap admin token
       tags:
       - service-tokens
+  /v1/st/first-run:
+    get:
+      description: Returns whether the admin token exists. Used to determine if setup
+        is required.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'first_run: true if no admin token exists, false otherwise'
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Check if admin token has already been created
+      tags:
+      - service-tokens
   /v1/upload/{blob}:
     patch:
       consumes:
