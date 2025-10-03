@@ -107,14 +107,13 @@ func (s *ScyllaBucketRepository) ListBuckets(ctx context.Context) ([]*models.Buc
 
 	estimatedSize := iter.NumRows()
 	buckets := make([]*models.Bucket, 0, estimatedSize)
-	scanner := iter.Scanner()
 
-	for scanner.Next() {
+	for {
 		bucket := &models.Bucket{}
 		var storageType int8
 
-		if err := scanner.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt); err != nil {
-			return nil, err
+		if iter.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt) {
+			break
 		}
 
 		bucket.StorageType = models.StorageType(storageType)
