@@ -21,4 +21,4 @@ COPY --from=dashboard /usr/src/app/dist .
 COPY --from=builder /app/kinctl /usr/local/bin/kinctl
 COPY --from=builder /app/docs /usr/local/bin/docs
 EXPOSE 3000
-CMD ["kinctl", "--server", "--migrate", "--port", "3000"]
+CMD ["kinctl", "-sm", "--port", "3000"]
