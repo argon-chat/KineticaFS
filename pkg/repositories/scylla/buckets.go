@@ -103,13 +103,22 @@ func (s *ScyllaBucketRepository) DeleteBucket(ctx context.Context, id string) er
 }
 
 func (s *ScyllaBucketRepository) ListBuckets(ctx context.Context) ([]*models.Bucket, error) {
-	var buckets []*models.Bucket
 	iter := s.session.Query("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket").WithContext(ctx).Iter()
-	var bucket models.Bucket
-	var storageType int8
-	for iter.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt) {
+
+	estimatedSize := iter.NumRows()
+	buckets := make([]*models.Bucket, 0, estimatedSize)
+	scanner := iter.Scanner()
+
+	for scanner.Next() {
+		bucket := &models.Bucket{}
+		var storageType int8
+
+		if err := scanner.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt); err != nil {
+			return nil, err
+		}
+
 		bucket.StorageType = models.StorageType(storageType)
-		buckets = append(buckets, &bucket)
+		buckets = append(buckets, bucket)
 	}
 	if err := iter.Close(); err != nil {
 		return nil, err

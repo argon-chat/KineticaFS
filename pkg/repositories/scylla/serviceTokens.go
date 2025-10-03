@@ -59,15 +59,21 @@ func (s *ScyllaServiceTokenRepository) GetServiceTokenByAccessKey(ctx context.Co
 }
 
 func (s *ScyllaServiceTokenRepository) GetAllServiceTokens(ctx context.Context) ([]*models.ServiceToken, error) {
-	var tokens []*models.ServiceToken
 	iter := s.session.Query("select id, name, accesskey, tokentype, createdat, updatedat from servicetoken").
 		WithContext(ctx).
 		Iter()
-	var token models.ServiceToken
-	var tokenType int8
-	for iter.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt) {
+
+	estimatedSize := iter.NumRows()
+	tokens := make([]*models.ServiceToken, 0, estimatedSize)
+
+	for {
+		token := &models.ServiceToken{}
+		var tokenType int8
+		if !iter.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt) {
+			break
+		}
 		token.TokenType = models.TokenType(tokenType)
-		tokens = append(tokens, &token)
+		tokens = append(tokens, token)
 	}
 	if err := iter.Close(); err != nil {
 		return nil, err
