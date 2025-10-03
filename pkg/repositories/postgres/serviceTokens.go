@@ -67,14 +67,14 @@ func (s *PostgresServiceTokenRepository) GetAllServiceTokens(ctx context.Context
 	defer rows.Close()
 	var tokens []*models.ServiceToken
 	for rows.Next() {
-		var token models.ServiceToken
+		token := &models.ServiceToken{}
 		var tokenType int8
 		err := rows.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 		token.TokenType = models.TokenType(tokenType)
-		tokens = append(tokens, &token)
+		tokens = append(tokens, token)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

@@ -112,14 +112,14 @@ func (p *PostgresBucketRepository) ListBuckets(ctx context.Context) ([]*models.B
 	defer rows.Close()
 	var buckets []*models.Bucket
 	for rows.Next() {
-		var bucket models.Bucket
+		bucket := &models.Bucket{}
 		var storageType int8
 		err := rows.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 		bucket.StorageType = models.StorageType(storageType)
-		buckets = append(buckets, &bucket)
+		buckets = append(buckets, bucket)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
