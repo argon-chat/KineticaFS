@@ -70,6 +70,9 @@ services:
   #     - region2
   #     - scylla
   #     - pg
+  #   environment:
+  #     - KINETICAFS_SCYLLA=scylla:9042
+  #     - KINETICAFS_POSTGRES=postgres://postgres:postgres@pg:5432/kineticafs?sslmode=disable
   #   restart: unless-stopped
   # endregion application
 volumes:
