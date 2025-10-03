@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 	"time"
 
@@ -52,16 +53,14 @@ func (p *PostgresBucketRepository) GetBucketByID(ctx context.Context, id string)
 	row := p.session.QueryRowContext(ctx, "select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket where id = $1", id)
 	var bucket models.Bucket
 	var storageType int8
-	var useSSL bool
-	err := row.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &useSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt)
-	if err == sql.ErrNoRows {
+	err := row.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 	bucket.StorageType = models.StorageType(storageType)
-	bucket.UseSSL = useSSL
 	return &bucket, nil
 }
 
@@ -69,16 +68,14 @@ func (p *PostgresBucketRepository) GetBucketByName(ctx context.Context, name str
 	row := p.session.QueryRowContext(ctx, "select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket where name = $1", name)
 	var bucket models.Bucket
 	var storageType int8
-	var useSSL bool
-	err := row.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &useSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt)
-	if err == sql.ErrNoRows {
+	err := row.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 	bucket.StorageType = models.StorageType(storageType)
-	bucket.UseSSL = useSSL
 	return &bucket, nil
 }
 
@@ -117,26 +114,12 @@ func (p *PostgresBucketRepository) ListBuckets(ctx context.Context) ([]*models.B
 	for rows.Next() {
 		var bucket models.Bucket
 		var storageType int8
-		var useSSL bool
-		err := rows.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &useSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt)
+		err := rows.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 		bucket.StorageType = models.StorageType(storageType)
-		bucket.UseSSL = useSSL
-		newBucket := &models.Bucket{
-			ApplicationModel: bucket.ApplicationModel,
-			Name:             bucket.Name,
-			Region:           bucket.Region,
-			Endpoint:         bucket.Endpoint,
-			S3Provider:       bucket.S3Provider,
-			AccessKey:        bucket.AccessKey,
-			SecretKey:        bucket.SecretKey,
-			StorageType:      bucket.StorageType,
-			UseSSL:           bucket.UseSSL,
-			CustomConfig:     bucket.CustomConfig,
-		}
-		buckets = append(buckets, newBucket)
+		buckets = append(buckets, &bucket)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

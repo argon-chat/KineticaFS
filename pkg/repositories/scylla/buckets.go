@@ -2,6 +2,7 @@ package scylla
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -52,15 +53,13 @@ func (s *ScyllaBucketRepository) GetBucketByID(ctx context.Context, id string) (
 		WithContext(ctx)
 	var bucket models.Bucket
 	var storageType int8
-	var useSSL bool
-	if err := query.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &useSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt); err != nil {
-		if err == gocql.ErrNotFound {
+	if err := query.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt); err != nil {
+		if errors.Is(err, gocql.ErrNotFound) {
 			return nil, nil
 		}
 		return nil, err
 	}
 	bucket.StorageType = models.StorageType(storageType)
-	bucket.UseSSL = useSSL
 	return &bucket, nil
 }
 
@@ -69,15 +68,13 @@ func (s *ScyllaBucketRepository) GetBucketByName(ctx context.Context, name strin
 		WithContext(ctx)
 	var bucket models.Bucket
 	var storageType int8
-	var useSSL bool
-	if err := query.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &useSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt); err != nil {
-		if err == gocql.ErrNotFound {
+	if err := query.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt); err != nil {
+		if errors.Is(err, gocql.ErrNotFound) {
 			return nil, nil
 		}
 		return nil, err
 	}
 	bucket.StorageType = models.StorageType(storageType)
-	bucket.UseSSL = useSSL
 	return &bucket, nil
 }
 
@@ -110,23 +107,9 @@ func (s *ScyllaBucketRepository) ListBuckets(ctx context.Context) ([]*models.Buc
 	iter := s.session.Query("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket").WithContext(ctx).Iter()
 	var bucket models.Bucket
 	var storageType int8
-	var useSSL bool
-	for iter.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &useSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt) {
+	for iter.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt) {
 		bucket.StorageType = models.StorageType(storageType)
-		bucket.UseSSL = useSSL
-		newBucket := &models.Bucket{
-			ApplicationModel: bucket.ApplicationModel,
-			Name:             bucket.Name,
-			Region:           bucket.Region,
-			Endpoint:         bucket.Endpoint,
-			S3Provider:       bucket.S3Provider,
-			AccessKey:        bucket.AccessKey,
-			SecretKey:        bucket.SecretKey,
-			StorageType:      bucket.StorageType,
-			UseSSL:           bucket.UseSSL,
-			CustomConfig:     bucket.CustomConfig,
-		}
-		buckets = append(buckets, newBucket)
+		buckets = append(buckets, &bucket)
 	}
 	if err := iter.Close(); err != nil {
 		return nil, err
