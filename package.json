@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
-    "client:gen": "openapi-ts -i ./docs/swagger.json -o src/client/"
+    "client:gen": "rimraf src/client && openapi-ts -i ./docs/swagger.json -o src/client/"
   },
   "dependencies": {
     "pinia": "^3.0.3",
@@ -26,6 +26,7 @@
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
     "npm-run-all2": "^8.0.4",
+    "rimraf": "6.0.1",
     "typescript": "~5.9.0",
     "vite": "^7.1.7",
     "vite-plugin-vue-devtools": "^8.0.2",
