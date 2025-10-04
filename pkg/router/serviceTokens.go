@@ -3,6 +3,7 @@ package router
 import (
 	"crypto/sha256"
 	"fmt"
+	"net/http"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gin-gonic/gin"
@@ -14,14 +15,14 @@ type CreateServiceTokenRequestDto struct {
 }
 
 // AddServiceTokenRoutes sets up the service token endpoints.
-func AddServiceTokenRoutes(v1 *gin.RouterGroup) {
+func AddServiceTokenRoutes(router *router, v1 *gin.RouterGroup) {
 	st := v1.Group("/st")
-	st.GET("/first-run", FirstRunCheckHandler)
-	st.POST("/bootstrap", CreateAdminServiceTokenHandler)
-	st.GET("/", AuthMiddleware, AdminOnlyMiddleware, ListAllServiceTokens)
-	st.POST("/", AuthMiddleware, AdminOnlyMiddleware, CreateServiceTokenHandler)
-	st.GET("/:id", AuthMiddleware, AdminOnlyMiddleware, GetServiceTokenHandler)
-	st.DELETE("/:id", AuthMiddleware, AdminOnlyMiddleware, DeleteServiceTokenHandler)
+	st.GET("/first-run", router.FirstRunCheckHandler)
+	st.POST("/bootstrap", router.CreateAdminServiceTokenHandler)
+	st.GET("/", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.ListAllServiceTokens)
+	st.POST("/", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.CreateServiceTokenHandler)
+	st.GET("/:id", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.GetServiceTokenHandler)
+	st.DELETE("/:id", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.DeleteServiceTokenHandler)
 }
 
 // @Summary Check if admin token has already been created
@@ -31,21 +32,15 @@ func AddServiceTokenRoutes(v1 *gin.RouterGroup) {
 // @Success 200 {object} map[string]bool "first_run: true if no admin token exists, false otherwise"
 // @Failure 500 {object} router.ErrorResponse "Internal server error"
 // @Router /v1/st/first-run [get]
-func FirstRunCheckHandler(c *gin.Context) {
+func (r *router) FirstRunCheckHandler(c *gin.Context) {
 	ctx := c.Request.Context()
-	existingToken, err := applicationRepository.ServiceTokens.GetServiceTokenByName(ctx, "admin")
+	existingToken, err := r.repo.ServiceTokens.GetServiceTokenByName(ctx, "admin")
 	if err != nil {
-		c.JSON(500, ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("failed to check existing admin token: %v", err),
-		})
+		writeError(c, http.StatusInternalServerError, fmt.Sprintf("failed to check existing admin token: %v", err))
 		return
 	}
-	if existingToken != nil {
-		c.JSON(200, gin.H{"first_run": false})
-	} else {
-		c.JSON(200, gin.H{"first_run": true})
-	}
+
+	c.JSON(http.StatusOK, gin.H{"first_run": existingToken == nil})
 }
 
 // @Summary Bootstrap admin token
@@ -56,21 +51,15 @@ func FirstRunCheckHandler(c *gin.Context) {
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 409 {object} router.ErrorResponse "Admin token already exists"
 // @Router /v1/st/bootstrap [post]
-func CreateAdminServiceTokenHandler(c *gin.Context) {
+func (r *router) CreateAdminServiceTokenHandler(c *gin.Context) {
 	ctx := c.Request.Context()
-	existingToken, err := applicationRepository.ServiceTokens.GetServiceTokenByName(ctx, "admin")
+	existingToken, err := r.repo.ServiceTokens.GetServiceTokenByName(ctx, "admin")
 	if err != nil {
-		c.JSON(400, ErrorResponse{
-			Code:    400,
-			Message: fmt.Sprintf("failed to check existing admin token: %v", err),
-		})
+		writeError(c, http.StatusBadRequest, fmt.Sprintf("failed to check existing admin token: %v", err))
 		return
 	}
 	if existingToken != nil {
-		c.JSON(409, ErrorResponse{
-			Code:    409,
-			Message: "Admin token already exists",
-		})
+		writeError(c, http.StatusConflict, "Admin token already exists")
 		return
 	}
 	token := models.ServiceToken{
@@ -78,15 +67,12 @@ func CreateAdminServiceTokenHandler(c *gin.Context) {
 		AccessKey: fmt.Sprintf("%x", sha256.Sum256([]byte(uuid.NewString()))),
 		TokenType: models.AdminToken | models.UserToken,
 	}
-	err = applicationRepository.ServiceTokens.CreateServiceToken(ctx, &token)
+	err = r.repo.ServiceTokens.CreateServiceToken(ctx, &token)
 	if err != nil {
-		c.JSON(400, ErrorResponse{
-			Code:    400,
-			Message: fmt.Sprintf("failed to create admin token: %v", err),
-		})
+		writeError(c, http.StatusBadRequest, fmt.Sprintf("failed to create admin token: %v", err))
 		return
 	}
-	c.JSON(201, token)
+	c.JSON(http.StatusCreated, token)
 }
 
 // @Summary List all service tokens
@@ -98,16 +84,13 @@ func CreateAdminServiceTokenHandler(c *gin.Context) {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Router /v1/st/ [get]
-func ListAllServiceTokens(c *gin.Context) {
-	tokens, err := applicationRepository.ServiceTokens.GetAllServiceTokens(c.Request.Context())
+func (r *router) ListAllServiceTokens(c *gin.Context) {
+	tokens, err := r.repo.ServiceTokens.GetAllServiceTokens(c.Request.Context())
 	if err != nil {
-		c.JSON(500, ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("failed to list service tokens: %v", err),
-		})
+		writeError(c, http.StatusInternalServerError, fmt.Sprintf("failed to list service tokens: %v", err))
 		return
 	}
-	c.JSON(200, tokens)
+	c.JSON(http.StatusOK, tokens)
 }
 
 // CreateServiceTokenHandler creates a new service token
@@ -123,29 +106,20 @@ func ListAllServiceTokens(c *gin.Context) {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Router /v1/st/ [post]
-func CreateServiceTokenHandler(c *gin.Context) {
+func (r *router) CreateServiceTokenHandler(c *gin.Context) {
 	var req CreateServiceTokenRequestDto
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, ErrorResponse{
-			Code:    400,
-			Message: fmt.Sprintf("invalid request body: %v", err),
-		})
+		writeError(c, http.StatusBadRequest, fmt.Sprintf("invalid request body: %v", err))
 		return
 	}
 	ctx := c.Request.Context()
-	existingToken, err := applicationRepository.ServiceTokens.GetServiceTokenByName(ctx, req.Name)
+	existingToken, err := r.repo.ServiceTokens.GetServiceTokenByName(ctx, req.Name)
 	if err != nil {
-		c.JSON(400, ErrorResponse{
-			Code:    400,
-			Message: fmt.Sprintf("failed to check existing token: %v", err),
-		})
+		writeError(c, http.StatusBadRequest, fmt.Sprintf("failed to check existing token: %v", err))
 		return
 	}
 	if existingToken != nil {
-		c.JSON(409, ErrorResponse{
-			Code:    409,
-			Message: "Service token with the same name already exists",
-		})
+		writeError(c, http.StatusConflict, "Service token with the same name already exists")
 		return
 	}
 	token := models.ServiceToken{
@@ -153,15 +127,12 @@ func CreateServiceTokenHandler(c *gin.Context) {
 		AccessKey: fmt.Sprintf("%x", sha256.Sum256([]byte(uuid.NewString()))),
 		TokenType: models.UserToken,
 	}
-	err = applicationRepository.ServiceTokens.CreateServiceToken(ctx, &token)
+	err = r.repo.ServiceTokens.CreateServiceToken(ctx, &token)
 	if err != nil {
-		c.JSON(400, ErrorResponse{
-			Code:    400,
-			Message: fmt.Sprintf("failed to create service token: %v", err),
-		})
+		writeError(c, http.StatusBadRequest, fmt.Sprintf("failed to create service token: %v", err))
 		return
 	}
-	c.JSON(201, token)
+	c.JSON(http.StatusCreated, token)
 }
 
 // GetServiceTokenHandler gets a service token by ID
@@ -176,21 +147,15 @@ func CreateServiceTokenHandler(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/st/{id} [get]
-func GetServiceTokenHandler(c *gin.Context) {
+func (r *router) GetServiceTokenHandler(c *gin.Context) {
 	id := c.Param("id")
-	token, err := applicationRepository.ServiceTokens.GetServiceTokenById(c.Request.Context(), id)
+	token, err := r.repo.ServiceTokens.GetServiceTokenById(c.Request.Context(), id)
 	if err != nil {
-		c.JSON(500, ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("failed to get service token: %v", err),
-		})
+		writeError(c, http.StatusInternalServerError, fmt.Sprintf("failed to get service token: %v", err))
 		return
 	}
 	if token == nil {
-		c.JSON(404, ErrorResponse{
-			Code:    404,
-			Message: "Service token not found",
-		})
+		writeError(c, http.StatusNotFound, "Service token not found")
 		return
 	}
 	c.JSON(200, token)
@@ -207,38 +172,26 @@ func GetServiceTokenHandler(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/st/{id} [delete]
-func DeleteServiceTokenHandler(c *gin.Context) {
+func (r *router) DeleteServiceTokenHandler(c *gin.Context) {
 	id := c.Param("id")
 	ctx := c.Request.Context()
-	token, err := applicationRepository.ServiceTokens.GetServiceTokenById(ctx, id)
+	token, err := r.repo.ServiceTokens.GetServiceTokenById(ctx, id)
 	if err != nil {
-		c.JSON(500, ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("failed to get service token: %v", err),
-		})
+		writeError(c, http.StatusInternalServerError, fmt.Sprintf("failed to get service token: %v", err))
 		return
 	}
 	if token == nil {
-		c.JSON(404, ErrorResponse{
-			Code:    404,
-			Message: "Service token not found",
-		})
+		writeError(c, http.StatusNotFound, "Service token not found")
 		return
 	}
 	if token.TokenType&models.AdminToken == models.AdminToken {
-		c.JSON(403, ErrorResponse{
-			Code:    403,
-			Message: "Cannot delete admin token",
-		})
+		writeError(c, http.StatusForbidden, "Cannot delete admin token")
 		return
 	}
-	err = applicationRepository.ServiceTokens.RevokeServiceToken(ctx, id)
+	err = r.repo.ServiceTokens.RevokeServiceToken(ctx, id)
 	if err != nil {
-		c.JSON(500, ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("failed to delete service token: %v", err),
-		})
+		writeError(c, http.StatusInternalServerError, fmt.Sprintf("failed to delete service token: %v", err))
 		return
 	}
-	c.Status(204)
+	c.Status(http.StatusNoContent)
 }
