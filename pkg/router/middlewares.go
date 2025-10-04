@@ -1,59 +1,66 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/argon-chat/KineticaFS/pkg/models"
+	"github.com/argon-chat/KineticaFS/pkg/repositories"
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware(c *gin.Context) {
-	token := c.GetHeader("x-api-token")
-	if token == "" {
-		c.AbortWithStatusJSON(401, ErrorResponse{
-			Code:    401,
-			Message: "Missing x-api-token header",
-		})
-		return
-	}
+type GinMiddleware = func(c *gin.Context)
 
-	serviceToken, err := applicationRepository.ServiceTokens.GetServiceTokenByAccessKey(c.Request.Context(), token)
-	if err != nil {
-		c.AbortWithStatusJSON(500, ErrorResponse{
-			Code:    500,
-			Message: "Internal server error",
-		})
-		return
+func AuthMiddleware(repo *repositories.ApplicationRepository) GinMiddleware {
+	return func(c *gin.Context) {
+		token := c.GetHeader("x-api-token")
+		if token == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, ErrorResponse{
+				Code:    http.StatusUnauthorized,
+				Message: "Missing x-api-token header",
+			})
+			return
+		}
+
+		serviceToken, err := repo.ServiceTokens.GetServiceTokenByAccessKey(c.Request.Context(), token)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Internal server error",
+			})
+			return
+		}
+		if serviceToken == nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, ErrorResponse{
+				Code:    http.StatusUnauthorized,
+				Message: "Invalid API token",
+			})
+			return
+		}
+		c.Set("serviceToken", serviceToken)
+		c.Next()
 	}
-	if serviceToken == nil {
-		c.AbortWithStatusJSON(401, ErrorResponse{
-			Code:    401,
-			Message: "Invalid API token",
-		})
-		return
-	}
-	c.Set("serviceToken", serviceToken)
-	c.Next()
 }
 
 func AdminOnlyMiddleware(c *gin.Context) {
 	serviceTokenIface, exists := c.Get("serviceToken")
 	if !exists {
-		c.AbortWithStatusJSON(500, ErrorResponse{
-			Code:    500,
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Internal server error",
 		})
 		return
 	}
 	serviceToken, ok := serviceTokenIface.(*models.ServiceToken)
 	if !ok {
-		c.AbortWithStatusJSON(500, ErrorResponse{
-			Code:    500,
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{
+			Code:    http.StatusInternalServerError,
 			Message: "Internal server error",
 		})
 		return
 	}
 	if serviceToken.TokenType&models.AdminToken != models.AdminToken {
-		c.AbortWithStatusJSON(403, ErrorResponse{
-			Code:    403,
+		c.AbortWithStatusJSON(http.StatusForbidden, ErrorResponse{
+			Code:    http.StatusForbidden,
 			Message: "Forbidden",
 		})
 		return
