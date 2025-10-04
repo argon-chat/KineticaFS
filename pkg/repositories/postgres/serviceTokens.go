@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 	"time"
 
@@ -48,7 +49,7 @@ func (p *PostgresServiceTokenRepository) GetServiceTokenById(ctx context.Context
 	var token models.ServiceToken
 	var tokenType int8
 	err := row.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -66,22 +67,14 @@ func (s *PostgresServiceTokenRepository) GetAllServiceTokens(ctx context.Context
 	defer rows.Close()
 	var tokens []*models.ServiceToken
 	for rows.Next() {
-		var token models.ServiceToken
+		token := &models.ServiceToken{}
 		var tokenType int8
 		err := rows.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 		token.TokenType = models.TokenType(tokenType)
-		newToken := &models.ServiceToken{
-			Name:      token.Name,
-			AccessKey: token.AccessKey,
-			TokenType: token.TokenType,
-		}
-		newToken.ID = token.ID
-		newToken.CreatedAt = token.CreatedAt
-		newToken.UpdatedAt = token.UpdatedAt
-		tokens = append(tokens, newToken)
+		tokens = append(tokens, token)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -93,7 +86,7 @@ func (s *PostgresServiceTokenRepository) GetServiceTokenByAccessKey(ctx context.
 	var token models.ServiceToken
 	var tokenType int8
 	err := row.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -108,7 +101,7 @@ func (p *PostgresServiceTokenRepository) GetServiceTokenByName(ctx context.Conte
 	var token models.ServiceToken
 	var tokenType int8
 	err := row.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
