@@ -2,19 +2,20 @@ package router
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gin-gonic/gin"
 )
 
 // AddBucketsRoutes sets up the bucket endpoints.
-func AddBucketsRoutes(v1 *gin.RouterGroup) {
+func AddBucketsRoutes(router *router, v1 *gin.RouterGroup) {
 	bucket := v1.Group("/bucket")
-	bucket.POST("/", AuthMiddleware, AdminOnlyMiddleware, CreateBucketHandler)
-	bucket.GET("/", AuthMiddleware, AdminOnlyMiddleware, ListBucketsHandler)
-	bucket.GET("/:id", AuthMiddleware, AdminOnlyMiddleware, GetBucketHandler)
-	bucket.PATCH("/:id", AuthMiddleware, AdminOnlyMiddleware, UpdateBucketHandler)
-	bucket.DELETE("/:id", AuthMiddleware, AdminOnlyMiddleware, DeleteBucketHandler)
+	bucket.POST("/", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.CreateBucketHandler)
+	bucket.GET("/", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.ListBucketsHandler)
+	bucket.GET("/:id", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.GetBucketHandler)
+	bucket.PATCH("/:id", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.UpdateBucketHandler)
+	bucket.DELETE("/:id", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.DeleteBucketHandler)
 }
 
 type BucketInsertDTO struct {
@@ -42,40 +43,28 @@ type BucketInsertDTO struct {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Router /v1/bucket/ [post]
-func CreateBucketHandler(c *gin.Context) {
+func (r *router) CreateBucketHandler(c *gin.Context) {
 	var bucket models.Bucket
 	if err := c.ShouldBindJSON(&bucket); err != nil {
-		c.JSON(400, ErrorResponse{
-			Code:    400,
-			Message: fmt.Sprintf("invalid request body: %v", err),
-		})
+		writeError(c, http.StatusBadRequest, fmt.Sprintf("invalid request body: %v", err))
 		return
 	}
 	ctx := c.Request.Context()
-	existing, err := applicationRepository.Buckets.GetBucketByName(ctx, bucket.Name)
+	existing, err := r.repo.Buckets.GetBucketByName(ctx, bucket.Name)
 	if err != nil {
-		c.JSON(400, ErrorResponse{
-			Code:    400,
-			Message: fmt.Sprintf("failed to check existing bucket: %v", err),
-		})
+		writeError(c, http.StatusBadRequest, fmt.Sprintf("failed to check existing bucket: %v", err))
 		return
 	}
 	if existing != nil {
-		c.JSON(409, ErrorResponse{
-			Code:    409,
-			Message: "Bucket with the same name already exists",
-		})
+		writeError(c, http.StatusConflict, "Bucket with the same name already exists")
 		return
 	}
-	err = applicationRepository.Buckets.CreateBucket(ctx, &bucket)
+	err = r.repo.Buckets.CreateBucket(ctx, &bucket)
 	if err != nil {
-		c.JSON(400, ErrorResponse{
-			Code:    400,
-			Message: fmt.Sprintf("failed to create bucket: %v", err),
-		})
+		writeError(c, http.StatusBadRequest, fmt.Sprintf("failed to create bucket: %v", err))
 		return
 	}
-	c.JSON(201, bucket)
+	c.JSON(http.StatusCreated, bucket)
 }
 
 // ListBucketsHandler lists all buckets
@@ -88,13 +77,10 @@ func CreateBucketHandler(c *gin.Context) {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Router /v1/bucket/ [get]
-func ListBucketsHandler(c *gin.Context) {
-	buckets, err := applicationRepository.Buckets.ListBuckets(c.Request.Context())
+func (r *router) ListBucketsHandler(c *gin.Context) {
+	buckets, err := r.repo.Buckets.ListBuckets(c.Request.Context())
 	if err != nil {
-		c.JSON(500, ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("failed to list buckets: %v", err),
-		})
+		writeError(c, http.StatusInternalServerError, fmt.Sprintf("failed to list buckets: %v", err))
 		return
 	}
 	c.JSON(200, buckets)
@@ -112,21 +98,15 @@ func ListBucketsHandler(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/bucket/{id} [get]
-func GetBucketHandler(c *gin.Context) {
+func (r *router) GetBucketHandler(c *gin.Context) {
 	id := c.Param("id")
-	bucket, err := applicationRepository.Buckets.GetBucketByID(c.Request.Context(), id)
+	bucket, err := r.repo.Buckets.GetBucketByID(c.Request.Context(), id)
 	if err != nil {
-		c.JSON(500, ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("failed to get bucket: %v", err),
-		})
+		writeError(c, http.StatusInternalServerError, fmt.Sprintf("failed to get bucket: %v", err))
 		return
 	}
 	if bucket == nil {
-		c.JSON(404, ErrorResponse{
-			Code:    404,
-			Message: "Bucket not found",
-		})
+		writeError(c, http.StatusNotFound, "Bucket not found")
 		return
 	}
 	c.JSON(200, bucket)
@@ -147,31 +127,22 @@ func GetBucketHandler(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/bucket/{id} [patch]
-func UpdateBucketHandler(c *gin.Context) {
+func (r *router) UpdateBucketHandler(c *gin.Context) {
 	id := c.Param("id")
 	var req models.Bucket
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, ErrorResponse{
-			Code:    400,
-			Message: fmt.Sprintf("invalid request body: %v", err),
-		})
+		writeError(c, http.StatusBadRequest, fmt.Sprintf("invalid request body: %v", err))
 		return
 	}
 
 	ctx := c.Request.Context()
-	bucket, err := applicationRepository.Buckets.GetBucketByID(ctx, id)
+	bucket, err := r.repo.Buckets.GetBucketByID(ctx, id)
 	if err != nil {
-		c.JSON(500, ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("failed to get bucket: %v", err),
-		})
+		writeError(c, http.StatusInternalServerError, fmt.Sprintf("failed to get bucket: %v", err))
 		return
 	}
 	if bucket == nil {
-		c.JSON(404, ErrorResponse{
-			Code:    404,
-			Message: "Bucket not found",
-		})
+		writeError(c, http.StatusNotFound, "Bucket not found")
 		return
 	}
 	bucket.Name = req.Name
@@ -183,12 +154,9 @@ func UpdateBucketHandler(c *gin.Context) {
 	bucket.S3Provider = req.S3Provider
 	bucket.CustomConfig = req.CustomConfig
 	bucket.StorageType = req.StorageType
-	err = applicationRepository.Buckets.UpdateBucket(ctx, bucket)
-	if err != nil {
-		c.JSON(400, ErrorResponse{
-			Code:    400,
-			Message: fmt.Sprintf("failed to update bucket: %v", err),
-		})
+
+	if err := r.repo.Buckets.UpdateBucket(ctx, bucket); err != nil {
+		writeError(c, http.StatusBadRequest, fmt.Sprintf("failed to update bucket: %v", err))
 		return
 	}
 	c.JSON(200, bucket)
@@ -205,30 +173,21 @@ func UpdateBucketHandler(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/bucket/{id} [delete]
-func DeleteBucketHandler(c *gin.Context) {
+func (r *router) DeleteBucketHandler(c *gin.Context) {
 	id := c.Param("id")
 	ctx := c.Request.Context()
-	bucket, err := applicationRepository.Buckets.GetBucketByID(ctx, id)
+	bucket, err := r.repo.Buckets.GetBucketByID(ctx, id)
 	if err != nil {
-		c.JSON(500, ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("failed to get bucket: %v", err),
-		})
+		writeError(c, http.StatusInternalServerError, fmt.Sprintf("failed to get bucket: %v", err))
 		return
 	}
 	if bucket == nil {
-		c.JSON(404, ErrorResponse{
-			Code:    404,
-			Message: "Bucket not found",
-		})
+		writeError(c, http.StatusNotFound, "Bucket not found")
 		return
 	}
-	err = applicationRepository.Buckets.DeleteBucket(ctx, id)
+	err = r.repo.Buckets.DeleteBucket(ctx, id)
 	if err != nil {
-		c.JSON(500, ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("failed to delete bucket: %v", err),
-		})
+		writeError(c, http.StatusInternalServerError, fmt.Sprintf("failed to delete bucket: %v", err))
 		return
 	}
 	c.Status(204)
