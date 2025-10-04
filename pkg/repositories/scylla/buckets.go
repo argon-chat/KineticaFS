@@ -112,7 +112,7 @@ func (s *ScyllaBucketRepository) ListBuckets(ctx context.Context) ([]*models.Buc
 		bucket := &models.Bucket{}
 		var storageType int8
 
-		if iter.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt) {
+		if !iter.Scan(&bucket.ID, &bucket.Name, &bucket.Region, &bucket.Endpoint, &bucket.S3Provider, &bucket.AccessKey, &bucket.SecretKey, &storageType, &bucket.UseSSL, &bucket.CustomConfig, &bucket.CreatedAt, &bucket.UpdatedAt) {
 			break
 		}
 
