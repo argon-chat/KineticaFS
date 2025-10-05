@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import FirstRunGate from '@/components/FirstRunGate.vue';
 </script>
 
 <template>
   <main>
-    <p>Home View</p>
+    <FirstRunGate />
   </main>
 </template>

@@ -180,10 +180,14 @@ docker-run: docker-build
 	@echo "$(BLUE)Running Docker container...$(NC)"
 	docker run -p 3000:3000 $(DOCKER_IMAGE):latest
 
+http-client:
+	@echo "$(BLUE)Generating HTTP client...$(NC)"
+	bun run client:gen
+
 ## Run dev with docker compose
-docker-dev: docs
+docker-dev: docs http-client
 	@echo "$(BLUE)Starting development environment with Docker Compose...$(NC)"
-	docker compose down; docker volume prune -af; docker compose up -d; sleep 10; go run . -m -s
+	docker compose down; docker volume prune -af; docker compose up -d; sleep 10; go run . -m -s -f ./dist
 
 ## Run comprehensive checks (CI pipeline)
 check: deps format lint test build docs
