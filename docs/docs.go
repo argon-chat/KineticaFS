@@ -820,9 +820,6 @@ const docTemplate = `{
                 "path": {
                     "type": "string"
                 },
-                "references": {
-                    "type": "integer"
-                },
                 "updated_at": {
                     "type": "string"
                 }

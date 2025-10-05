@@ -29,7 +29,6 @@ export type ModelsFile = {
     metadata?: string;
     name: string;
     path?: string;
-    references?: number;
     updated_at?: string;
 };
 

@@ -6,14 +6,13 @@ type File struct {
 	Name        string `json:"name" binding:"required"`
 	Path        string `json:"path"`
 	FileSize    int64  `json:"file_size"`
-	References  int64  `json:"references"`
 	ContentType string `json:"content_type"`
 	Checksum    string `json:"checksum"`
 	Metadata    string `json:"metadata,omitempty"`
 }
 
 type FileReferences struct {
-	FileID string `json:"file_id" binding:"required"`
+	FileID   string `json:"file_id" binding:"required"`
 	Metadata string `json:"metadata,omitempty"`
 }
 
