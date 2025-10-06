@@ -36,3 +36,4 @@ go.work.sum
 data
 node_modules/
 dist/
+regions.json

@@ -1,0 +1,14 @@
+{
+  "ru-1": {
+    "id": 1, // 1 unsigned byte
+    "buckets": [
+      {
+        "id": 1, // 2 unsigned bytes
+        "bucketName": "123"
+      }
+    ]
+  },
+  "us-east-1": {
+    // ...
+  }
+}
