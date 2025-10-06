@@ -20,6 +20,9 @@ token: ""            # Authorization token (leave empty for no token)
 # Front-end static file serving
 front-end-path: "/var/www"   # Path to front-end folder containing index.html and assets
 
+# Region configuration
+region: "./regions.json"     # Path to regions configuration file
+
 # Environment variable prefix: KINETICAFS_
 migrate: false       # Set to true to run database migrations
 
@@ -34,3 +37,4 @@ migrate: false       # Set to true to run database migrations
 # KINETICAFS_TOKEN=your-auth-token
 # KINETICAFS_MIGRATE=true
 # KINETICAFS_FRONT-END-PATH=/your/custom/path
+# KINETICAFS_REGION=./my-regions.json
