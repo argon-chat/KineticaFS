@@ -2,7 +2,12 @@ package router
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
+	"net/http"
+	"sync"
+	"time"
 
 	"github.com/argon-chat/KineticaFS/pkg/repositories"
 	"github.com/gin-gonic/gin"
@@ -29,16 +34,36 @@ func NewRouter(repo *repositories.ApplicationRepository) *router {
 	}
 }
 
-func Run(ctx context.Context, port int, repo *repositories.ApplicationRepository) {
+func Run(ctx context.Context, wg *sync.WaitGroup, port int, repo *repositories.ApplicationRepository) {
+	defer wg.Done()
+
 	router := NewRouter(repo)
 	initializeRepo(ctx, repo)
 	setupDashboard(router, ctx)
 	getRoutes(router)
 
 	router.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	err := router.engine.Run(fmt.Sprintf(":%d", port))
-	if err != nil {
-		panic(err)
+
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: router.engine,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			panic(err)
+		}
+	}()
+	log.Printf("Listening and serving HTTP on %s\n", srv.Addr)
+	<-ctx.Done()
+
+	shutdownCtx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("Server shutdown error: %v", err)
+	} else {
+		log.Printf("Server on port %s stopped gracefully", srv.Addr)
 	}
 }
 

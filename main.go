@@ -7,6 +7,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
 	_ "github.com/argon-chat/KineticaFS/docs"
 	"github.com/argon-chat/KineticaFS/pkg/repositories"
@@ -25,7 +29,13 @@ var asciiArt = `
 `
 
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	wg := &sync.WaitGroup{}
+
 	if viper.GetBool("bootstrap") {
 		bootstrapAdminToken()
 		return
@@ -42,8 +52,25 @@ func main() {
 		log.Println("Migration completed successfully")
 	}
 	if viper.GetBool("server") {
-		router.Run(ctx, viper.GetInt("port"), repo)
+		// When each service starts, increment the WaitGroup counter
+		wg.Add(1)
+		// Each service must run in a goroutine and accept the WaitGroup
+		// to signal the main thread for a successful shutdown
+		go router.Run(ctx, wg, viper.GetInt("port"), repo)
 	}
+
+	// Catch OS signals
+	<-quit
+	log.Println("Shutdown signal received")
+
+	// Send cancel signal to all active services
+	cancel()
+	// Wait for all services to finish
+	wg.Wait()
+	// Afterwards, close the database connection
+	repo.DB.Close()
+
+	log.Println("Application stopped.")
 }
 
 func bootstrapAdminToken() {
