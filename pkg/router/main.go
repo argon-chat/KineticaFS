@@ -57,7 +57,7 @@ func Run(ctx context.Context, wg *sync.WaitGroup, port int, repo *repositories.A
 	log.Printf("Listening and serving HTTP on %s\n", srv.Addr)
 	<-ctx.Done()
 
-	shutdownCtx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {

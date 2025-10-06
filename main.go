@@ -51,6 +51,8 @@ func main() {
 		}
 		log.Println("Migration completed successfully")
 	}
+
+	serverEnabled := viper.GetBool("server")
 	if viper.GetBool("server") {
 		// When each service starts, increment the WaitGroup counter
 		wg.Add(1)
@@ -59,14 +61,17 @@ func main() {
 		go router.Run(ctx, wg, viper.GetInt("port"), repo)
 	}
 
-	// Catch OS signals
-	<-quit
-	log.Println("Shutdown signal received")
-
-	// Send cancel signal to all active services
-	cancel()
-	// Wait for all services to finish
-	wg.Wait()
+	if serverEnabled {
+		// Catch OS signals
+		<-quit
+		log.Println("Shutdown signal received")
+		// Send cancel signal to all active services
+		cancel()
+		// Wait for all services to finish
+		wg.Wait()
+	} else {
+		cancel()
+	}
 	// Afterwards, close the database connection
 	repo.DB.Close()
 
