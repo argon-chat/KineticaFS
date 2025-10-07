@@ -7,6 +7,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
 	_ "github.com/argon-chat/KineticaFS/docs"
 	"github.com/argon-chat/KineticaFS/pkg/repositories"
@@ -24,8 +28,30 @@ var asciiArt = `
  |_|\_\|_||_| |_| \_____|   |_|   |______|                                                                               
 `
 
+// runnable represents a component that manages its own lifecycle
+// and cooperates with the application's graceful shutdown mechanism.
+//
+// The Run method should:
+//  1. Start the component’s main work loop.
+//  2. Monitor the provided context for cancellation (ctx.Done()).
+//  3. Gracefully complete ongoing operations upon cancellation.
+//  4. Call wg.Done() exactly once before returning.
+//
+// The method must return a non-nil error if the component fails to start
+// or encounters an unrecoverable runtime error.
+//
+// Run is expected to block until either the context is canceled
+// or the component finishes its work naturally.
+type runnable interface {
+	Run(ctx context.Context, wg *sync.WaitGroup) error
+}
+
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	wg := &sync.WaitGroup{}
+
 	if viper.GetBool("bootstrap") {
 		bootstrapAdminToken()
 		return
@@ -34,16 +60,34 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize repository: %v", err)
 	}
+	repo.InitializeRepo(ctx, repo)
+
 	if viper.GetBool("migrate") {
-		err = repo.Migrate()
-		if err != nil {
+		wg.Add(1)
+		migrator := repositories.NewMigrator(repo)
+		if err := migrator.Run(ctx, wg); err != nil {
 			log.Fatalf("Migration failed: %v", err)
 		}
-		log.Println("Migration completed successfully")
 	}
-	if viper.GetBool("server") {
-		router.Run(ctx, viper.GetInt("port"), repo)
+
+	serverEnabled := viper.GetBool("server")
+	if serverEnabled {
+		port := viper.GetInt("port")
+		wg.Add(1)
+		go router.NewRouter(repo, port).Run(ctx, wg)
 	}
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutdown signal received")
+	cancel()
+	wg.Wait()
+
+	if err := repo.Close(); err != nil {
+		log.Printf("Error closing repository: %v", err)
+	}
+	log.Println("Application stopped.")
 }
 
 func bootstrapAdminToken() {
