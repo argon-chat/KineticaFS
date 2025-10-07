@@ -28,12 +28,28 @@ var asciiArt = `
  |_|\_\|_||_| |_| \_____|   |_|   |______|                                                                               
 `
 
+// runnable represents a component that manages its own lifecycle
+// and cooperates with the application's graceful shutdown mechanism.
+//
+// The Run method should:
+//  1. Start the component’s main work loop.
+//  2. Monitor the provided context for cancellation (ctx.Done()).
+//  3. Gracefully complete ongoing operations upon cancellation.
+//  4. Call wg.Done() exactly once before returning.
+//
+// The method must return a non-nil error if the component fails to start
+// or encounters an unrecoverable runtime error.
+//
+// Run is expected to block until either the context is canceled
+// or the component finishes its work naturally.
+type runnable interface {
+	Run(ctx context.Context, wg *sync.WaitGroup) error
+}
+
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	wg := &sync.WaitGroup{}
 
 	if viper.GetBool("bootstrap") {
@@ -41,39 +57,37 @@ func main() {
 		return
 	}
 	repo, err := repositories.NewApplicationRepository()
+	repo.InitializeRepo(ctx, repo)
+
 	if err != nil {
 		log.Fatalf("Failed to initialize repository: %v", err)
 	}
+
 	if viper.GetBool("migrate") {
-		err = repo.Migrate(ctx)
-		if err != nil {
+		wg.Add(1)
+		migrator := repositories.NewMigrator(repo)
+		if err := migrator.Run(ctx, wg); err != nil {
 			log.Fatalf("Migration failed: %v", err)
 		}
-		log.Println("Migration completed successfully")
 	}
 
 	serverEnabled := viper.GetBool("server")
-	if viper.GetBool("server") {
-		// When each service starts, increment the WaitGroup counter
+	if serverEnabled {
+		port := viper.GetInt("port")
 		wg.Add(1)
-		// Each service must run in a goroutine and accept the WaitGroup
-		// to signal the main thread for a successful shutdown
-		go router.Run(ctx, wg, viper.GetInt("port"), repo)
+		go router.NewRouter(repo, port).Run(ctx, wg)
 	}
 
-	if serverEnabled {
-		// Catch OS signals
-		<-quit
-		log.Println("Shutdown signal received")
-		// Send cancel signal to all active services
-		cancel()
-		// Wait for all services to finish
-		wg.Wait()
-	} else {
-		cancel()
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutdown signal received")
+	cancel()
+	wg.Wait()
+
+	if err := repo.Close(); err != nil {
+		log.Printf("Error closing repository: %v", err)
 	}
-	// Afterwards, close the database connection
-	repo.Close()
 	log.Println("Application stopped.")
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"sync"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/argon-chat/KineticaFS/pkg/repositories/postgres"
@@ -32,8 +33,11 @@ type ApplicationRepository struct {
 	Files         IFileRepository
 }
 
-func (a *ApplicationRepository) Close() {
-	a.db.Close()
+func (a *ApplicationRepository) Close() error {
+	if err := a.db.Close(); err != nil {
+		return fmt.Errorf("close %s: %w", a.dbType, err)
+	}
+	return nil
 }
 
 func NewApplicationRepository() (*ApplicationRepository, error) {
@@ -57,6 +61,25 @@ func NewApplicationRepository() (*ApplicationRepository, error) {
 		return newPostgresRepository(connectionString)
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", dbType)
+	}
+}
+
+type migrator struct {
+	repo *ApplicationRepository
+}
+
+func (m *migrator) Run(ctx context.Context, wg *sync.WaitGroup) error {
+	defer wg.Done()
+	err := m.repo.Migrate(ctx)
+	if err != nil {
+		return fmt.Errorf("migration error: %w", err)
+	}
+	return nil
+}
+
+func NewMigrator(repo *ApplicationRepository) *migrator {
+	return &migrator{
+		repo: repo,
 	}
 }
 
@@ -138,4 +161,10 @@ func newScyllaRepository(connectionString string) (*ApplicationRepository, error
 	}
 	log.Printf("Scylla repository created: %+v", ar)
 	return ar, nil
+}
+
+func (r *ApplicationRepository) InitializeRepo(ctx context.Context, repo *ApplicationRepository) {
+	repo.ServiceTokens.CreateIndices(ctx)
+	repo.Buckets.CreateIndices(ctx)
+	repo.Files.CreateIndices(ctx)
 }
