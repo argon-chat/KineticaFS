@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"reflect"
@@ -59,20 +60,21 @@ func NewApplicationRepository() (*ApplicationRepository, error) {
 	}
 }
 
-func (ar *ApplicationRepository) Migrate() error {
+func (ar *ApplicationRepository) Migrate(ctx context.Context) error {
 	switch ar.dbType {
 	case "scylla":
-		return ar.migrateDatabase(migrateScyllaModel, ar.executeScyllaQuery)
+		return ar.migrateDatabase(ctx, migrateScyllaModel, ar.executeScyllaQuery)
 	case "postgres":
-		return ar.migrateDatabase(migratePostgresModel, ar.executePostgresQuery)
+		return ar.migrateDatabase(ctx, migratePostgresModel, ar.executePostgresQuery)
 	default:
 		return fmt.Errorf("unsupported database type: %s", ar.dbType)
 	}
 }
 
 func (ar *ApplicationRepository) migrateDatabase(
+	ctx context.Context,
 	modelMigrator func(*migration) string,
-	queryExecutor func(string) error,
+	queryExecutor func(context.Context, string) error,
 ) error {
 	for _, e := range migrationTypes {
 		tableName := fmt.Sprintf("%T", e)
@@ -85,7 +87,7 @@ func (ar *ApplicationRepository) migrateDatabase(
 			model.Fields[i.Name] = i.Type.Name()
 		}
 		query := modelMigrator(&model)
-		if err := queryExecutor(query); err != nil {
+		if err := queryExecutor(ctx, query); err != nil {
 			return fmt.Errorf("failed to migrate table %s: %w", tableName, err)
 		}
 	}
@@ -93,12 +95,12 @@ func (ar *ApplicationRepository) migrateDatabase(
 }
 
 // Database-specific query executors
-func (ar *ApplicationRepository) executeScyllaQuery(query string) error {
-	return ar.db.(*scylla.ScyllaConnection).Session.Query(query).Exec()
+func (ar *ApplicationRepository) executeScyllaQuery(ctx context.Context, query string) error {
+	return ar.db.(*scylla.ScyllaConnection).Session.Query(query).WithContext(ctx).Exec()
 }
 
-func (ar *ApplicationRepository) executePostgresQuery(query string) error {
-	_, err := ar.db.(*postgres.PostgresConnection).DB.Exec(query)
+func (ar *ApplicationRepository) executePostgresQuery(ctx context.Context, query string) error {
+	_, err := ar.db.(*postgres.PostgresConnection).DB.ExecContext(ctx, query)
 	return err
 }
 

@@ -45,7 +45,7 @@ func main() {
 		log.Fatalf("Failed to initialize repository: %v", err)
 	}
 	if viper.GetBool("migrate") {
-		err = repo.Migrate()
+		err = repo.Migrate(ctx)
 		if err != nil {
 			log.Fatalf("Migration failed: %v", err)
 		}
