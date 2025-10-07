@@ -23,12 +23,16 @@ type IDatabase interface {
 }
 
 type ApplicationRepository struct {
-	DB     IDatabase
+	db     IDatabase
 	dbType string
 
 	ServiceTokens IServiceTokenRepository
 	Buckets       IBucketRepository
 	Files         IFileRepository
+}
+
+func (a *ApplicationRepository) Close() {
+	a.db.Close()
 }
 
 func NewApplicationRepository() (*ApplicationRepository, error) {
@@ -90,11 +94,11 @@ func (ar *ApplicationRepository) migrateDatabase(
 
 // Database-specific query executors
 func (ar *ApplicationRepository) executeScyllaQuery(query string) error {
-	return ar.DB.(*scylla.ScyllaConnection).Session.Query(query).Exec()
+	return ar.db.(*scylla.ScyllaConnection).Session.Query(query).Exec()
 }
 
 func (ar *ApplicationRepository) executePostgresQuery(query string) error {
-	_, err := ar.DB.(*postgres.PostgresConnection).DB.Exec(query)
+	_, err := ar.db.(*postgres.PostgresConnection).DB.Exec(query)
 	return err
 }
 
@@ -105,7 +109,7 @@ func newPostgresRepository(connectionString string) (*ApplicationRepository, err
 	}
 
 	ar := &ApplicationRepository{
-		DB:     repository,
+		db:     repository,
 		dbType: "postgres",
 
 		ServiceTokens: postgres.NewPostgresServiceTokenRepository(repository.DB),
@@ -123,7 +127,7 @@ func newScyllaRepository(connectionString string) (*ApplicationRepository, error
 	}
 
 	ar := &ApplicationRepository{
-		DB:     repository,
+		db:     repository,
 		dbType: "scylla",
 
 		ServiceTokens: scylla.NewScyllaServiceTokenRepository(repository.Session),

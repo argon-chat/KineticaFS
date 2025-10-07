@@ -73,8 +73,7 @@ func main() {
 		cancel()
 	}
 	// Afterwards, close the database connection
-	repo.DB.Close()
-
+	repo.Close()
 	log.Println("Application stopped.")
 }
 
