@@ -57,11 +57,10 @@ func main() {
 		return
 	}
 	repo, err := repositories.NewApplicationRepository()
-	repo.InitializeRepo(ctx, repo)
-
 	if err != nil {
 		log.Fatalf("Failed to initialize repository: %v", err)
 	}
+	repo.InitializeRepo(ctx, repo)
 
 	if viper.GetBool("migrate") {
 		wg.Add(1)
