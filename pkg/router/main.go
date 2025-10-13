@@ -2,7 +2,12 @@ package router
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
+	"net/http"
+	"sync"
+	"time"
 
 	"github.com/argon-chat/KineticaFS/pkg/repositories"
 	"github.com/gin-gonic/gin"
@@ -20,29 +25,83 @@ type ErrorResponse struct {
 type router struct {
 	engine *gin.Engine
 	repo   *repositories.ApplicationRepository
+	port   int
 }
 
-func NewRouter(repo *repositories.ApplicationRepository) *router {
+func (r *router) Run(ctx context.Context, wg *sync.WaitGroup) error {
+	defer wg.Done()
+	setupDashboard(r)
+	getRoutes(r)
+
+	r.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", r.port),
+		Handler: r.engine,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			panic(err)
+		}
+	}()
+
+	log.Printf("Listening and serving HTTP on %s\n", srv.Addr)
+	<-ctx.Done()
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("Server shutdown error: %v", err)
+	} else {
+		log.Printf("Server on port %s stopped gracefully", srv.Addr)
+	}
+
+	return nil
+}
+
+func NewRouter(repo *repositories.ApplicationRepository, port int) *router {
 	return &router{
 		engine: gin.Default(),
 		repo:   repo,
+		port:   port,
 	}
 }
 
-func Run(ctx context.Context, port int, repo *repositories.ApplicationRepository) {
-	router := NewRouter(repo)
-	initializeRepo(ctx, repo)
-	setupDashboard(router, ctx)
+func RunRouter(ctx context.Context, wg *sync.WaitGroup, port int, repo *repositories.ApplicationRepository) {
+	defer wg.Done()
+
+	router := NewRouter(repo, port)
+	setupDashboard(router)
 	getRoutes(router)
 
 	router.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	err := router.engine.Run(fmt.Sprintf(":%d", port))
-	if err != nil {
-		panic(err)
+
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: router.engine,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			panic(err)
+		}
+	}()
+	log.Printf("Listening and serving HTTP on %s\n", srv.Addr)
+	<-ctx.Done()
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("Server shutdown error: %v", err)
+	} else {
+		log.Printf("Server on port %s stopped gracefully", srv.Addr)
 	}
 }
 
-func setupDashboard(router *router, ctx context.Context) {
+func setupDashboard(router *router) {
 	dashboardPath := viper.GetString("front-end-path")
 	router.engine.GET("/", func(c *gin.Context) {
 		if c.Query("swagger") == "true" {
@@ -60,12 +119,6 @@ func setupDashboard(router *router, ctx context.Context) {
 func getRoutes(router *router) {
 	v1 := router.engine.Group("/v1")
 	addV1Routes(router, v1)
-}
-
-func initializeRepo(ctx context.Context, repo *repositories.ApplicationRepository) {
-	repo.ServiceTokens.CreateIndices(ctx)
-	repo.Buckets.CreateIndices(ctx)
-	repo.Files.CreateIndices(ctx)
 }
 
 func addV1Routes(router *router, v1 *gin.RouterGroup) {
