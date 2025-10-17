@@ -60,7 +60,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize repository: %v", err)
 	}
-	repo.InitializeRepo(ctx, repo)
 
 	if viper.GetBool("migrate") {
 		wg.Add(1)
@@ -68,6 +67,7 @@ func main() {
 		if err := migrator.Run(ctx, wg); err != nil {
 			log.Fatalf("Migration failed: %v", err)
 		}
+		repo.InitializeRepo(ctx, repo)
 	}
 
 	serverEnabled := viper.GetBool("server")
