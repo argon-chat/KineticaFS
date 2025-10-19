@@ -11,8 +11,10 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	_ "github.com/argon-chat/KineticaFS/docs"
+	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/argon-chat/KineticaFS/pkg/repositories"
 	"github.com/argon-chat/KineticaFS/pkg/router"
 	"github.com/spf13/pflag"
@@ -48,8 +50,16 @@ type runnable interface {
 
 func mockGenerator(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
-	log.Println("Mock processor started")
-
+	log.Println("Mock generator started")
+	time.Sleep(10 * time.Second)
+	token, err := bootstrapAdminToken(false)
+	if err != nil {
+		log.Printf("Mock generator: failed to bootstrap admin token: %v", err)
+		return
+	}
+	log.Println("============== MOCK ADMIN TOKEN GENERATE ==============")
+	log.Println(token.AccessKey)
+	log.Println("=======================================================")
 }
 
 func main() {
@@ -59,7 +69,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 
 	if viper.GetBool("bootstrap") {
-		bootstrapAdminToken()
+		bootstrapAdminToken(true)
 		return
 	}
 	repo, err := repositories.NewApplicationRepository()
@@ -76,8 +86,7 @@ func main() {
 		repo.InitializeRepo(ctx, repo)
 	}
 
-	mockEnabled := viper.GetBool("mock")
-	if mockEnabled {
+	if viper.GetBool("mock") {
 		wg.Add(1)
 		go mockGenerator(ctx, wg)
 	}
@@ -102,7 +111,7 @@ func main() {
 	log.Println("Application stopped.")
 }
 
-func bootstrapAdminToken() {
+func bootstrapAdminToken(shouldPrint bool) (*models.ServiceToken, error) {
 	port := viper.GetInt("port")
 	url := "http://localhost:" + fmt.Sprint(port) + "/v1/st/bootstrap"
 	resp, err := http.Post(url, "application/json", nil)
@@ -112,27 +121,25 @@ func bootstrapAdminToken() {
 	defer resp.Body.Close()
 	if resp.StatusCode != 201 {
 		body, _ := io.ReadAll(resp.Body)
-		log.Fatalf("Bootstrap failed: %s\n%s", resp.Status, string(body))
+		log.Println("Bootstrap failed: %s\n%s", resp.Status, string(body))
+		return nil, fmt.Errorf("bootstrap failed: %s\n%s", resp.Status, string(body))
 	}
-	var token struct {
-		ID        string `json:"id"`
-		Name      string `json:"name"`
-		AccessKey string `json:"access_key"`
-		TokenType int8   `json:"token_type"`
-		CreatedAt string `json:"created_at"`
-		UpdatedAt string `json:"updated_at"`
-	}
+	var token models.ServiceToken
 	if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
-		log.Fatalf("Failed to decode bootstrap response: %v", err)
+		log.Println("Failed to decode bootstrap response: %v", err)
+		return nil, fmt.Errorf("failed to decode bootstrap response: %v", err)
 	}
-	log.Println("Admin service token created:")
-	log.Printf("  ID: %s", token.ID)
-	log.Printf("  Name: %s", token.Name)
-	log.Printf("  AccessKey: %s", token.AccessKey)
-	log.Printf("  TokenType: %d", token.TokenType)
-	log.Printf("  CreatedAt: %s", token.CreatedAt)
-	log.Printf("  UpdatedAt: %s", token.UpdatedAt)
-	log.Println("Store the AccessKey securely; it will not be shown again.")
+	if shouldPrint {
+		log.Println("Admin service token created:")
+		log.Printf("  ID: %s", token.ID)
+		log.Printf("  Name: %s", token.Name)
+		log.Printf("  AccessKey: %s", token.AccessKey)
+		log.Printf("  TokenType: %d", token.TokenType)
+		log.Printf("  CreatedAt: %s", token.CreatedAt)
+		log.Printf("  UpdatedAt: %s", token.UpdatedAt)
+		log.Println("Store the AccessKey securely; it will not be shown again.")
+	}
+	return &token, nil
 }
 
 func init() {
