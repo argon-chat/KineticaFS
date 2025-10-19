@@ -347,6 +347,11 @@ paths:
       description: Initiate a new file upload. Receives regionId and bucketCode, returns
         a pre-signed upload URL and TTL (seconds). Admin access required.
       parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       - description: Upload initiation data
         in: body
         name: data
@@ -364,8 +369,12 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/router.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
         "403":
-          description: Forbidden
+          description: Forbidden - Admin only
           schema:
             $ref: '#/definitions/router.ErrorResponse'
       summary: Initiate file upload
@@ -375,6 +384,11 @@ paths:
     delete:
       description: Delete a file by ID. Admin access required.
       parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       - description: File ID
         in: path
         name: id
@@ -383,8 +397,12 @@ paths:
       responses:
         "204":
           description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
         "403":
-          description: Forbidden
+          description: Forbidden - Admin only
           schema:
             $ref: '#/definitions/router.ErrorResponse'
         "404":
@@ -399,6 +417,11 @@ paths:
       description: Finalize a file upload after client notifies server. Admin access
         required.
       parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       - description: File ID
         in: path
         name: id
@@ -415,8 +438,12 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/router.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
         "403":
-          description: Forbidden
+          description: Forbidden - Admin only
           schema:
             $ref: '#/definitions/router.ErrorResponse'
         "404":
@@ -613,6 +640,11 @@ paths:
       description: Upload file data using the blob ID provided by the server. Supports
         stream, form-data, and multipart uploads. No admin access required.
       parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
       - description: Blob ID
         in: path
         name: blob
@@ -637,6 +669,10 @@ paths:
           description: No Content
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/router.ErrorResponse'
         "404":

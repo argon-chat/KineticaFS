@@ -301,6 +301,13 @@ const docTemplate = `{
                 "summary": "Initiate file upload",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Upload initiation data",
                         "name": "data",
                         "in": "body",
@@ -323,8 +330,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Forbidden - Admin only",
                         "schema": {
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
@@ -342,6 +355,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "File ID",
                         "name": "id",
                         "in": "path",
@@ -352,8 +372,14 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content"
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Forbidden - Admin only",
                         "schema": {
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
@@ -380,6 +406,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "File ID",
                         "name": "id",
                         "in": "path",
@@ -399,8 +432,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Forbidden - Admin only",
                         "schema": {
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
@@ -694,6 +733,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Blob ID",
                         "name": "blob",
                         "in": "path",
@@ -723,6 +769,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
