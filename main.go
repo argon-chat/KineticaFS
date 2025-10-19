@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"sync"
 	"syscall"
@@ -52,14 +54,41 @@ func mockGenerator(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 	log.Println("Mock generator started")
 	time.Sleep(10 * time.Second)
-	token, err := bootstrapAdminToken(false)
+	cwd, err := os.Getwd()
 	if err != nil {
-		log.Printf("Mock generator: failed to bootstrap admin token: %v", err)
-		return
+		log.Fatal(err)
 	}
-	log.Println("============== MOCK ADMIN TOKEN GENERATE ==============")
-	log.Println(token.AccessKey)
-	log.Println("=======================================================")
+	cmd := exec.CommandContext(ctx, "bun", fmt.Sprintf("%s/mock.ts", cwd))
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			log.Printf("MOCK STDOUT: %s", scanner.Text())
+		}
+	}()
+
+	go func() {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			log.Printf("MOCK STDERR: %s", scanner.Text())
+		}
+	}()
+
+	if err := cmd.Wait(); err != nil {
+		log.Printf("Mock generator process exited with error: %v", err)
+	} else {
+		log.Println("Mock generator process completed successfully")
+	}
 }
 
 func main() {
