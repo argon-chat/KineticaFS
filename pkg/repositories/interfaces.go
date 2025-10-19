@@ -39,3 +39,10 @@ type IServiceTokenRepository interface {
 	CreateServiceToken(ctx context.Context, token *models.ServiceToken) error
 	RevokeServiceToken(ctx context.Context, id string) error
 }
+
+type IFileBlobRepository interface {
+	IRepository
+	CreateFileBlob(ctx context.Context, blob *models.FileBlob) (*models.FileBlob, error)
+	GetFileBlobByID(ctx context.Context, id string) (*models.FileBlob, error)
+	DeleteFileBlobByID(ctx context.Context, id string) error
+}

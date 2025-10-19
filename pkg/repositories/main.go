@@ -31,6 +31,7 @@ type ApplicationRepository struct {
 	ServiceTokens IServiceTokenRepository
 	Buckets       IBucketRepository
 	Files         IFileRepository
+	FileBlobs     IFileBlobRepository
 }
 
 func (a *ApplicationRepository) Close() error {
@@ -45,6 +46,7 @@ func NewApplicationRepository() (*ApplicationRepository, error) {
 		models.ServiceToken{},
 		models.Bucket{},
 		models.File{},
+		models.FileBlob{},
 	}
 	dbType := viper.GetString("database")
 	if dbType == "" {
@@ -140,6 +142,7 @@ func newPostgresRepository(connectionString string) (*ApplicationRepository, err
 		ServiceTokens: postgres.NewPostgresServiceTokenRepository(repository.DB),
 		Buckets:       postgres.NewPostgresBucketRepository(repository.DB),
 		Files:         postgres.NewPostgresFileRepository(repository.DB),
+		FileBlobs:     postgres.NewPostgresFileBlobRepository(repository.DB),
 	}
 	log.Printf("Postgres repository created: %+v", ar)
 	return ar, nil
@@ -158,6 +161,7 @@ func newScyllaRepository(connectionString string) (*ApplicationRepository, error
 		ServiceTokens: scylla.NewScyllaServiceTokenRepository(repository.Session),
 		Buckets:       scylla.NewScyllaBucketRepository(repository.Session),
 		Files:         scylla.NewScyllaFileRepository(repository.Session),
+		FileBlobs:     scylla.NewScyllaFileBlobRepository(repository.Session),
 	}
 	log.Printf("Scylla repository created: %+v", ar)
 	return ar, nil
@@ -167,4 +171,5 @@ func (r *ApplicationRepository) InitializeRepo(ctx context.Context, repo *Applic
 	repo.ServiceTokens.CreateIndices(ctx)
 	repo.Buckets.CreateIndices(ctx)
 	repo.Files.CreateIndices(ctx)
+	repo.FileBlobs.CreateIndices(ctx)
 }
