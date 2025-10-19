@@ -32,7 +32,7 @@ var asciiArt = `
 // and cooperates with the application's graceful shutdown mechanism.
 //
 // The Run method should:
-//  1. Start the component’s main work loop.
+//  1. Start the component's main work loop.
 //  2. Monitor the provided context for cancellation (ctx.Done()).
 //  3. Gracefully complete ongoing operations upon cancellation.
 //  4. Call wg.Done() exactly once before returning.
@@ -44,6 +44,12 @@ var asciiArt = `
 // or the component finishes its work naturally.
 type runnable interface {
 	Run(ctx context.Context, wg *sync.WaitGroup) error
+}
+
+func mockGenerator(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
+	log.Println("Mock processor started")
+
 }
 
 func main() {
@@ -68,6 +74,12 @@ func main() {
 			log.Fatalf("Migration failed: %v", err)
 		}
 		repo.InitializeRepo(ctx, repo)
+	}
+
+	mockEnabled := viper.GetBool("mock")
+	if mockEnabled {
+		wg.Add(1)
+		go mockGenerator(ctx, wg)
 	}
 
 	serverEnabled := viper.GetBool("server")
@@ -136,6 +148,7 @@ func init() {
 	viper.SetDefault("database", "scylla")
 	viper.SetDefault("front-end-path", "/var/www")
 	viper.SetDefault("region", "./regions.json")
+	viper.SetDefault("mock", false)
 
 	pflag.BoolP("server", "s", false, "Run as server")
 	pflag.String("token", "", "Authorization token")
@@ -146,6 +159,7 @@ func init() {
 	pflag.BoolP("bootstrap", "b", false, "Bootstrap admin service token (makes HTTP request to /v1/st/bootstrap)")
 	pflag.StringP("front-end-path", "f", "/var/www", "Path to front-end folder containing index.html (default: /var/www)")
 	pflag.StringP("region", "r", "./regions.json", "Path to regions configuration file (default: ./regions.json)")
+	pflag.BoolP("mock", "", false, "set mock data into database")
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
 
