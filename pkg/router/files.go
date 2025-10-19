@@ -3,17 +3,17 @@ package router
 import "github.com/gin-gonic/gin"
 
 // AddFileRoutes sets up the server-side file management endpoints.
-func AddFileRoutes(v1 *gin.RouterGroup) {
+func AddFileRoutes(router *router, v1 *gin.RouterGroup) {
 	files := v1.Group("/file")
-	files.POST("/", InitiateFileUploadHandler)
-	files.POST("/:id/finalize", FinalizeFileUploadHandler)
-	files.DELETE("/:id", DeleteFileHandler)
+	files.POST("/", AuthMiddleware(router.repo), AdminOnlyMiddleware, InitiateFileUploadHandler)
+	files.POST("/:id/finalize", AuthMiddleware(router.repo), AdminOnlyMiddleware, FinalizeFileUploadHandler)
+	files.DELETE("/:id", AuthMiddleware(router.repo), AdminOnlyMiddleware, DeleteFileHandler)
 }
 
 // AddFileBlobRoutes sets up the client-side upload endpoint.
-func AddFileBlobRoutes(v1 *gin.RouterGroup) {
+func AddFileBlobRoutes(router *router, v1 *gin.RouterGroup) {
 	upload := v1.Group("/upload")
-	upload.PATCH("/:blob", UploadFileBlobHandler)
+	upload.PATCH("/:blob", AuthMiddleware(router.repo), UploadFileBlobHandler)
 }
 
 type InitiateFileUploadDTO struct {
@@ -38,7 +38,7 @@ type InitiateFileUploadResponse struct {
 // @Failure 403 {object} router.ErrorResponse
 // @Router /v1/file/ [post]
 func InitiateFileUploadHandler(c *gin.Context) {
-	// Implementation goes here
+
 }
 
 // Upload file data (client)
