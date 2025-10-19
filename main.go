@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,11 +8,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/signal"
 	"sync"
 	"syscall"
-	"time"
 
 	_ "github.com/argon-chat/KineticaFS/docs"
 	"github.com/argon-chat/KineticaFS/pkg/models"
@@ -50,47 +47,6 @@ type runnable interface {
 	Run(ctx context.Context, wg *sync.WaitGroup) error
 }
 
-func mockGenerator(ctx context.Context, wg *sync.WaitGroup) {
-	defer wg.Done()
-	log.Println("Mock generator started")
-	time.Sleep(10 * time.Second)
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	cmd := exec.CommandContext(ctx, "bun", fmt.Sprintf("%s/mock.ts", cwd))
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-	go func() {
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			log.Printf("MOCK STDOUT: %s", scanner.Text())
-		}
-	}()
-
-	go func() {
-		scanner := bufio.NewScanner(stderr)
-		for scanner.Scan() {
-			log.Printf("MOCK STDERR: %s", scanner.Text())
-		}
-	}()
-
-	if err := cmd.Wait(); err != nil {
-		log.Printf("Mock generator process exited with error: %v", err)
-	} else {
-		log.Println("Mock generator process completed successfully")
-	}
-}
-
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -113,11 +69,6 @@ func main() {
 			log.Fatalf("Migration failed: %v", err)
 		}
 		repo.InitializeRepo(ctx, repo)
-	}
-
-	if viper.GetBool("mock") {
-		wg.Add(1)
-		go mockGenerator(ctx, wg)
 	}
 
 	serverEnabled := viper.GetBool("server")
@@ -184,7 +135,6 @@ func init() {
 	viper.SetDefault("database", "scylla")
 	viper.SetDefault("front-end-path", "/var/www")
 	viper.SetDefault("region", "./regions.json")
-	viper.SetDefault("mock", false)
 
 	pflag.BoolP("server", "s", false, "Run as server")
 	pflag.String("token", "", "Authorization token")
@@ -195,7 +145,6 @@ func init() {
 	pflag.BoolP("bootstrap", "b", false, "Bootstrap admin service token (makes HTTP request to /v1/st/bootstrap)")
 	pflag.StringP("front-end-path", "f", "/var/www", "Path to front-end folder containing index.html (default: /var/www)")
 	pflag.StringP("region", "r", "./regions.json", "Path to regions configuration file (default: ./regions.json)")
-	pflag.BoolP("mock", "", false, "set mock data into database")
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
 

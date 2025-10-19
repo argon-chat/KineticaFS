@@ -25,7 +25,6 @@ region: "./regions.json"     # Path to regions configuration file
 
 # Environment variable prefix: KINETICAFS_
 migrate: false       # Set to true to run database migrations
-mock: false          # Set to true to enable mock test data
 
 # Environment variable prefix: KINETICAFS_
 # Examples:
@@ -37,6 +36,5 @@ mock: false          # Set to true to enable mock test data
 # KINETICAFS_POSTGRES=postgres://user:pass@host:5432/dbname?sslmode=disable
 # KINETICAFS_TOKEN=your-auth-token
 # KINETICAFS_MIGRATE=true
-# KINETICAFS_MOCK=true
 # KINETICAFS_FRONT-END-PATH=/your/custom/path
 # KINETICAFS_REGION=./my-regions.json
