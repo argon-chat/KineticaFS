@@ -298,6 +298,12 @@ export type PostV1FileData = {
      * Upload initiation data
      */
     body: RouterInitiateFileUploadDto;
+    headers: {
+        /**
+         * API Token
+         */
+        'x-api-token': string;
+    };
     path?: never;
     query?: never;
     url: '/v1/file/';
@@ -309,7 +315,11 @@ export type PostV1FileErrors = {
      */
     400: RouterErrorResponse;
     /**
-     * Forbidden
+     * Unauthorized
+     */
+    401: RouterErrorResponse;
+    /**
+     * Forbidden - Admin only
      */
     403: RouterErrorResponse;
 };
@@ -327,6 +337,12 @@ export type PostV1FileResponse = PostV1FileResponses[keyof PostV1FileResponses];
 
 export type DeleteV1FileByIdData = {
     body?: never;
+    headers: {
+        /**
+         * API Token
+         */
+        'x-api-token': string;
+    };
     path: {
         /**
          * File ID
@@ -339,7 +355,11 @@ export type DeleteV1FileByIdData = {
 
 export type DeleteV1FileByIdErrors = {
     /**
-     * Forbidden
+     * Unauthorized
+     */
+    401: RouterErrorResponse;
+    /**
+     * Forbidden - Admin only
      */
     403: RouterErrorResponse;
     /**
@@ -359,6 +379,12 @@ export type DeleteV1FileByIdResponses = {
 
 export type PostV1FileByIdFinalizeData = {
     body?: never;
+    headers: {
+        /**
+         * API Token
+         */
+        'x-api-token': string;
+    };
     path: {
         /**
          * File ID
@@ -375,7 +401,11 @@ export type PostV1FileByIdFinalizeErrors = {
      */
     400: RouterErrorResponse;
     /**
-     * Forbidden
+     * Unauthorized
+     */
+    401: RouterErrorResponse;
+    /**
+     * Forbidden - Admin only
      */
     403: RouterErrorResponse;
     /**
@@ -619,6 +649,12 @@ export type PatchV1UploadByBlobData = {
      * File data (raw stream, required if not using multipart/form-data)
      */
     body?: Array<number>;
+    headers: {
+        /**
+         * API Token
+         */
+        'x-api-token': string;
+    };
     path: {
         /**
          * Blob ID
@@ -634,6 +670,10 @@ export type PatchV1UploadByBlobErrors = {
      * Bad Request
      */
     400: RouterErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: RouterErrorResponse;
     /**
      * Not Found
      */
