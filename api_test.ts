@@ -281,7 +281,7 @@ describe('Authorization Tests', () => {
         expect(bootstrapResponse.data).toHaveProperty('access_key');
         admin_api_token = bootstrapResponse.data?.access_key;
         expect(admin_api_token).toBeDefined();
-        console.log(admin_api_token)
+        console.log(admin_api_token, 'admin')
     });
 
     test('Admin endpoints return 403 with non-admin token', async () => {
@@ -459,5 +459,48 @@ test('Lists buckets after creating a bucket', async () => {
     expect(deleteResponse).toHaveProperty('data');
 });
 
-(async () => {
-})()
+test('creates the actual buckets from compose file', async () => {
+    const { postV1Bucket } = await import('./src/client');
+    const region1Response = await postV1Bucket({
+        client,
+        headers: {
+            "x-api-token": admin_api_token as string
+        },
+        body: {
+            name: 'region1-storage',
+            region: 'region1',
+            endpoint: 'http://localhost:8333',
+            access_key: 'argon',
+            secret_key: 'argon',
+            use_ssl: false,
+            s3_provider: 'seaweedfs',
+            storage_type: 0
+        }
+    });
+
+    const region2Response = await postV1Bucket({
+        client,
+        headers: {
+            "x-api-token": admin_api_token as string
+        },
+        body: {
+            name: 'region2-storage',
+            region: 'region2',
+            endpoint: 'http://localhost:8334',
+            access_key: 'argon',
+            secret_key: 'argon',
+            use_ssl: false,
+            s3_provider: 'seaweedfs',
+            storage_type: 0
+        }
+    });
+
+    expect(region1Response).toBeDefined();
+    expect(region1Response).toHaveProperty('data');
+    expect(region2Response).toBeDefined();
+    expect(region2Response).toHaveProperty('data');
+    expect(region1Response.data).toHaveProperty('id');
+    expect(region2Response.data).toHaveProperty('id');
+    console.log('Region 1 bucket created:', region1Response.data?.id);
+    console.log('Region 2 bucket created:', region2Response.data?.id);
+})
