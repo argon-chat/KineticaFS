@@ -101,12 +101,12 @@ func bootstrapAdminToken(shouldPrint bool) (*models.ServiceToken, error) {
 	defer resp.Body.Close()
 	if resp.StatusCode != 201 {
 		body, _ := io.ReadAll(resp.Body)
-		log.Println("Bootstrap failed: %s\n%s", resp.Status, string(body))
+		log.Printf("Bootstrap failed: %s\n%s\n", resp.Status, string(body))
 		return nil, fmt.Errorf("bootstrap failed: %s\n%s", resp.Status, string(body))
 	}
 	var token models.ServiceToken
 	if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
-		log.Println("Failed to decode bootstrap response: %v", err)
+		log.Printf("Failed to decode bootstrap response: %v", err)
 		return nil, fmt.Errorf("failed to decode bootstrap response: %v", err)
 	}
 	if shouldPrint {
