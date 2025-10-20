@@ -3,6 +3,7 @@ package scylla
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/gocql/gocql"
@@ -40,6 +41,8 @@ func (s *ScyllaFileBlobRepository) CreateIndices(ctx context.Context) {
 
 func (s *ScyllaFileBlobRepository) CreateFileBlob(ctx context.Context, blob *models.FileBlob) (*models.FileBlob, error) {
 	blob.ID = gocql.TimeUUID().String()
+	blob.CreatedAt = time.Now().UTC()
+	blob.UpdatedAt = blob.CreatedAt
 	query := "INSERT INTO fileblob (id, createdat, fileid, updatedat) VALUES (?, ?, ?, ?)"
 	if err := s.session.Query(query, blob.ID, blob.CreatedAt, blob.FileID, blob.UpdatedAt).WithContext(ctx).Exec(); err != nil {
 		return nil, err
@@ -48,7 +51,7 @@ func (s *ScyllaFileBlobRepository) CreateFileBlob(ctx context.Context, blob *mod
 }
 
 func (s *ScyllaFileBlobRepository) GetFileBlobByID(ctx context.Context, id string) (*models.FileBlob, error) {
-	query := "SELECT id, createdat, fileid, hex, updatedat FROM fileblob WHERE id = ?"
+	query := "SELECT id, createdat, fileid, updatedat FROM fileblob WHERE id = ?"
 	row := s.session.Query(query, id).WithContext(ctx)
 	var blob models.FileBlob
 	err := row.Scan(&blob.ID, &blob.CreatedAt, &blob.FileID, &blob.UpdatedAt)

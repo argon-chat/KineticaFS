@@ -29,7 +29,7 @@ func AddFileBlobRoutes(router *router, v1 *gin.RouterGroup) {
 
 type InitiateFileUploadDTO struct {
 	RegionID   string `json:"regionId" binding:"required"`
-	BucketCode string `json:"bucketCode" binding:"required"`
+	BucketCode string `json:"bucketCode"`
 }
 
 type InitiateFileUploadResponse struct {
@@ -105,6 +105,21 @@ func (r *router) InitiateFileUploadHandler(c *gin.Context) {
 		return
 	}
 	var bucketID uint16
+	if dto.BucketCode == "" {
+		if len(region.Buckets) == 0 {
+			c.JSON(400, ErrorResponse{Message: "No buckets defined for the specified region"})
+			return
+		}
+		randIndexBytes := make([]byte, 2)
+		_, err := rand.Read(randIndexBytes)
+		if err != nil {
+			c.JSON(500, ErrorResponse{Message: "Failed to generate random bucket selection: " + err.Error()})
+			return
+		}
+		randIndex := binary.BigEndian.Uint16(randIndexBytes) % uint16(len(region.Buckets))
+		bucketID = region.Buckets[randIndex].ID
+		dto.BucketCode = region.Buckets[randIndex].BucketID
+	}
 	found := false
 	for _, bucket := range region.Buckets {
 		if bucket.BucketID == dto.BucketCode {
@@ -126,11 +141,21 @@ func (r *router) InitiateFileUploadHandler(c *gin.Context) {
 	}
 
 	model := &models.File{BucketID: dto.BucketCode, Name: guidString}
+	blob := &models.FileBlob{FileID: guidString}
 
-	r.repo.Files.CreateFile(ctx, model)
+	err = r.repo.Files.CreateFile(ctx, model)
+	if err != nil {
+		c.JSON(500, ErrorResponse{Message: "Failed to create file record: " + err.Error()})
+		return
+	}
+	blob, err = r.repo.FileBlobs.CreateFileBlob(ctx, blob)
+	if err != nil {
+		c.JSON(500, ErrorResponse{Message: "Failed to create file blob: " + err.Error()})
+		return
+	}
 
 	response := InitiateFileUploadResponse{
-		URL: guidString,
+		URL: blob.GetID(),
 		TTL: 600,
 	}
 	c.JSON(201, response)
@@ -154,7 +179,24 @@ func (r *router) InitiateFileUploadHandler(c *gin.Context) {
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/upload/{blob} [patch]
 func (r *router) UploadFileBlobHandler(c *gin.Context) {
-	// Implementation goes here
+	blobId := c.Param("blob")
+	ctx := c.Request.Context()
+	blob, err := r.repo.FileBlobs.GetFileBlobByID(ctx, blobId)
+	if err != nil {
+		c.JSON(404, ErrorResponse{Message: "File blob not found: " + err.Error()})
+		return
+	}
+	file, err := r.repo.Files.GetFileByID(ctx, blob.FileID)
+	if err != nil {
+		c.JSON(404, ErrorResponse{Message: "File not found: " + err.Error()})
+		return
+	}
+	bucket, err = r.repo.Buckets.GetBucketByID(ctx, file.BucketID)
+	if err != nil {
+		c.JSON(404, ErrorResponse{Message: "Bucket not found: " + err.Error()})
+		return
+	}
+
 }
 
 // Finalize file upload (admin only)
@@ -171,7 +213,6 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/file/{id}/finalize [post]
 func (r *router) FinalizeFileUploadHandler(c *gin.Context) {
-	// Implementation goes here
 }
 
 // Delete file (admin only)

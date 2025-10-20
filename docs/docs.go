@@ -995,7 +995,6 @@ const docTemplate = `{
         "router.InitiateFileUploadDTO": {
             "type": "object",
             "required": [
-                "bucketCode",
                 "regionId"
             ],
             "properties": {

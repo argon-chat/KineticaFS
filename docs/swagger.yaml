@@ -145,7 +145,6 @@ definitions:
       regionId:
         type: string
     required:
-    - bucketCode
     - regionId
     type: object
   router.InitiateFileUploadResponse:
