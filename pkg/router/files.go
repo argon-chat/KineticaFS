@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"strings"
@@ -211,7 +212,35 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 		return
 	}
 
-	body, err := io.ReadAll(c.Request.Body)
+	var requestFile io.ReadCloser
+	contentType := c.GetHeader("Content-Type")
+
+	if strings.HasPrefix(contentType, "multipart/") {
+		type formData struct {
+			File *multipart.FileHeader `form:"file" binding:"required"`
+		}
+		form := formData{}
+		if err := c.ShouldBind(&form); err != nil {
+			writeError(c, http.StatusBadRequest, "Invalid form data")
+			return
+		}
+		f, err := form.File.Open()
+		if err != nil {
+			writeError(c, http.StatusInternalServerError, "Cannot read file")
+			return
+		}
+		requestFile = f
+		defer f.Close()
+	} else if contentType == "application/octet-stream" {
+		requestFile = c.Request.Body
+	}
+
+	// TODO: Currently reads the entire file into memory.
+	//       This can consume a lot of RAM for large files.
+	//       Consider streaming the file directly (e.g., to S3)
+	//       and computing checksum on the fly to avoid memory spikes.
+	body, err := io.ReadAll(requestFile)
+
 	if err != nil {
 		c.JSON(400, ErrorResponse{Message: "Failed to read request body: " + err.Error()})
 		return
@@ -222,6 +251,8 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 		return
 	}
 
+	fileContentType := http.DetectContentType(body[:512])
+
 	s3Client, err := createS3Client(bucket)
 	if err != nil {
 		c.JSON(500, ErrorResponse{Message: "Failed to create S3 client: " + err.Error()})
@@ -229,17 +260,14 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	}
 
 	objectKey := file.Name
+	hash := sha256.New()
+	tee := io.TeeReader(requestFile, hash)
 
-	contentType := c.GetHeader("Content-Type")
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-
-	_, err = s3Client.PutObject(context.Background(), &s3.PutObjectInput{
+	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        aws.String(bucket.Name),
 		Key:           aws.String(objectKey),
-		Body:          strings.NewReader(string(body)),
-		ContentType:   aws.String(contentType),
+		Body:          tee,
+		ContentType:   aws.String(fileContentType),
 		ContentLength: aws.Int64(int64(len(body))),
 	})
 
@@ -249,19 +277,22 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	}
 
 	metadata := map[string]string{
-		"file_type": http.DetectContentType(body),
+		"file_type": fileContentType,
 	}
 	jsonMetadata, err := json.Marshal(metadata)
 	if err != nil {
 		c.JSON(500, ErrorResponse{Message: "Failed to marshal metadata: " + err.Error()})
 		return
 	}
+
+	checksum := fmt.Sprintf("%x", hash.Sum(nil))
+
 	file.Path = fmt.Sprintf("s3://%s/%s", bucket.Name, objectKey)
 	file.FileSize = int64(len(body))
 	file.ContentType = contentType
 	file.Finalized = true
 	file.Metadata = string(jsonMetadata)
-	file.Checksum = computeChecksum(body)
+	file.Checksum = checksum
 
 	err = r.repo.Files.UpdateFile(ctx, file)
 	if err != nil {
@@ -269,12 +300,6 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 		return
 	}
 	c.Status(204)
-}
-
-func computeChecksum(data []byte) string {
-	hash := sha256.New()
-	hash.Write(data)
-	return fmt.Sprintf("%x", hash.Sum(nil))
 }
 
 func createS3Client(bucket *models.Bucket) (*s3.Client, error) {
