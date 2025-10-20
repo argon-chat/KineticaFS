@@ -8,6 +8,7 @@ type File struct {
 	FileSize    int64  `json:"file_size"`
 	ContentType string `json:"content_type"`
 	Checksum    string `json:"checksum"`
+	Finalized   bool   `json:"finalized"`
 	Metadata    string `json:"metadata,omitempty"`
 }
 

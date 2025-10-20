@@ -1,14 +1,23 @@
 package router
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
+	"io"
+	"log"
 	"os"
+	"strings"
 
 	"github.com/argon-chat/KineticaFS/pkg/guid"
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/argon-chat/KineticaFS/pkg/timestamp"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
@@ -17,7 +26,7 @@ import (
 func AddFileRoutes(router *router, v1 *gin.RouterGroup) {
 	files := v1.Group("/file")
 	files.POST("/", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.InitiateFileUploadHandler)
-	files.POST("/:id/finalize", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.FinalizeFileUploadHandler)
+	files.POST("/:blob/finalize", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.FinalizeFileUploadHandler)
 	files.DELETE("/:id", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.DeleteFileHandler)
 }
 
@@ -181,22 +190,105 @@ func (r *router) InitiateFileUploadHandler(c *gin.Context) {
 func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	blobId := c.Param("blob")
 	ctx := c.Request.Context()
+
 	blob, err := r.repo.FileBlobs.GetFileBlobByID(ctx, blobId)
 	if err != nil {
 		c.JSON(404, ErrorResponse{Message: "File blob not found: " + err.Error()})
 		return
 	}
+
 	file, err := r.repo.Files.GetFileByID(ctx, blob.FileID)
 	if err != nil {
 		c.JSON(404, ErrorResponse{Message: "File not found: " + err.Error()})
 		return
 	}
-	bucket, err = r.repo.Buckets.GetBucketByID(ctx, file.BucketID)
+
+	bucket, err := r.repo.Buckets.GetBucketByID(ctx, file.BucketID)
 	if err != nil {
 		c.JSON(404, ErrorResponse{Message: "Bucket not found: " + err.Error()})
 		return
 	}
 
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(400, ErrorResponse{Message: "Failed to read request body: " + err.Error()})
+		return
+	}
+
+	if len(body) == 0 {
+		c.JSON(400, ErrorResponse{Message: "Empty file data"})
+		return
+	}
+
+	s3Client, err := createS3Client(bucket)
+	if err != nil {
+		c.JSON(500, ErrorResponse{Message: "Failed to create S3 client: " + err.Error()})
+		return
+	}
+
+	objectKey := file.Name
+
+	contentType := c.GetHeader("Content-Type")
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	_, err = s3Client.PutObject(context.Background(), &s3.PutObjectInput{
+		Bucket:        aws.String(bucket.Name),
+		Key:           aws.String(objectKey),
+		Body:          strings.NewReader(string(body)),
+		ContentType:   aws.String(contentType),
+		ContentLength: aws.Int64(int64(len(body))),
+	})
+
+	if err != nil {
+		c.JSON(500, ErrorResponse{Message: "Failed to upload file to S3: " + err.Error()})
+		return
+	}
+
+	file.Path = fmt.Sprintf("s3://%s/%s", bucket.Name, objectKey)
+	file.FileSize = int64(len(body))
+	file.ContentType = contentType
+	file.Finalized = true
+
+	err = r.repo.Files.UpdateFile(ctx, file)
+	if err != nil {
+		c.JSON(500, ErrorResponse{Message: "Failed to update file record: " + err.Error()})
+		return
+	}
+	c.Status(204)
+}
+
+func createS3Client(bucket *models.Bucket) (*s3.Client, error) {
+	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+		if service == s3.ServiceID {
+			return aws.Endpoint{
+				URL:           bucket.Endpoint,
+				SigningRegion: bucket.Region,
+			}, nil
+		}
+		return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")
+	})
+
+	cfg, err := config.LoadDefaultConfig(context.Background(),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+			bucket.AccessKey,
+			bucket.SecretKey,
+			"",
+		)),
+		config.WithEndpointResolverWithOptions(customResolver),
+		config.WithRegion(bucket.Region),
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to load AWS config: %w", err)
+	}
+
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.UsePathStyle = true
+	})
+
+	return client, nil
 }
 
 // Finalize file upload (admin only)
@@ -205,14 +297,34 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 // @Tags files
 // @Produce json
 // @Param x-api-token header string true "API Token"
-// @Param id path string true "File ID"
+// @Param blob path string true "Blob ID"
 // @Success 200 {object} models.File
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
-// @Router /v1/file/{id}/finalize [post]
+// @Router /v1/file/{blob}/finalize [post]
 func (r *router) FinalizeFileUploadHandler(c *gin.Context) {
+	blobId := c.Param("blob")
+	ctx := c.Request.Context()
+	log.Println(blobId)
+	blob, err := r.repo.FileBlobs.GetFileBlobByID(ctx, blobId)
+	if err != nil {
+		c.JSON(404, ErrorResponse{Message: "File blob not found: " + err.Error()})
+		return
+	}
+
+	file, err := r.repo.Files.GetFileByID(ctx, blob.FileID)
+	if err != nil {
+		c.JSON(404, ErrorResponse{Message: "File not found: " + err.Error()})
+		return
+	}
+	err = r.repo.FileBlobs.DeleteFileBlobByID(ctx, blob.ID)
+	if err != nil {
+		c.JSON(500, ErrorResponse{Message: "Failed to delete file blob record: " + err.Error()})
+		return
+	}
+	c.JSON(200, file)
 }
 
 // Delete file (admin only)

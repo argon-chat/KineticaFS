@@ -18,6 +18,7 @@ import (
 //     contenttype text,
 //     createdat   timestamp,
 //     filesize    int,
+//     finalized   boolean,
 //     metadata    text,
 //     name        text,
 //     path        text,
@@ -33,7 +34,10 @@ func NewScyllaFileRepository(session *gocql.Session) *ScyllaFileRepository {
 }
 
 func (s *ScyllaFileRepository) CreateIndices(ctx context.Context) {
-	indexQueries := []string{}
+	indexQueries := []string{
+		"CREATE INDEX IF NOT EXISTS file_bucketid_idx ON file (bucketid)",
+		"CREATE INDEX IF NOT EXISTS file_name_idx ON file (name)",
+	}
 	for _, indexQuery := range indexQueries {
 		log.Printf("Executing index creation query: %s", indexQuery)
 		if err := s.session.Query(indexQuery).WithContext(ctx).Exec(); err != nil {
@@ -54,7 +58,14 @@ func (s *ScyllaFileRepository) GetFileByID(ctx context.Context, id string) (*mod
 }
 
 func (s *ScyllaFileRepository) GetFileByName(ctx context.Context, bucketID, name string) (*models.File, error) {
-	panic("implement me")
+	query := "SELECT id, bucketid, checksum, contenttype, createdat, filesize, metadata, name, path, updatedat FROM file WHERE bucketid = ? AND name = ? ALLOW FILTERING"
+	row := s.session.Query(query, bucketID, name).WithContext(ctx)
+	var file models.File
+	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &file, nil
 }
 
 func (s *ScyllaFileRepository) CreateFile(ctx context.Context, file *models.File) error {
@@ -70,7 +81,13 @@ func (s *ScyllaFileRepository) CreateFile(ctx context.Context, file *models.File
 }
 
 func (s *ScyllaFileRepository) UpdateFile(ctx context.Context, file *models.File) error {
-	panic("implement me")
+	file.UpdatedAt = time.Now().UTC()
+	query := `UPDATE file SET bucketid = ?, finalized = ?, name = ?, filesize = ?, contenttype = ?, metadata = ?, path = ?, updatedat = ? WHERE id = ?`
+	if err := s.session.Query(query, file.BucketID, file.Finalized, file.Name, file.FileSize, file.ContentType, file.Metadata, file.Path, file.UpdatedAt, file.ID).WithContext(ctx).Exec(); err != nil {
+		log.Printf("Error updating file: %v", err)
+		return err
+	}
+	return nil
 }
 
 func (s *ScyllaFileRepository) DeleteFile(ctx context.Context, id string) error {

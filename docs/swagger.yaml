@@ -44,6 +44,8 @@ definitions:
         type: string
       file_size:
         type: integer
+      finalized:
+        type: boolean
       id:
         type: string
       metadata:
@@ -379,6 +381,47 @@ paths:
       summary: Initiate file upload
       tags:
       - files
+  /v1/file/{blob}/finalize:
+    post:
+      description: Finalize a file upload after client notifies server. Admin access
+        required.
+      parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
+      - description: Blob ID
+        in: path
+        name: blob
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.File'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "403":
+          description: Forbidden - Admin only
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Finalize file upload
+      tags:
+      - files
   /v1/file/{id}:
     delete:
       description: Delete a file by ID. Admin access required.
@@ -409,47 +452,6 @@ paths:
           schema:
             $ref: '#/definitions/router.ErrorResponse'
       summary: Delete file
-      tags:
-      - files
-  /v1/file/{id}/finalize:
-    post:
-      description: Finalize a file upload after client notifies server. Admin access
-        required.
-      parameters:
-      - description: API Token
-        in: header
-        name: x-api-token
-        required: true
-        type: string
-      - description: File ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.File'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/router.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/router.ErrorResponse'
-        "403":
-          description: Forbidden - Admin only
-          schema:
-            $ref: '#/definitions/router.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/router.ErrorResponse'
-      summary: Finalize file upload
       tags:
       - files
   /v1/st/:
