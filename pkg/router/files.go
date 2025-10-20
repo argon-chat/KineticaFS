@@ -3,11 +3,13 @@ package router
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
@@ -246,10 +248,20 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 		return
 	}
 
+	metadata := map[string]string{
+		"file_type": http.DetectContentType(body),
+	}
+	jsonMetadata, err := json.Marshal(metadata)
+	if err != nil {
+		c.JSON(500, ErrorResponse{Message: "Failed to marshal metadata: " + err.Error()})
+		return
+	}
 	file.Path = fmt.Sprintf("s3://%s/%s", bucket.Name, objectKey)
 	file.FileSize = int64(len(body))
 	file.ContentType = contentType
 	file.Finalized = true
+	file.Metadata = string(jsonMetadata)
+	file.Checksum = computeChecksum(body)
 
 	err = r.repo.Files.UpdateFile(ctx, file)
 	if err != nil {
@@ -257,6 +269,12 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 		return
 	}
 	c.Status(204)
+}
+
+func computeChecksum(data []byte) string {
+	hash := sha256.New()
+	hash.Write(data)
+	return fmt.Sprintf("%x", hash.Sum(nil))
 }
 
 func createS3Client(bucket *models.Bucket) (*s3.Client, error) {
