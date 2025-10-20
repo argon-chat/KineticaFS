@@ -1,6 +1,6 @@
 import { expect, test, describe } from "bun:test";
 import { createClient, createConfig } from './src/client/client'
-import { getV1StFirstRun } from './src/client'
+import { getV1StFirstRun, ModelsBucket } from './src/client'
 let admin_api_token: string | undefined, user_api_token: string | undefined;
 const client = createClient(createConfig({ baseUrl: 'http://localhost:3000' }));
 
@@ -414,7 +414,7 @@ test('Creates and deletes bucket successfully', async () => {
 });
 
 test('Lists buckets after creating a bucket', async () => {
-    const { postV1Bucket, getV1Bucket } = await import('./src/client');
+    const { postV1Bucket, getV1Bucket, deleteV1BucketById } = await import('./src/client');
     const createResponse = await postV1Bucket({
         client,
         headers: {
@@ -446,6 +446,18 @@ test('Lists buckets after creating a bucket', async () => {
     expect(listResponse).toHaveProperty('data');
     const buckets = listResponse.data;
     expect(Array.isArray(buckets)).toBe(true);
-    const createdBucket = buckets?.find((bucket: any) => bucket.id === bucket_id);
+    const createdBucket = buckets?.find((bucket: ModelsBucket) => bucket.id === bucket_id);
     expect(createdBucket).toBeDefined();
+    const deleteResponse = await deleteV1BucketById({
+        client,
+        path: { id: bucket_id as string },
+        headers: {
+            "x-api-token": admin_api_token as string
+        }
+    });
+    expect(deleteResponse).toBeDefined();
+    expect(deleteResponse).toHaveProperty('data');
 });
+
+(async () => {
+})()
