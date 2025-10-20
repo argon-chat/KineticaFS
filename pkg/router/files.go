@@ -1,6 +1,7 @@
 package router
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -233,6 +234,9 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 		defer f.Close()
 	} else if contentType == "application/octet-stream" {
 		requestFile = c.Request.Body
+	} else {
+		c.JSON(400, ErrorResponse{Message: "Unsupported Content-Type. Use multipart/form-data or application/octet-stream"})
+		return
 	}
 
 	// TODO: Currently reads the entire file into memory.
@@ -261,7 +265,8 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 
 	objectKey := file.Name
 	hash := sha256.New()
-	tee := io.TeeReader(requestFile, hash)
+	bodyReader := bytes.NewReader(body)
+	tee := io.TeeReader(bodyReader, hash)
 
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        aws.String(bucket.Name),
@@ -289,7 +294,7 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 
 	file.Path = fmt.Sprintf("s3://%s/%s", bucket.Name, objectKey)
 	file.FileSize = int64(len(body))
-	file.ContentType = contentType
+	file.ContentType = fileContentType
 	file.Finalized = true
 	file.Metadata = string(jsonMetadata)
 	file.Checksum = checksum
