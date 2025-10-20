@@ -39,11 +39,14 @@ jobs:
         flags: unittests
         name: codecov-umbrella
 
-  docker:
+  docker-build:
     name: Docker Build
     runs-on: ubuntu-latest
     needs: test
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
 
     steps:
     - uses: actions/checkout@v4
@@ -52,20 +55,148 @@ jobs:
         submodules: 'recursive'
         token: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/argon-chat/kineticafs
+        tags: |
+          type=raw,value=${{ github.run_number }}
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        outputs: type=docker,dest=/tmp/kineticafs-${{ github.run_number }}.tar
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: kineticafs-image
+        path: /tmp/kineticafs-${{ github.run_number }}.tar
+  
+  autotests:
+    name: Autotests
+    runs-on: ubuntu-latest
+    needs: docker-build
+    services:
+      pg: 
+        image: postgres:17.2-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: kineticafs
+        ports:
+          - 5432:5432
+      region1:
+        image: chrislusf/seaweedfs
+        options: --command "server -s3 -dir /data"
+        ports:
+          - 8333:8333
+          - 9321:9321
+        env:
+          S3_ACCESS_KEY: argon
+          S3_SECRET_KEY: argon
+      region2:
+        image: chrislusf/seaweedfs
+        options: --command "server -s3 -dir /data"
+        ports:
+          - 8334:8333
+          - 9322:9321
+        env:
+          S3_ACCESS_KEY: argon
+          S3_SECRET_KEY: argon
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Download built Docker image
+      uses: actions/download-artifact@v4
+      with:
+        name: kineticafs-image
+        path: /tmp
+
+    - name: Load Docker image
+      run: |
+        docker load --input /tmp/kineticafs-${{ github.run_number }}.tar
+        docker tag ghcr.io/argon-chat/kineticafs:${{ github.run_number }} kineticafs:test
+
+    - name: Start KineticaFS container
+      run: |
+        docker run -d \
+          --name kineticafs \
+          --network host \
+          -e KINETICAFS_SERVER=true \
+          -e KINETICAFS_DATABASE=postgres \
+          -e KINETICAFS_POSTGRES="postgres://postgres:postgres@localhost:5432/kineticafs" \
+          -e KINETICAFS_MIGRATE=true \
+          kineticafs:test
+
+    - name: Wait for KineticaFS to be ready
+      run: |
+        timeout 60 bash -c 'until curl -f http://localhost:3000/v1/st/first-run; do sleep 2; done'
+        
+    - name: Set up Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: '1.x'
+    
+    - name: Install dependencies
+      run: bun install
+    
+    - name: Run autotests
+      run: bun test
+
+    - name: Show container logs on failure
+      if: failure()
+      run: |
+        echo "=== KineticaFS Container Logs ==="
+        docker logs kineticafs
+        echo "=== Container Status ==="
+        docker ps -a
+
+  docker-push:
+    name: Docker Push
+    runs-on: ubuntu-latest
+    needs: [docker-build, autotests]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+
+    steps:
+    - name: Download built Docker image
+      uses: actions/download-artifact@v4
+      with:
+        name: kineticafs-image
+        path: /tmp
+
+    - name: Load Docker image
+      run: docker load --input /tmp/kineticafs-${{ github.run_number }}.tar
+
     - name: Log in to GitHub Container Registry
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.ARGON_GHCR_PAT  }}
+        password: ${{ secrets.ARGON_GHCR_PAT }}
 
-    - name: Build and push to GitHub Container Registry
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        file: ./Dockerfile
-        push: true
-        tags: ghcr.io/argon-chat/kineticafs:${{ github.run_number }}
+    - name: Push to GitHub Container Registry
+      run: |
+        docker push ghcr.io/argon-chat/kineticafs:${{ github.run_number }}
+        # Also push as latest if this is the main branch
+        if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+          docker tag ghcr.io/argon-chat/kineticafs:${{ github.run_number }} ghcr.io/argon-chat/kineticafs:latest
+          docker push ghcr.io/argon-chat/kineticafs:latest
+        fi
 
   # security:
   #   name: Security Scan
