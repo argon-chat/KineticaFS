@@ -99,7 +99,6 @@ jobs:
           - 5432:5432
       region1:
         image: chrislusf/seaweedfs
-        options: --command "server -s3 -dir /data"
         ports:
           - 8333:8333
           - 9321:9321
@@ -108,7 +107,6 @@ jobs:
           S3_SECRET_KEY: argon
       region2:
         image: chrislusf/seaweedfs
-        options: --command "server -s3 -dir /data"
         ports:
           - 8334:8333
           - 9322:9321
