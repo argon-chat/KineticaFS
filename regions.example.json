@@ -4,7 +4,7 @@
     "buckets": [
       {
         "id": 1, // 2 unsigned bytes
-        "bucketName": "123"
+        "bucketId": "a583ed1b-4fcb-4327-ab48-4a9e46744607" // UUID
       }
     ]
   },
