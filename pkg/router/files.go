@@ -1,19 +1,30 @@
 package router
 
-import "github.com/gin-gonic/gin"
+import (
+	"crypto/rand"
+	"encoding/binary"
+	"encoding/json"
+	"os"
+
+	"github.com/argon-chat/KineticaFS/pkg/guid"
+	"github.com/argon-chat/KineticaFS/pkg/models"
+	"github.com/argon-chat/KineticaFS/pkg/timestamp"
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+)
 
 // AddFileRoutes sets up the server-side file management endpoints.
 func AddFileRoutes(router *router, v1 *gin.RouterGroup) {
 	files := v1.Group("/file")
-	files.POST("/", AuthMiddleware(router.repo), AdminOnlyMiddleware, InitiateFileUploadHandler)
-	files.POST("/:id/finalize", AuthMiddleware(router.repo), AdminOnlyMiddleware, FinalizeFileUploadHandler)
-	files.DELETE("/:id", AuthMiddleware(router.repo), AdminOnlyMiddleware, DeleteFileHandler)
+	files.POST("/", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.InitiateFileUploadHandler)
+	files.POST("/:id/finalize", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.FinalizeFileUploadHandler)
+	files.DELETE("/:id", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.DeleteFileHandler)
 }
 
 // AddFileBlobRoutes sets up the client-side upload endpoint.
 func AddFileBlobRoutes(router *router, v1 *gin.RouterGroup) {
 	upload := v1.Group("/upload")
-	upload.PATCH("/:blob", AuthMiddleware(router.repo), UploadFileBlobHandler)
+	upload.PATCH("/:blob", AuthMiddleware(router.repo), router.UploadFileBlobHandler)
 }
 
 type InitiateFileUploadDTO struct {
@@ -24,6 +35,42 @@ type InitiateFileUploadDTO struct {
 type InitiateFileUploadResponse struct {
 	URL string `json:"url"`
 	TTL int    `json:"ttl"` // seconds
+}
+
+type RegionBucket struct {
+	ID       uint16 `json:"id"`
+	BucketID string `json:"bucketId"`
+}
+
+type RegionInfo struct {
+	ID      uint8          `json:"id"`
+	Buckets []RegionBucket `json:"buckets"`
+}
+
+type Regions map[string]RegionInfo
+
+func loadRegionsConfig(regions *Regions) error {
+	path := viper.GetString("region")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(data, regions)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func generateRandomEntropy() uint64 {
+	var entropy uint64
+	bytes := make([]byte, 8)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return uint64(timestamp.CurrentTimestamp())
+	}
+	entropy = binary.BigEndian.Uint64(bytes)
+	return entropy
 }
 
 // Initiate a new file upload (admin only)
@@ -39,8 +86,54 @@ type InitiateFileUploadResponse struct {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Router /v1/file/ [post]
-func InitiateFileUploadHandler(c *gin.Context) {
+func (r *router) InitiateFileUploadHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+	var dto InitiateFileUploadDTO
+	if err := c.ShouldBindJSON(&dto); err != nil {
+		c.JSON(400, ErrorResponse{Message: "Invalid request body: " + err.Error()})
+		return
+	}
+	regions := Regions{}
+	err := loadRegionsConfig(&regions)
+	if err != nil {
+		c.JSON(500, ErrorResponse{Message: "Failed to load regions configuration: " + err.Error()})
+		return
+	}
+	region, ok := regions[dto.RegionID]
+	if !ok {
+		c.JSON(400, ErrorResponse{Message: "Invalid region ID"})
+		return
+	}
+	var bucketID uint16
+	found := false
+	for _, bucket := range region.Buckets {
+		if bucket.BucketID == dto.BucketCode {
+			bucketID = bucket.ID
+			found = true
+			break
+		}
+	}
+	if !found {
+		c.JSON(400, ErrorResponse{Message: "Invalid bucket code for the specified region"})
+		return
+	}
+	entropy := generateRandomEntropy()
+	guid := guid.NewGuid(timestamp.CurrentTimestamp(), region.ID, bucketID, entropy, 0x0A)
+	guidString, err := guid.Pack()
+	if err != nil {
+		c.JSON(500, ErrorResponse{Message: "Failed to generate file GUID: " + err.Error()})
+		return
+	}
 
+	model := &models.File{BucketID: dto.BucketCode, Name: guidString}
+
+	r.repo.Files.CreateFile(ctx, model)
+
+	response := InitiateFileUploadResponse{
+		URL: guidString,
+		TTL: 600,
+	}
+	c.JSON(201, response)
 }
 
 // Upload file data (client)
@@ -60,7 +153,7 @@ func InitiateFileUploadHandler(c *gin.Context) {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/upload/{blob} [patch]
-func UploadFileBlobHandler(c *gin.Context) {
+func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	// Implementation goes here
 }
 
@@ -77,7 +170,7 @@ func UploadFileBlobHandler(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/file/{id}/finalize [post]
-func FinalizeFileUploadHandler(c *gin.Context) {
+func (r *router) FinalizeFileUploadHandler(c *gin.Context) {
 	// Implementation goes here
 }
 
@@ -92,6 +185,6 @@ func FinalizeFileUploadHandler(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/file/{id} [delete]
-func DeleteFileHandler(c *gin.Context) {
+func (r *router) DeleteFileHandler(c *gin.Context) {
 	// Implementation goes here
 }
