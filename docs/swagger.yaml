@@ -167,6 +167,7 @@ paths:
   /v1/bucket/:
     get:
       description: List all S3 buckets
+      operationId: ListBuckets
       parameters:
       - description: API Token
         in: header
@@ -197,6 +198,7 @@ paths:
       consumes:
       - application/json
       description: Create a new S3 bucket. Only admin users can create buckets.
+      operationId: CreateBucket
       parameters:
       - description: API Token
         in: header
@@ -234,6 +236,7 @@ paths:
   /v1/bucket/{id}:
     delete:
       description: Delete a bucket by ID. Only admin users can delete buckets.
+      operationId: DeleteBucket
       parameters:
       - description: API Token
         in: header
@@ -265,6 +268,7 @@ paths:
       - buckets
     get:
       description: Get a bucket by ID
+      operationId: GetBucket
       parameters:
       - description: API Token
         in: header
@@ -302,6 +306,7 @@ paths:
       consumes:
       - application/json
       description: Update a bucket by ID. Only admin users can update buckets.
+      operationId: UpdateBucket
       parameters:
       - description: API Token
         in: header
@@ -351,6 +356,7 @@ paths:
       - application/json
       description: Initiate a new file upload. Receives regionId and bucketCode, returns
         a pre-signed upload URL and TTL (seconds). Admin access required.
+      operationId: InitiateFileUpload
       parameters:
       - description: API Token
         in: header
@@ -389,6 +395,7 @@ paths:
     post:
       description: Finalize a file upload after client notifies server. Admin access
         required.
+      operationId: FinalizeFileUpload
       parameters:
       - description: API Token
         in: header
@@ -429,6 +436,7 @@ paths:
   /v1/file/{id}:
     delete:
       description: Delete a file by ID. Admin access required.
+      operationId: DeleteFile
       parameters:
       - description: API Token
         in: header
@@ -461,6 +469,7 @@ paths:
   /v1/st/:
     get:
       description: List all service tokens (admin only).
+      operationId: ListAllServiceTokens
       parameters:
       - description: API Token
         in: header
@@ -492,6 +501,7 @@ paths:
       - application/json
       description: Create a new service token. Only one admin token can exist. Only
         admin can create/delete other tokens. Admin token cannot be deleted.
+      operationId: CreateServiceToken
       parameters:
       - description: API Token
         in: header
@@ -530,6 +540,7 @@ paths:
     delete:
       description: Delete a service token by ID. Only admin can delete other tokens.
         Admin token cannot be deleted.
+      operationId: DeleteServiceToken
       parameters:
       - description: API Token
         in: header
@@ -561,6 +572,7 @@ paths:
       - service-tokens
     get:
       description: Get a service token by ID
+      operationId: GetServiceToken
       parameters:
       - description: API Token
         in: header
@@ -598,6 +610,7 @@ paths:
     post:
       description: Create the initial admin service token. Only allowed if no admin
         token exists. Used for first-time setup.
+      operationId: BootstrapAdminToken
       produces:
       - application/json
       responses:
@@ -620,6 +633,7 @@ paths:
     get:
       description: Returns whether the admin token exists. Used to determine if setup
         is required.
+      operationId: FirstRunCheck
       produces:
       - application/json
       responses:
@@ -644,6 +658,7 @@ paths:
       - application/x-www-form-urlencoded
       description: Upload file data using the blob ID provided by the server. Supports
         stream, form-data, and multipart uploads. No admin access required.
+      operationId: UploadFileBlob
       parameters:
       - description: API Token
         in: header

@@ -25,6 +25,7 @@ const docTemplate = `{
                     "buckets"
                 ],
                 "summary": "List buckets",
+                "operationId": "ListBuckets",
                 "parameters": [
                     {
                         "type": "string",
@@ -70,6 +71,7 @@ const docTemplate = `{
                     "buckets"
                 ],
                 "summary": "Create bucket",
+                "operationId": "CreateBucket",
                 "parameters": [
                     {
                         "type": "string",
@@ -126,6 +128,7 @@ const docTemplate = `{
                     "buckets"
                 ],
                 "summary": "Get bucket",
+                "operationId": "GetBucket",
                 "parameters": [
                     {
                         "type": "string",
@@ -175,6 +178,7 @@ const docTemplate = `{
                     "buckets"
                 ],
                 "summary": "Delete bucket",
+                "operationId": "DeleteBucket",
                 "parameters": [
                     {
                         "type": "string",
@@ -227,6 +231,7 @@ const docTemplate = `{
                     "buckets"
                 ],
                 "summary": "Update bucket",
+                "operationId": "UpdateBucket",
                 "parameters": [
                     {
                         "type": "string",
@@ -299,6 +304,7 @@ const docTemplate = `{
                     "files"
                 ],
                 "summary": "Initiate file upload",
+                "operationId": "InitiateFileUpload",
                 "parameters": [
                     {
                         "type": "string",
@@ -355,6 +361,7 @@ const docTemplate = `{
                     "files"
                 ],
                 "summary": "Finalize file upload",
+                "operationId": "FinalizeFileUpload",
                 "parameters": [
                     {
                         "type": "string",
@@ -412,6 +419,7 @@ const docTemplate = `{
                     "files"
                 ],
                 "summary": "Delete file",
+                "operationId": "DeleteFile",
                 "parameters": [
                     {
                         "type": "string",
@@ -463,6 +471,7 @@ const docTemplate = `{
                     "service-tokens"
                 ],
                 "summary": "List all service tokens",
+                "operationId": "ListAllServiceTokens",
                 "parameters": [
                     {
                         "type": "string",
@@ -508,6 +517,7 @@ const docTemplate = `{
                     "service-tokens"
                 ],
                 "summary": "Create service token",
+                "operationId": "CreateServiceToken",
                 "parameters": [
                     {
                         "type": "string",
@@ -564,6 +574,7 @@ const docTemplate = `{
                     "service-tokens"
                 ],
                 "summary": "Bootstrap admin token",
+                "operationId": "BootstrapAdminToken",
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -596,6 +607,7 @@ const docTemplate = `{
                     "service-tokens"
                 ],
                 "summary": "Check if admin token has already been created",
+                "operationId": "FirstRunCheck",
                 "responses": {
                     "200": {
                         "description": "first_run: true if no admin token exists, false otherwise",
@@ -625,6 +637,7 @@ const docTemplate = `{
                     "service-tokens"
                 ],
                 "summary": "Get service token",
+                "operationId": "GetServiceToken",
                 "parameters": [
                     {
                         "type": "string",
@@ -674,6 +687,7 @@ const docTemplate = `{
                     "service-tokens"
                 ],
                 "summary": "Delete service token",
+                "operationId": "DeleteServiceToken",
                 "parameters": [
                     {
                         "type": "string",
@@ -730,6 +744,7 @@ const docTemplate = `{
                     "upload"
                 ],
                 "summary": "Upload file data",
+                "operationId": "UploadFileBlob",
                 "parameters": [
                     {
                         "type": "string",
