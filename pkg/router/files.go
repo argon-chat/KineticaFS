@@ -41,8 +41,9 @@ func AddFileBlobRoutes(router *router, v1 *gin.RouterGroup) {
 }
 
 type InitiateFileUploadDTO struct {
-	RegionID   string `json:"regionId" binding:"required"`
-	BucketCode string `json:"bucketCode"`
+	RegionID      string `json:"regionId" binding:"required"`
+	FileSizeLimit uint64 `json:"fileSizeLimit,omitempty"`
+	BucketCode    string `json:"bucketCode"`
 }
 
 type InitiateFileUploadResponse struct {
@@ -153,7 +154,7 @@ func (r *router) InitiateFileUploadHandler(c *gin.Context) {
 		return
 	}
 
-	model := &models.File{BucketID: dto.BucketCode, Name: guidString}
+	model := &models.File{BucketID: dto.BucketCode, Name: guidString, FileSizeLimit: dto.FileSizeLimit}
 	blob := &models.FileBlob{FileID: guidString}
 
 	err = r.repo.Files.CreateFile(ctx, model)

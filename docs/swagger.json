@@ -849,6 +849,9 @@
                 "file_size": {
                     "type": "integer"
                 },
+                "file_size_limit": {
+                    "type": "integer"
+                },
                 "finalized": {
                     "type": "boolean"
                 },
@@ -992,6 +995,9 @@
             "properties": {
                 "bucketCode": {
                     "type": "string"
+                },
+                "fileSizeLimit": {
+                    "type": "integer"
                 },
                 "regionId": {
                     "type": "string"

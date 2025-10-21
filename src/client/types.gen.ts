@@ -25,6 +25,7 @@ export type ModelsFile = {
     content_type?: string;
     created_at?: string;
     file_size?: number;
+    file_size_limit?: number;
     finalized?: boolean;
     id?: string;
     metadata?: string;
@@ -69,6 +70,7 @@ export type RouterErrorResponse = {
 
 export type RouterInitiateFileUploadDto = {
     bucketCode?: string;
+    fileSizeLimit?: number;
     regionId: string;
 };
 

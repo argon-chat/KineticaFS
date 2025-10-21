@@ -860,6 +860,9 @@ const docTemplate = `{
                 "file_size": {
                     "type": "integer"
                 },
+                "file_size_limit": {
+                    "type": "integer"
+                },
                 "finalized": {
                     "type": "boolean"
                 },
@@ -1003,6 +1006,9 @@ const docTemplate = `{
             "properties": {
                 "bucketCode": {
                     "type": "string"
+                },
+                "fileSizeLimit": {
+                    "type": "integer"
                 },
                 "regionId": {
                     "type": "string"

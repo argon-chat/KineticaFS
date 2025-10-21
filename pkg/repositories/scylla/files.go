@@ -12,17 +12,18 @@ import (
 // DDL
 // table file
 // (
-//     id          text primary key,
-//     bucketid    text,
-//     checksum    text,
-//     contenttype text,
-//     createdat   timestamp,
-//     filesize    int,
-//     finalized   boolean,
-//     metadata    text,
-//     name        text,
-//     path        text,
-//     updatedat   timestamp
+//     id            text primary key,
+//     bucketid      text,
+//     checksum      text,
+//     contenttype   text,
+//     createdat     timestamp,
+//     filesize      int,
+//     filesizelimit varint,
+//     finalized     boolean,
+//     metadata      text,
+//     name          text,
+//     path          text,
+//     updatedat     timestamp
 // )
 
 type ScyllaFileRepository struct {

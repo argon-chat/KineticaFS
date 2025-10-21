@@ -44,6 +44,8 @@ definitions:
         type: string
       file_size:
         type: integer
+      file_size_limit:
+        type: integer
       finalized:
         type: boolean
       id:
@@ -144,6 +146,8 @@ definitions:
     properties:
       bucketCode:
         type: string
+      fileSizeLimit:
+        type: integer
       regionId:
         type: string
     required:
