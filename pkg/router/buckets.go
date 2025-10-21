@@ -43,6 +43,7 @@ type BucketInsertDTO struct {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Router /v1/bucket/ [post]
+// @Id CreateBucket
 func (r *router) CreateBucketHandler(c *gin.Context) {
 	var bucket models.Bucket
 	if err := c.ShouldBindJSON(&bucket); err != nil {
@@ -77,6 +78,7 @@ func (r *router) CreateBucketHandler(c *gin.Context) {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Router /v1/bucket/ [get]
+// @Id ListBuckets
 func (r *router) ListBucketsHandler(c *gin.Context) {
 	buckets, err := r.repo.Buckets.ListBuckets(c.Request.Context())
 	if err != nil {
@@ -98,6 +100,7 @@ func (r *router) ListBucketsHandler(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/bucket/{id} [get]
+// @Id GetBucket
 func (r *router) GetBucketHandler(c *gin.Context) {
 	id := c.Param("id")
 	bucket, err := r.repo.Buckets.GetBucketByID(c.Request.Context(), id)
@@ -127,6 +130,7 @@ func (r *router) GetBucketHandler(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/bucket/{id} [patch]
+// @Id UpdateBucket
 func (r *router) UpdateBucketHandler(c *gin.Context) {
 	id := c.Param("id")
 	var req models.Bucket
@@ -173,6 +177,7 @@ func (r *router) UpdateBucketHandler(c *gin.Context) {
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
 // @Router /v1/bucket/{id} [delete]
+// @Id DeleteBucket
 func (r *router) DeleteBucketHandler(c *gin.Context) {
 	id := c.Param("id")
 	ctx := c.Request.Context()
