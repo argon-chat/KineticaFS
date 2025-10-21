@@ -300,7 +300,7 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 
 	checksum := fmt.Sprintf("%x", hash.Sum(nil))
 
-	file.Path = fmt.Sprintf("s3://%s/%s", bucket.Name, objectKey)
+	file.Path = fmt.Sprintf("%s/%s/%s", bucket.Endpoint, bucket.Name, objectKey)
 	file.FileSize = int64(len(body))
 	file.ContentType = fileContentType
 	file.Finalized = true
