@@ -255,7 +255,8 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 		return
 	}
 
-	fileContentType := http.DetectContentType(body[:512])
+	n := min(len(body), 512)
+	fileContentType := http.DetectContentType(body[:n])
 
 	s3Client, err := createS3Client(bucket)
 	if err != nil {
