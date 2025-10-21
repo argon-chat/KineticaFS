@@ -246,6 +246,11 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	//       and computing checksum on the fly to avoid memory spikes.
 	body, err := io.ReadAll(requestFile)
 
+	if uint64(len(body)) >= file.FileSizeLimit && file.FileSizeLimit > 0 {
+		c.JSON(400, ErrorResponse{Message: fmt.Sprintf("File size exceeds the limit of %d bytes", file.FileSizeLimit)})
+		return
+	}
+
 	if err != nil {
 		c.JSON(400, ErrorResponse{Message: "Failed to read request body: " + err.Error()})
 		return
