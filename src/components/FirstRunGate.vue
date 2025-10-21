@@ -17,8 +17,8 @@ async function handleBootstrapAdmin() {
   bootstrapLoading.value = true;
   bootstrapError.value = null;
   try {
-    const { postV1StBootstrap } = await import('@/client');
-    const response = await postV1StBootstrap();
+    const { bootstrapAdminToken } = await import('@/client');
+    const response = await bootstrapAdminToken();
     modalContent.value = response;
     showModal.value = true;
     await firstRunStore.checkFirstRun();
