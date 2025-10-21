@@ -85,7 +85,7 @@ func setupDashboard(router *router) {
 }
 
 func getRoutes(router *router) {
-	v1 := router.engine.Group("/v1")
+	v1 := router.engine.Group("/api/v1")
 	addV1Routes(router, v1)
 }
 

@@ -24,7 +24,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
  */
 export const listBuckets = <ThrowOnError extends boolean = false>(options: Options<ListBucketsData, ThrowOnError>) => {
     return (options.client ?? client).get<ListBucketsResponses, ListBucketsErrors, ThrowOnError>({
-        url: '/v1/bucket/',
+        url: '/api/v1/bucket/',
         ...options
     });
 };
@@ -35,7 +35,7 @@ export const listBuckets = <ThrowOnError extends boolean = false>(options: Optio
  */
 export const createBucket = <ThrowOnError extends boolean = false>(options: Options<CreateBucketData, ThrowOnError>) => {
     return (options.client ?? client).post<CreateBucketResponses, CreateBucketErrors, ThrowOnError>({
-        url: '/v1/bucket/',
+        url: '/api/v1/bucket/',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ export const createBucket = <ThrowOnError extends boolean = false>(options: Opti
  */
 export const deleteBucket = <ThrowOnError extends boolean = false>(options: Options<DeleteBucketData, ThrowOnError>) => {
     return (options.client ?? client).delete<DeleteBucketResponses, DeleteBucketErrors, ThrowOnError>({
-        url: '/v1/bucket/{id}',
+        url: '/api/v1/bucket/{id}',
         ...options
     });
 };
@@ -61,7 +61,7 @@ export const deleteBucket = <ThrowOnError extends boolean = false>(options: Opti
  */
 export const getBucket = <ThrowOnError extends boolean = false>(options: Options<GetBucketData, ThrowOnError>) => {
     return (options.client ?? client).get<GetBucketResponses, GetBucketErrors, ThrowOnError>({
-        url: '/v1/bucket/{id}',
+        url: '/api/v1/bucket/{id}',
         ...options
     });
 };
@@ -72,7 +72,7 @@ export const getBucket = <ThrowOnError extends boolean = false>(options: Options
  */
 export const updateBucket = <ThrowOnError extends boolean = false>(options: Options<UpdateBucketData, ThrowOnError>) => {
     return (options.client ?? client).patch<UpdateBucketResponses, UpdateBucketErrors, ThrowOnError>({
-        url: '/v1/bucket/{id}',
+        url: '/api/v1/bucket/{id}',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ export const updateBucket = <ThrowOnError extends boolean = false>(options: Opti
  */
 export const initiateFileUpload = <ThrowOnError extends boolean = false>(options: Options<InitiateFileUploadData, ThrowOnError>) => {
     return (options.client ?? client).post<InitiateFileUploadResponses, InitiateFileUploadErrors, ThrowOnError>({
-        url: '/v1/file/',
+        url: '/api/v1/file/',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ export const initiateFileUpload = <ThrowOnError extends boolean = false>(options
  */
 export const finalizeFileUpload = <ThrowOnError extends boolean = false>(options: Options<FinalizeFileUploadData, ThrowOnError>) => {
     return (options.client ?? client).post<FinalizeFileUploadResponses, FinalizeFileUploadErrors, ThrowOnError>({
-        url: '/v1/file/{blob}/finalize',
+        url: '/api/v1/file/{blob}/finalize',
         ...options
     });
 };
@@ -113,7 +113,7 @@ export const finalizeFileUpload = <ThrowOnError extends boolean = false>(options
  */
 export const deleteFile = <ThrowOnError extends boolean = false>(options: Options<DeleteFileData, ThrowOnError>) => {
     return (options.client ?? client).delete<DeleteFileResponses, DeleteFileErrors, ThrowOnError>({
-        url: '/v1/file/{id}',
+        url: '/api/v1/file/{id}',
         ...options
     });
 };
@@ -124,7 +124,7 @@ export const deleteFile = <ThrowOnError extends boolean = false>(options: Option
  */
 export const listAllServiceTokens = <ThrowOnError extends boolean = false>(options: Options<ListAllServiceTokensData, ThrowOnError>) => {
     return (options.client ?? client).get<ListAllServiceTokensResponses, ListAllServiceTokensErrors, ThrowOnError>({
-        url: '/v1/st/',
+        url: '/api/v1/st/',
         ...options
     });
 };
@@ -135,7 +135,7 @@ export const listAllServiceTokens = <ThrowOnError extends boolean = false>(optio
  */
 export const createServiceToken = <ThrowOnError extends boolean = false>(options: Options<CreateServiceTokenData, ThrowOnError>) => {
     return (options.client ?? client).post<CreateServiceTokenResponses, CreateServiceTokenErrors, ThrowOnError>({
-        url: '/v1/st/',
+        url: '/api/v1/st/',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ export const createServiceToken = <ThrowOnError extends boolean = false>(options
  */
 export const bootstrapAdminToken = <ThrowOnError extends boolean = false>(options?: Options<BootstrapAdminTokenData, ThrowOnError>) => {
     return (options?.client ?? client).post<BootstrapAdminTokenResponses, BootstrapAdminTokenErrors, ThrowOnError>({
-        url: '/v1/st/bootstrap',
+        url: '/api/v1/st/bootstrap',
         ...options
     });
 };
@@ -161,7 +161,7 @@ export const bootstrapAdminToken = <ThrowOnError extends boolean = false>(option
  */
 export const firstRunCheck = <ThrowOnError extends boolean = false>(options?: Options<FirstRunCheckData, ThrowOnError>) => {
     return (options?.client ?? client).get<FirstRunCheckResponses, FirstRunCheckErrors, ThrowOnError>({
-        url: '/v1/st/first-run',
+        url: '/api/v1/st/first-run',
         ...options
     });
 };
@@ -172,7 +172,7 @@ export const firstRunCheck = <ThrowOnError extends boolean = false>(options?: Op
  */
 export const deleteServiceToken = <ThrowOnError extends boolean = false>(options: Options<DeleteServiceTokenData, ThrowOnError>) => {
     return (options.client ?? client).delete<DeleteServiceTokenResponses, DeleteServiceTokenErrors, ThrowOnError>({
-        url: '/v1/st/{id}',
+        url: '/api/v1/st/{id}',
         ...options
     });
 };
@@ -183,7 +183,7 @@ export const deleteServiceToken = <ThrowOnError extends boolean = false>(options
  */
 export const getServiceToken = <ThrowOnError extends boolean = false>(options: Options<GetServiceTokenData, ThrowOnError>) => {
     return (options.client ?? client).get<GetServiceTokenResponses, GetServiceTokenErrors, ThrowOnError>({
-        url: '/v1/st/{id}',
+        url: '/api/v1/st/{id}',
         ...options
     });
 };
@@ -195,7 +195,7 @@ export const getServiceToken = <ThrowOnError extends boolean = false>(options: O
 export const uploadFileBlob = <ThrowOnError extends boolean = false>(options: Options<UploadFileBlobData, ThrowOnError>) => {
     return (options.client ?? client).patch<UploadFileBlobResponses, UploadFileBlobErrors, ThrowOnError>({
         bodySerializer: null,
-        url: '/v1/upload/{blob}',
+        url: '/api/v1/upload/{blob}',
         ...options,
         headers: {
             'Content-Type': 'application/octet-stream',

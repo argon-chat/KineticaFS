@@ -31,7 +31,7 @@ func AddServiceTokenRoutes(router *router, v1 *gin.RouterGroup) {
 // @Produce json
 // @Success 200 {object} map[string]bool "first_run: true if no admin token exists, false otherwise"
 // @Failure 500 {object} router.ErrorResponse "Internal server error"
-// @Router /v1/st/first-run [get]
+// @Router /api/v1/st/first-run [get]
 // @Id FirstRunCheck
 func (r *router) FirstRunCheckHandler(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -51,7 +51,7 @@ func (r *router) FirstRunCheckHandler(c *gin.Context) {
 // @Success 201 {object} models.ServiceToken
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 409 {object} router.ErrorResponse "Admin token already exists"
-// @Router /v1/st/bootstrap [post]
+// @Router /api/v1/st/bootstrap [post]
 // @Id BootstrapAdminToken
 func (r *router) CreateAdminServiceTokenHandler(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -85,7 +85,7 @@ func (r *router) CreateAdminServiceTokenHandler(c *gin.Context) {
 // @Success 200 {array} models.ServiceToken
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
-// @Router /v1/st/ [get]
+// @Router /api/v1/st/ [get]
 // @Id ListAllServiceTokens
 func (r *router) ListAllServiceTokens(c *gin.Context) {
 	tokens, err := r.repo.ServiceTokens.GetAllServiceTokens(c.Request.Context())
@@ -108,7 +108,7 @@ func (r *router) ListAllServiceTokens(c *gin.Context) {
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
-// @Router /v1/st/ [post]
+// @Router /api/v1/st/ [post]
 // @Id CreateServiceToken
 func (r *router) CreateServiceTokenHandler(c *gin.Context) {
 	var req CreateServiceTokenRequestDto
@@ -150,7 +150,7 @@ func (r *router) CreateServiceTokenHandler(c *gin.Context) {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
-// @Router /v1/st/{id} [get]
+// @Router /api/v1/st/{id} [get]
 // @Id GetServiceToken
 func (r *router) GetServiceTokenHandler(c *gin.Context) {
 	id := c.Param("id")
@@ -176,7 +176,7 @@ func (r *router) GetServiceTokenHandler(c *gin.Context) {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
-// @Router /v1/st/{id} [delete]
+// @Router /api/v1/st/{id} [delete]
 // @Id DeleteServiceToken
 func (r *router) DeleteServiceTokenHandler(c *gin.Context) {
 	id := c.Param("id")

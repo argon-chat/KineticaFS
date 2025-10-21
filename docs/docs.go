@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/bucket/": {
+        "/api/v1/bucket/": {
             "get": {
                 "description": "List all S3 buckets",
                 "produces": [
@@ -118,7 +118,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/bucket/{id}": {
+        "/api/v1/bucket/{id}": {
             "get": {
                 "description": "Get a bucket by ID",
                 "produces": [
@@ -291,7 +291,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/file/": {
+        "/api/v1/file/": {
             "post": {
                 "description": "Initiate a new file upload. Receives regionId and bucketCode, returns a pre-signed upload URL and TTL (seconds). Admin access required.",
                 "consumes": [
@@ -351,7 +351,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/file/{blob}/finalize": {
+        "/api/v1/file/{blob}/finalize": {
             "post": {
                 "description": "Finalize a file upload after client notifies server. Admin access required.",
                 "produces": [
@@ -412,7 +412,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/file/{id}": {
+        "/api/v1/file/{id}": {
             "delete": {
                 "description": "Delete a file by ID. Admin access required.",
                 "tags": [
@@ -461,7 +461,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/st/": {
+        "/api/v1/st/": {
             "get": {
                 "description": "List all service tokens (admin only).",
                 "produces": [
@@ -564,7 +564,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/st/bootstrap": {
+        "/api/v1/st/bootstrap": {
             "post": {
                 "description": "Create the initial admin service token. Only allowed if no admin token exists. Used for first-time setup.",
                 "produces": [
@@ -597,7 +597,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/st/first-run": {
+        "/api/v1/st/first-run": {
             "get": {
                 "description": "Returns whether the admin token exists. Used to determine if setup is required.",
                 "produces": [
@@ -627,7 +627,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/st/{id}": {
+        "/api/v1/st/{id}": {
             "get": {
                 "description": "Get a service token by ID",
                 "produces": [
@@ -729,7 +729,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/upload/{blob}": {
+        "/api/v1/upload/{blob}": {
             "patch": {
                 "description": "Upload file data using the blob ID provided by the server. Supports stream, form-data, and multipart uploads. No admin access required.",
                 "consumes": [

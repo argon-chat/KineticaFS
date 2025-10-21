@@ -92,7 +92,7 @@ export type ListBucketsData = {
     };
     path?: never;
     query?: never;
-    url: '/v1/bucket/';
+    url: '/api/v1/bucket/';
 };
 
 export type ListBucketsErrors = {
@@ -130,7 +130,7 @@ export type CreateBucketData = {
     };
     path?: never;
     query?: never;
-    url: '/v1/bucket/';
+    url: '/api/v1/bucket/';
 };
 
 export type CreateBucketErrors = {
@@ -174,7 +174,7 @@ export type DeleteBucketData = {
         id: string;
     };
     query?: never;
-    url: '/v1/bucket/{id}';
+    url: '/api/v1/bucket/{id}';
 };
 
 export type DeleteBucketErrors = {
@@ -216,7 +216,7 @@ export type GetBucketData = {
         id: string;
     };
     query?: never;
-    url: '/v1/bucket/{id}';
+    url: '/api/v1/bucket/{id}';
 };
 
 export type GetBucketErrors = {
@@ -263,7 +263,7 @@ export type UpdateBucketData = {
         id: string;
     };
     query?: never;
-    url: '/v1/bucket/{id}';
+    url: '/api/v1/bucket/{id}';
 };
 
 export type UpdateBucketErrors = {
@@ -309,7 +309,7 @@ export type InitiateFileUploadData = {
     };
     path?: never;
     query?: never;
-    url: '/v1/file/';
+    url: '/api/v1/file/';
 };
 
 export type InitiateFileUploadErrors = {
@@ -353,7 +353,7 @@ export type FinalizeFileUploadData = {
         blob: string;
     };
     query?: never;
-    url: '/v1/file/{blob}/finalize';
+    url: '/api/v1/file/{blob}/finalize';
 };
 
 export type FinalizeFileUploadErrors = {
@@ -401,7 +401,7 @@ export type DeleteFileData = {
         id: string;
     };
     query?: never;
-    url: '/v1/file/{id}';
+    url: '/api/v1/file/{id}';
 };
 
 export type DeleteFileErrors = {
@@ -438,7 +438,7 @@ export type ListAllServiceTokensData = {
     };
     path?: never;
     query?: never;
-    url: '/v1/st/';
+    url: '/api/v1/st/';
 };
 
 export type ListAllServiceTokensErrors = {
@@ -476,7 +476,7 @@ export type CreateServiceTokenData = {
     };
     path?: never;
     query?: never;
-    url: '/v1/st/';
+    url: '/api/v1/st/';
 };
 
 export type CreateServiceTokenErrors = {
@@ -509,7 +509,7 @@ export type BootstrapAdminTokenData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/v1/st/bootstrap';
+    url: '/api/v1/st/bootstrap';
 };
 
 export type BootstrapAdminTokenErrors = {
@@ -538,7 +538,7 @@ export type FirstRunCheckData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/v1/st/first-run';
+    url: '/api/v1/st/first-run';
 };
 
 export type FirstRunCheckErrors = {
@@ -576,7 +576,7 @@ export type DeleteServiceTokenData = {
         id: string;
     };
     query?: never;
-    url: '/v1/st/{id}';
+    url: '/api/v1/st/{id}';
 };
 
 export type DeleteServiceTokenErrors = {
@@ -618,7 +618,7 @@ export type GetServiceTokenData = {
         id: string;
     };
     query?: never;
-    url: '/v1/st/{id}';
+    url: '/api/v1/st/{id}';
 };
 
 export type GetServiceTokenErrors = {
@@ -665,7 +665,7 @@ export type UploadFileBlobData = {
         blob: string;
     };
     query?: never;
-    url: '/v1/upload/{blob}';
+    url: '/api/v1/upload/{blob}';
 };
 
 export type UploadFileBlobErrors = {

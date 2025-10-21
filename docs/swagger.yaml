@@ -164,7 +164,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /v1/bucket/:
+  /api/v1/bucket/:
     get:
       description: List all S3 buckets
       operationId: ListBuckets
@@ -233,7 +233,7 @@ paths:
       summary: Create bucket
       tags:
       - buckets
-  /v1/bucket/{id}:
+  /api/v1/bucket/{id}:
     delete:
       description: Delete a bucket by ID. Only admin users can delete buckets.
       operationId: DeleteBucket
@@ -350,7 +350,7 @@ paths:
       summary: Update bucket
       tags:
       - buckets
-  /v1/file/:
+  /api/v1/file/:
     post:
       consumes:
       - application/json
@@ -391,7 +391,7 @@ paths:
       summary: Initiate file upload
       tags:
       - files
-  /v1/file/{blob}/finalize:
+  /api/v1/file/{blob}/finalize:
     post:
       description: Finalize a file upload after client notifies server. Admin access
         required.
@@ -433,7 +433,7 @@ paths:
       summary: Finalize file upload
       tags:
       - files
-  /v1/file/{id}:
+  /api/v1/file/{id}:
     delete:
       description: Delete a file by ID. Admin access required.
       operationId: DeleteFile
@@ -466,7 +466,7 @@ paths:
       summary: Delete file
       tags:
       - files
-  /v1/st/:
+  /api/v1/st/:
     get:
       description: List all service tokens (admin only).
       operationId: ListAllServiceTokens
@@ -536,7 +536,7 @@ paths:
       summary: Create service token
       tags:
       - service-tokens
-  /v1/st/{id}:
+  /api/v1/st/{id}:
     delete:
       description: Delete a service token by ID. Only admin can delete other tokens.
         Admin token cannot be deleted.
@@ -606,7 +606,7 @@ paths:
       summary: Get service token
       tags:
       - service-tokens
-  /v1/st/bootstrap:
+  /api/v1/st/bootstrap:
     post:
       description: Create the initial admin service token. Only allowed if no admin
         token exists. Used for first-time setup.
@@ -629,7 +629,7 @@ paths:
       summary: Bootstrap admin token
       tags:
       - service-tokens
-  /v1/st/first-run:
+  /api/v1/st/first-run:
     get:
       description: Returns whether the admin token exists. Used to determine if setup
         is required.
@@ -650,7 +650,7 @@ paths:
       summary: Check if admin token has already been created
       tags:
       - service-tokens
-  /v1/upload/{blob}:
+  /api/v1/upload/{blob}:
     patch:
       consumes:
       - application/octet-stream

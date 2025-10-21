@@ -98,7 +98,7 @@ func generateRandomEntropy() uint64 {
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
-// @Router /v1/file/ [post]
+// @Router /api/v1/file/ [post]
 // @Id InitiateFileUpload
 func (r *router) InitiateFileUploadHandler(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -191,7 +191,7 @@ func (r *router) InitiateFileUploadHandler(c *gin.Context) {
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 404 {object} router.ErrorResponse
-// @Router /v1/upload/{blob} [patch]
+// @Router /api/v1/upload/{blob} [patch]
 // @Id UploadFileBlob
 func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	blobId := c.Param("blob")
@@ -349,7 +349,7 @@ func createS3Client(bucket *models.Bucket) (*s3.Client, error) {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
-// @Router /v1/file/{blob}/finalize [post]
+// @Router /api/v1/file/{blob}/finalize [post]
 // @Id FinalizeFileUpload
 func (r *router) FinalizeFileUploadHandler(c *gin.Context) {
 	blobId := c.Param("blob")
@@ -384,7 +384,7 @@ func (r *router) FinalizeFileUploadHandler(c *gin.Context) {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
-// @Router /v1/file/{id} [delete]
+// @Router /api/v1/file/{id} [delete]
 // @Id DeleteFile
 func (r *router) DeleteFileHandler(c *gin.Context) {
 	// Implementation goes here

@@ -42,7 +42,7 @@ type BucketInsertDTO struct {
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
-// @Router /v1/bucket/ [post]
+// @Router /api/v1/bucket/ [post]
 // @Id CreateBucket
 func (r *router) CreateBucketHandler(c *gin.Context) {
 	var bucket models.Bucket
@@ -77,7 +77,7 @@ func (r *router) CreateBucketHandler(c *gin.Context) {
 // @Success 200 {array} models.Bucket
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
-// @Router /v1/bucket/ [get]
+// @Router /api/v1/bucket/ [get]
 // @Id ListBuckets
 func (r *router) ListBucketsHandler(c *gin.Context) {
 	buckets, err := r.repo.Buckets.ListBuckets(c.Request.Context())
@@ -99,7 +99,7 @@ func (r *router) ListBucketsHandler(c *gin.Context) {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
-// @Router /v1/bucket/{id} [get]
+// @Router /api/v1/bucket/{id} [get]
 // @Id GetBucket
 func (r *router) GetBucketHandler(c *gin.Context) {
 	id := c.Param("id")
@@ -129,7 +129,7 @@ func (r *router) GetBucketHandler(c *gin.Context) {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
-// @Router /v1/bucket/{id} [patch]
+// @Router /api/v1/bucket/{id} [patch]
 // @Id UpdateBucket
 func (r *router) UpdateBucketHandler(c *gin.Context) {
 	id := c.Param("id")
@@ -176,7 +176,7 @@ func (r *router) UpdateBucketHandler(c *gin.Context) {
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
-// @Router /v1/bucket/{id} [delete]
+// @Router /api/v1/bucket/{id} [delete]
 // @Id DeleteBucket
 func (r *router) DeleteBucketHandler(c *gin.Context) {
 	id := c.Param("id")
