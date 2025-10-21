@@ -11,8 +11,8 @@ export const useFirstRunStore = defineStore('firstRun', {
       this.loading = true;
       this.error = null;
       try {
-        const { getV1StFirstRun } = await import('@/client');
-        const response = await getV1StFirstRun({});
+        const { firstRunCheck } = await import('@/client');
+        const response = await firstRunCheck({});
         if (response?.data && typeof response.data.first_run === 'boolean') {
           this.firstRun = response.data.first_run;
         } else {
