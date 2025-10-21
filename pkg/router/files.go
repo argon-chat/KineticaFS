@@ -127,7 +127,7 @@ func (r *router) InitiateFileUploadHandler(c *gin.Context) {
 		randIndexBytes := make([]byte, 2)
 		_, err := rand.Read(randIndexBytes)
 		if err != nil {
-			c.JSON(500, ErrorResponse{Message: "Failed to generate random bucket selection: " + err.Error()})
+			c.JSON(400, ErrorResponse{Message: "Failed to generate random bucket selection: " + err.Error()})
 			return
 		}
 		randIndex := binary.BigEndian.Uint16(randIndexBytes) % uint16(len(region.Buckets))
@@ -150,7 +150,7 @@ func (r *router) InitiateFileUploadHandler(c *gin.Context) {
 	guid := guid.NewGuid(timestamp.CurrentTimestamp(), region.ID, bucketID, entropy, 0x0A)
 	guidString, err := guid.Pack()
 	if err != nil {
-		c.JSON(500, ErrorResponse{Message: "Failed to generate file GUID: " + err.Error()})
+		c.JSON(400, ErrorResponse{Message: "Failed to generate file GUID: " + err.Error()})
 		return
 	}
 
