@@ -48,10 +48,10 @@ func (s *ScyllaFileRepository) CreateIndices(ctx context.Context) {
 }
 
 func (s *ScyllaFileRepository) GetFileByID(ctx context.Context, id string) (*models.File, error) {
-	query := "SELECT id, bucketid, checksum, contenttype, createdat, filesize, metadata, name, path, updatedat FROM file WHERE id = ?"
+	query := "SELECT id, bucketid, checksum, contenttype, createdat, filesize, filesizelimit, finalized, metadata, name, path, updatedat FROM file WHERE id = ?"
 	row := s.session.Query(query, id).WithContext(ctx)
 	var file models.File
-	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt)
+	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -59,10 +59,10 @@ func (s *ScyllaFileRepository) GetFileByID(ctx context.Context, id string) (*mod
 }
 
 func (s *ScyllaFileRepository) GetFileByName(ctx context.Context, bucketID, name string) (*models.File, error) {
-	query := "SELECT id, bucketid, checksum, contenttype, createdat, filesize, metadata, name, path, updatedat FROM file WHERE bucketid = ? AND name = ? ALLOW FILTERING"
+	query := "SELECT id, bucketid, checksum, contenttype, createdat, filesize, filesizelimit, finalized, metadata, name, path, updatedat FROM file WHERE bucketid = ? AND name = ? ALLOW FILTERING"
 	row := s.session.Query(query, bucketID, name).WithContext(ctx)
 	var file models.File
-	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt)
+	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +73,8 @@ func (s *ScyllaFileRepository) CreateFile(ctx context.Context, file *models.File
 	file.CreatedAt = time.Now().UTC()
 	file.UpdatedAt = file.CreatedAt
 	file.ID = file.Name
-	query := `INSERT INTO file (id, bucketid, name, filesize, contenttype, createdat, updatedat) VALUES (?, ?, ?, ?, ?, ?, ?)`
-	if err := s.session.Query(query, file.ID, file.BucketID, file.Name, file.FileSize, file.ContentType, file.CreatedAt, file.UpdatedAt).WithContext(ctx).Exec(); err != nil {
+	query := `INSERT INTO file (id, bucketid, name, filesize, filesizelimit, finalized, contenttype, checksum, metadata, path, createdat, updatedat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	if err := s.session.Query(query, file.ID, file.BucketID, file.Name, file.FileSize, file.FileSizeLimit, file.Finalized, file.ContentType, file.Checksum, file.Metadata, file.Path, file.CreatedAt, file.UpdatedAt).WithContext(ctx).Exec(); err != nil {
 		log.Printf("Error creating file: %v", err)
 		return err
 	}
@@ -83,8 +83,8 @@ func (s *ScyllaFileRepository) CreateFile(ctx context.Context, file *models.File
 
 func (s *ScyllaFileRepository) UpdateFile(ctx context.Context, file *models.File) error {
 	file.UpdatedAt = time.Now().UTC()
-	query := `UPDATE file SET bucketid = ?, finalized = ?, name = ?, filesize = ?, contenttype = ?, metadata = ?, path = ?, updatedat = ? WHERE id = ?`
-	if err := s.session.Query(query, file.BucketID, file.Finalized, file.Name, file.FileSize, file.ContentType, file.Metadata, file.Path, file.UpdatedAt, file.ID).WithContext(ctx).Exec(); err != nil {
+	query := `UPDATE file SET bucketid = ?, finalized = ?, name = ?, filesize = ?, filesizelimit = ?, contenttype = ?, checksum = ?, metadata = ?, path = ?, updatedat = ? WHERE id = ?`
+	if err := s.session.Query(query, file.BucketID, file.Finalized, file.Name, file.FileSize, file.FileSizeLimit, file.ContentType, file.Checksum, file.Metadata, file.Path, file.UpdatedAt, file.ID).WithContext(ctx).Exec(); err != nil {
 		log.Printf("Error updating file: %v", err)
 		return err
 	}
