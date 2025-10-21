@@ -121,7 +121,7 @@ describe('Authorization Tests', () => {
     });
 
     test('File endpoints return 401 without token', async () => {
-        const { postV1File, postV1FileByIdFinalize, deleteV1FileById } = await import('./src/client');
+        const { postV1File, postV1FileByBlobFinalize, deleteV1FileById } = await import('./src/client');
         const initiateResponse = await postV1File({
             client,
             headers: {} as any,
@@ -132,9 +132,9 @@ describe('Authorization Tests', () => {
         });
         expect(initiateResponse).toHaveProperty('error');
         expect(initiateResponse.response?.status).toBe(401);
-        const finalizeResponse = await postV1FileByIdFinalize({
+        const finalizeResponse = await postV1FileByBlobFinalize({
             client,
-            path: { id: 'fake-id' },
+            path: { blob: 'fake-id' },
             headers: {} as any
         });
         expect(finalizeResponse).toHaveProperty('error');
@@ -149,7 +149,7 @@ describe('Authorization Tests', () => {
     });
 
     test('File endpoints return 401 with invalid token', async () => {
-        const { postV1File, postV1FileByIdFinalize, deleteV1FileById } = await import('./src/client');
+        const { postV1File, postV1FileByBlobFinalize, deleteV1FileById } = await import('./src/client');
         const invalidToken = 'invalid-token-12345';
         const initiateResponse = await postV1File({
             client,
@@ -161,9 +161,9 @@ describe('Authorization Tests', () => {
         });
         expect(initiateResponse).toHaveProperty('error');
         expect(initiateResponse.response?.status).toBe(401);
-        const finalizeResponse = await postV1FileByIdFinalize({
+        const finalizeResponse = await postV1FileByBlobFinalize({
             client,
-            path: { id: 'fake-id' },
+            path: { blob: 'fake-id' },
             headers: { 'x-api-token': invalidToken }
         });
         expect(finalizeResponse).toHaveProperty('error');

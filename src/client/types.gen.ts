@@ -25,6 +25,7 @@ export type ModelsFile = {
     content_type?: string;
     created_at?: string;
     file_size?: number;
+    finalized?: boolean;
     id?: string;
     metadata?: string;
     name: string;
@@ -67,7 +68,7 @@ export type RouterErrorResponse = {
 };
 
 export type RouterInitiateFileUploadDto = {
-    bucketCode: string;
+    bucketCode?: string;
     regionId: string;
 };
 
@@ -335,6 +336,54 @@ export type PostV1FileResponses = {
 
 export type PostV1FileResponse = PostV1FileResponses[keyof PostV1FileResponses];
 
+export type PostV1FileByBlobFinalizeData = {
+    body?: never;
+    headers: {
+        /**
+         * API Token
+         */
+        'x-api-token': string;
+    };
+    path: {
+        /**
+         * Blob ID
+         */
+        blob: string;
+    };
+    query?: never;
+    url: '/v1/file/{blob}/finalize';
+};
+
+export type PostV1FileByBlobFinalizeErrors = {
+    /**
+     * Bad Request
+     */
+    400: RouterErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: RouterErrorResponse;
+    /**
+     * Forbidden - Admin only
+     */
+    403: RouterErrorResponse;
+    /**
+     * Not Found
+     */
+    404: RouterErrorResponse;
+};
+
+export type PostV1FileByBlobFinalizeError = PostV1FileByBlobFinalizeErrors[keyof PostV1FileByBlobFinalizeErrors];
+
+export type PostV1FileByBlobFinalizeResponses = {
+    /**
+     * OK
+     */
+    200: ModelsFile;
+};
+
+export type PostV1FileByBlobFinalizeResponse = PostV1FileByBlobFinalizeResponses[keyof PostV1FileByBlobFinalizeResponses];
+
 export type DeleteV1FileByIdData = {
     body?: never;
     headers: {
@@ -376,54 +425,6 @@ export type DeleteV1FileByIdResponses = {
      */
     204: unknown;
 };
-
-export type PostV1FileByIdFinalizeData = {
-    body?: never;
-    headers: {
-        /**
-         * API Token
-         */
-        'x-api-token': string;
-    };
-    path: {
-        /**
-         * File ID
-         */
-        id: string;
-    };
-    query?: never;
-    url: '/v1/file/{id}/finalize';
-};
-
-export type PostV1FileByIdFinalizeErrors = {
-    /**
-     * Bad Request
-     */
-    400: RouterErrorResponse;
-    /**
-     * Unauthorized
-     */
-    401: RouterErrorResponse;
-    /**
-     * Forbidden - Admin only
-     */
-    403: RouterErrorResponse;
-    /**
-     * Not Found
-     */
-    404: RouterErrorResponse;
-};
-
-export type PostV1FileByIdFinalizeError = PostV1FileByIdFinalizeErrors[keyof PostV1FileByIdFinalizeErrors];
-
-export type PostV1FileByIdFinalizeResponses = {
-    /**
-     * OK
-     */
-    200: ModelsFile;
-};
-
-export type PostV1FileByIdFinalizeResponse = PostV1FileByIdFinalizeResponses[keyof PostV1FileByIdFinalizeResponses];
 
 export type GetV1StData = {
     body?: never;
