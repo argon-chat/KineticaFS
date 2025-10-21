@@ -1,7 +1,6 @@
 package router
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -272,13 +271,13 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 
 	objectKey := file.Name
 	hash := sha256.New()
-	bodyReader := bytes.NewReader(body)
-	tee := io.TeeReader(bodyReader, hash)
+	// bodyReader := bytes.NewReader(body)
+	// tee := io.TeeReader(bodyReader, hash)
 
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        aws.String(bucket.Name),
 		Key:           aws.String(objectKey),
-		Body:          tee,
+		Body:          strings.NewReader(string(body)),
 		ContentType:   aws.String(fileContentType),
 		ContentLength: aws.Int64(int64(len(body))),
 	})
@@ -315,23 +314,12 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 }
 
 func createS3Client(bucket *models.Bucket) (*s3.Client, error) {
-	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-		if service == s3.ServiceID {
-			return aws.Endpoint{
-				URL:           bucket.Endpoint,
-				SigningRegion: bucket.Region,
-			}, nil
-		}
-		return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")
-	})
-
 	cfg, err := config.LoadDefaultConfig(context.Background(),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
 			bucket.AccessKey,
 			bucket.SecretKey,
 			"",
 		)),
-		config.WithEndpointResolverWithOptions(customResolver),
 		config.WithRegion(bucket.Region),
 	)
 
@@ -340,6 +328,7 @@ func createS3Client(bucket *models.Bucket) (*s3.Client, error) {
 	}
 
 	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(bucket.Endpoint)
 		o.UsePathStyle = true
 	})
 
