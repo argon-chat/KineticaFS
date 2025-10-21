@@ -1,19 +1,19 @@
 import { expect, test, describe } from "bun:test";
 import { createClient, createConfig } from './src/client/client'
-import { getV1StFirstRun, ModelsBucket } from './src/client'
+import { firstRunCheck, ModelsBucket } from './src/client'
 let admin_api_token: string | undefined, user_api_token: string | undefined;
 const client = createClient(createConfig({ baseUrl: 'http://localhost:3000' }));
 
 describe('Authorization Tests', () => {
     test('Bucket endpoints return 401 without token', async () => {
-        const { getV1Bucket, postV1Bucket, getV1BucketById, patchV1BucketById, deleteV1BucketById } = await import('./src/client');
-        const listResponse = await getV1Bucket({
+        const { listBuckets, createBucket, getBucket, updateBucket, deleteBucket } = await import('./src/client');
+        const listResponse = await listBuckets({
             client,
             headers: {} as any
         });
         expect(listResponse).toHaveProperty('error');
         expect(listResponse.response?.status).toBe(401);
-        const createResponse = await postV1Bucket({
+        const createResponse = await createBucket({
             client,
             headers: {} as any,
             body: {
@@ -29,14 +29,14 @@ describe('Authorization Tests', () => {
         });
         expect(createResponse).toHaveProperty('error');
         expect(createResponse.response?.status).toBe(401);
-        const getResponse = await getV1BucketById({
+        const getResponse = await getBucket({
             client,
             path: { id: 'fake-id' },
             headers: {} as any
         });
         expect(getResponse).toHaveProperty('error');
         expect(getResponse.response?.status).toBe(401);
-        const updateResponse = await patchV1BucketById({
+        const updateResponse = await updateBucket({
             client,
             path: { id: 'fake-id' },
             headers: {} as any,
@@ -53,7 +53,7 @@ describe('Authorization Tests', () => {
         });
         expect(updateResponse).toHaveProperty('error');
         expect(updateResponse.response?.status).toBe(401);
-        const deleteResponse = await deleteV1BucketById({
+        const deleteResponse = await deleteBucket({
             client,
             path: { id: 'fake-id' },
             headers: {} as any
@@ -63,15 +63,15 @@ describe('Authorization Tests', () => {
     });
 
     test('Bucket endpoints return 401 with invalid token', async () => {
-        const { getV1Bucket, postV1Bucket, getV1BucketById, patchV1BucketById, deleteV1BucketById } = await import('./src/client');
+        const { listBuckets, createBucket, getBucket, updateBucket, deleteBucket } = await import('./src/client');
         const invalidToken = 'invalid-token-12345';
-        const listResponse = await getV1Bucket({
+        const listResponse = await listBuckets({
             client,
             headers: { 'x-api-token': invalidToken }
         });
         expect(listResponse).toHaveProperty('error');
         expect(listResponse.response?.status).toBe(401);
-        const createResponse = await postV1Bucket({
+        const createResponse = await createBucket({
             client,
             headers: { 'x-api-token': invalidToken },
             body: {
@@ -87,14 +87,14 @@ describe('Authorization Tests', () => {
         });
         expect(createResponse).toHaveProperty('error');
         expect(createResponse.response?.status).toBe(401);
-        const getResponse = await getV1BucketById({
+        const getResponse = await getBucket({
             client,
             path: { id: 'fake-id' },
             headers: { 'x-api-token': invalidToken }
         });
         expect(getResponse).toHaveProperty('error');
         expect(getResponse.response?.status).toBe(401);
-        const updateResponse = await patchV1BucketById({
+        const updateResponse = await updateBucket({
             client,
             path: { id: 'fake-id' },
             headers: { 'x-api-token': invalidToken },
@@ -111,7 +111,7 @@ describe('Authorization Tests', () => {
         });
         expect(updateResponse).toHaveProperty('error');
         expect(updateResponse.response?.status).toBe(401);
-        const deleteResponse = await deleteV1BucketById({
+        const deleteResponse = await deleteBucket({
             client,
             path: { id: 'fake-id' },
             headers: { 'x-api-token': invalidToken }
@@ -121,8 +121,8 @@ describe('Authorization Tests', () => {
     });
 
     test('File endpoints return 401 without token', async () => {
-        const { postV1File, postV1FileByBlobFinalize, deleteV1FileById } = await import('./src/client');
-        const initiateResponse = await postV1File({
+        const { initiateFileUpload, finalizeFileUpload, deleteFile } = await import('./src/client');
+        const initiateResponse = await initiateFileUpload({
             client,
             headers: {} as any,
             body: {
@@ -132,14 +132,14 @@ describe('Authorization Tests', () => {
         });
         expect(initiateResponse).toHaveProperty('error');
         expect(initiateResponse.response?.status).toBe(401);
-        const finalizeResponse = await postV1FileByBlobFinalize({
+        const finalizeResponse = await finalizeFileUpload({
             client,
             path: { blob: 'fake-id' },
             headers: {} as any
         });
         expect(finalizeResponse).toHaveProperty('error');
         expect(finalizeResponse.response?.status).toBe(401);
-        const deleteResponse = await deleteV1FileById({
+        const deleteResponse = await deleteFile({
             client,
             path: { id: 'fake-id' },
             headers: {} as any
@@ -149,9 +149,9 @@ describe('Authorization Tests', () => {
     });
 
     test('File endpoints return 401 with invalid token', async () => {
-        const { postV1File, postV1FileByBlobFinalize, deleteV1FileById } = await import('./src/client');
+        const { initiateFileUpload, finalizeFileUpload, deleteFile } = await import('./src/client');
         const invalidToken = 'invalid-token-12345';
-        const initiateResponse = await postV1File({
+        const initiateResponse = await initiateFileUpload({
             client,
             headers: { 'x-api-token': invalidToken },
             body: {
@@ -161,14 +161,14 @@ describe('Authorization Tests', () => {
         });
         expect(initiateResponse).toHaveProperty('error');
         expect(initiateResponse.response?.status).toBe(401);
-        const finalizeResponse = await postV1FileByBlobFinalize({
+        const finalizeResponse = await finalizeFileUpload({
             client,
             path: { blob: 'fake-id' },
             headers: { 'x-api-token': invalidToken }
         });
         expect(finalizeResponse).toHaveProperty('error');
         expect(finalizeResponse.response?.status).toBe(401);
-        const deleteResponse = await deleteV1FileById({
+        const deleteResponse = await deleteFile({
             client,
             path: { id: 'fake-id' },
             headers: { 'x-api-token': invalidToken }
@@ -178,8 +178,8 @@ describe('Authorization Tests', () => {
     });
 
     test('Upload endpoints return 401 without token', async () => {
-        const { patchV1UploadByBlob } = await import('./src/client');
-        const uploadResponse = await patchV1UploadByBlob({
+        const { uploadFileBlob } = await import('./src/client');
+        const uploadResponse = await uploadFileBlob({
             client,
             path: { blob: 'fake-blob-id' },
             headers: {} as any,
@@ -190,9 +190,9 @@ describe('Authorization Tests', () => {
     });
 
     test('Upload endpoints return 401 with invalid token', async () => {
-        const { patchV1UploadByBlob } = await import('./src/client');
+        const { uploadFileBlob } = await import('./src/client');
         const invalidToken = 'invalid-token-12345';
-        const uploadResponse = await patchV1UploadByBlob({
+        const uploadResponse = await uploadFileBlob({
             client,
             path: { blob: 'fake-blob-id' },
             headers: { 'x-api-token': invalidToken },
@@ -203,28 +203,28 @@ describe('Authorization Tests', () => {
     });
 
     test('Service token endpoints return 401 without token', async () => {
-        const { getV1St, postV1St, getV1StById, deleteV1StById } = await import('./src/client');
-        const listResponse = await getV1St({
+        const { listAllServiceTokens, createServiceToken, getServiceToken, deleteServiceToken } = await import('./src/client');
+        const listResponse = await listAllServiceTokens({
             client,
             headers: {} as any
         });
         expect(listResponse).toHaveProperty('error');
         expect(listResponse.response?.status).toBe(401);
-        const createResponse = await postV1St({
+        const createResponse = await createServiceToken({
             client,
             headers: {} as any,
             body: { name: 'test-token' }
         });
         expect(createResponse).toHaveProperty('error');
         expect(createResponse.response?.status).toBe(401);
-        const getResponse = await getV1StById({
+        const getResponse = await getServiceToken({
             client,
             path: { id: 'fake-id' },
             headers: {} as any
         });
         expect(getResponse).toHaveProperty('error');
         expect(getResponse.response?.status).toBe(401);
-        const deleteResponse = await deleteV1StById({
+        const deleteResponse = await deleteServiceToken({
             client,
             path: { id: 'fake-id' },
             headers: {} as any
@@ -234,29 +234,29 @@ describe('Authorization Tests', () => {
     });
 
     test('Service token endpoints return 401 with invalid token', async () => {
-        const { getV1St, postV1St, getV1StById, deleteV1StById } = await import('./src/client');
+        const { listAllServiceTokens, createServiceToken, getServiceToken, deleteServiceToken } = await import('./src/client');
         const invalidToken = 'invalid-token-12345';
-        const listResponse = await getV1St({
+        const listResponse = await listAllServiceTokens({
             client,
             headers: { 'x-api-token': invalidToken }
         });
         expect(listResponse).toHaveProperty('error');
         expect(listResponse.response?.status).toBe(401);
-        const createResponse = await postV1St({
+        const createResponse = await createServiceToken({
             client,
             headers: { 'x-api-token': invalidToken },
             body: { name: 'test-token' }
         });
         expect(createResponse).toHaveProperty('error');
         expect(createResponse.response?.status).toBe(401);
-        const getResponse = await getV1StById({
+        const getResponse = await getServiceToken({
             client,
             path: { id: 'fake-id' },
             headers: { 'x-api-token': invalidToken }
         });
         expect(getResponse).toHaveProperty('error');
         expect(getResponse.response?.status).toBe(401);
-        const deleteResponse = await deleteV1StById({
+        const deleteResponse = await deleteServiceToken({
             client,
             path: { id: 'fake-id' },
             headers: { 'x-api-token': invalidToken }
@@ -266,13 +266,13 @@ describe('Authorization Tests', () => {
     });
 
     test('Public endpoints work without token', async () => {
-        const { getV1StFirstRun, postV1StBootstrap } = await import('./src/client');
-        const firstRunResponse = await getV1StFirstRun({ client });
+        const { firstRunCheck, bootstrapAdminToken } = await import('./src/client');
+        const firstRunResponse = await firstRunCheck({ client });
         expect(firstRunResponse).toBeDefined();
         expect(firstRunResponse).toHaveProperty('data');
         expect(firstRunResponse.data).toHaveProperty('first_run');
         expect(typeof firstRunResponse.data?.first_run).toBe('boolean');
-        const bootstrapResponse = await postV1StBootstrap({ client });
+        const bootstrapResponse = await bootstrapAdminToken({ client });
         expect(bootstrapResponse).toBeDefined();
         if (bootstrapResponse.error) {
             expect(bootstrapResponse.response?.status).not.toBe(401);
@@ -281,19 +281,19 @@ describe('Authorization Tests', () => {
         expect(bootstrapResponse.data).toHaveProperty('access_key');
         admin_api_token = bootstrapResponse.data?.access_key;
         expect(admin_api_token).toBeDefined();
-        console.log(admin_api_token, 'admin')
+        console.log(admin_api_token)
     });
 
     test('Admin endpoints return 403 with non-admin token', async () => {
-        const { getV1Bucket, postV1Bucket, getV1St, postV1St } = await import('./src/client');
+        const { listBuckets, createBucket, listAllServiceTokens, createServiceToken } = await import('./src/client');
         if (user_api_token) {
-            const bucketResponse = await getV1Bucket({
+            const bucketResponse = await listBuckets({
                 client,
                 headers: { 'x-api-token': user_api_token }
             });
             expect(bucketResponse).toHaveProperty('error');
             expect([401, 403]).toContain(bucketResponse.response?.status);
-            const tokenResponse = await getV1St({
+            const tokenResponse = await listAllServiceTokens({
                 client,
                 headers: { 'x-api-token': user_api_token }
             });
@@ -304,7 +304,7 @@ describe('Authorization Tests', () => {
 });
 
 test('Check if first run after bootstrap', async () => {
-    const response = await getV1StFirstRun({ client });
+    const response = await firstRunCheck({ client });
     expect(response).toBeDefined();
     expect(response).toHaveProperty('data');
     expect(response.data).toHaveProperty('first_run');
@@ -312,8 +312,8 @@ test('Check if first run after bootstrap', async () => {
 })
 
 test('Create service token', async () => {
-    const { postV1St } = await import('./src/client');
-    const response = await postV1St({
+    const { createServiceToken } = await import('./src/client');
+    const response = await createServiceToken({
         client,
         body: {
             name: 'user-token',
@@ -331,15 +331,15 @@ test('Create service token', async () => {
 });
 
 test('Cannot create second admin token', async () => {
-    const { postV1StBootstrap } = await import('./src/client');
-    const response = await postV1StBootstrap({ client });
+    const { bootstrapAdminToken } = await import('./src/client');
+    const response = await bootstrapAdminToken({ client });
     expect(response).toBeDefined();
     expect(response).toHaveProperty('error');
 });
 
 test('Cannot create service token with an already existing name', async () => {
-    const { postV1St } = await import('./src/client');
-    const response = await postV1St({
+    const { createServiceToken } = await import('./src/client');
+    const response = await createServiceToken({
         client,
         body: {
             name: 'user-token',
@@ -353,8 +353,8 @@ test('Cannot create service token with an already existing name', async () => {
 });
 
 test('Delete service token', async () => {
-    const { deleteV1StById, postV1St } = await import('./src/client');
-    const createResponse = await postV1St({
+    const { deleteServiceToken, createServiceToken } = await import('./src/client');
+    const createResponse = await createServiceToken({
         client,
         body: {
             name: 'temp-token',
@@ -368,7 +368,7 @@ test('Delete service token', async () => {
     expect(createResponse.data).toHaveProperty('id');
     const token_id = createResponse.data?.id;
     expect(token_id).toBeDefined();
-    const deleteResponse = await deleteV1StById({
+    const deleteResponse = await deleteServiceToken({
         client,
         path: { id: token_id as string },
         headers: {
@@ -380,8 +380,8 @@ test('Delete service token', async () => {
 });
 
 test('Creates and deletes bucket successfully', async () => {
-    const { postV1Bucket, deleteV1BucketById } = await import('./src/client');
-    const createResponse = await postV1Bucket({
+    const { createBucket, deleteBucket } = await import('./src/client');
+    const createResponse = await createBucket({
         client,
         headers: {
             "x-api-token": admin_api_token as string
@@ -402,7 +402,7 @@ test('Creates and deletes bucket successfully', async () => {
     expect(createResponse.data).toHaveProperty('id');
     const bucket_id = createResponse.data?.id;
     expect(bucket_id).toBeDefined();
-    const deleteResponse = await deleteV1BucketById({
+    const deleteResponse = await deleteBucket({
         client,
         path: { id: bucket_id as string },
         headers: {
@@ -414,8 +414,8 @@ test('Creates and deletes bucket successfully', async () => {
 });
 
 test('Lists buckets after creating a bucket', async () => {
-    const { postV1Bucket, getV1Bucket, deleteV1BucketById } = await import('./src/client');
-    const createResponse = await postV1Bucket({
+    const { createBucket, listBuckets, deleteBucket } = await import('./src/client');
+    const createResponse = await createBucket({
         client,
         headers: {
             "x-api-token": admin_api_token as string
@@ -436,7 +436,7 @@ test('Lists buckets after creating a bucket', async () => {
     expect(createResponse.data).toHaveProperty('id');
     const bucket_id = createResponse.data?.id;
     expect(bucket_id).toBeDefined();
-    const listResponse = await getV1Bucket({
+    const listResponse = await listBuckets({
         client,
         headers: {
             "x-api-token": admin_api_token as string
@@ -448,7 +448,7 @@ test('Lists buckets after creating a bucket', async () => {
     expect(Array.isArray(buckets)).toBe(true);
     const createdBucket = buckets?.find((bucket: ModelsBucket) => bucket.id === bucket_id);
     expect(createdBucket).toBeDefined();
-    const deleteResponse = await deleteV1BucketById({
+    const deleteResponse = await deleteBucket({
         client,
         path: { id: bucket_id as string },
         headers: {
@@ -460,8 +460,8 @@ test('Lists buckets after creating a bucket', async () => {
 });
 
 test('creates the actual buckets from compose file', async () => {
-    const { postV1Bucket } = await import('./src/client');
-    const region1Response = await postV1Bucket({
+    const { createBucket } = await import('./src/client');
+    const region1Response = await createBucket({
         client,
         headers: {
             "x-api-token": admin_api_token as string
@@ -478,7 +478,7 @@ test('creates the actual buckets from compose file', async () => {
         }
     });
 
-    const region2Response = await postV1Bucket({
+    const region2Response = await createBucket({
         client,
         headers: {
             "x-api-token": admin_api_token as string
