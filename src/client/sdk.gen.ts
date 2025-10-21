@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteV1BucketByIdData, DeleteV1BucketByIdErrors, DeleteV1BucketByIdResponses, DeleteV1FileByIdData, DeleteV1FileByIdErrors, DeleteV1FileByIdResponses, DeleteV1StByIdData, DeleteV1StByIdErrors, DeleteV1StByIdResponses, GetV1BucketByIdData, GetV1BucketByIdErrors, GetV1BucketByIdResponses, GetV1BucketData, GetV1BucketErrors, GetV1BucketResponses, GetV1StByIdData, GetV1StByIdErrors, GetV1StByIdResponses, GetV1StData, GetV1StErrors, GetV1StFirstRunData, GetV1StFirstRunErrors, GetV1StFirstRunResponses, GetV1StResponses, PatchV1BucketByIdData, PatchV1BucketByIdErrors, PatchV1BucketByIdResponses, PatchV1UploadByBlobData, PatchV1UploadByBlobErrors, PatchV1UploadByBlobResponses, PostV1BucketData, PostV1BucketErrors, PostV1BucketResponses, PostV1FileByBlobFinalizeData, PostV1FileByBlobFinalizeErrors, PostV1FileByBlobFinalizeResponses, PostV1FileData, PostV1FileErrors, PostV1FileResponses, PostV1StBootstrapData, PostV1StBootstrapErrors, PostV1StBootstrapResponses, PostV1StData, PostV1StErrors, PostV1StResponses } from './types.gen';
+import type { BootstrapAdminTokenData, BootstrapAdminTokenErrors, BootstrapAdminTokenResponses, CreateBucketData, CreateBucketErrors, CreateBucketResponses, CreateServiceTokenData, CreateServiceTokenErrors, CreateServiceTokenResponses, DeleteBucketData, DeleteBucketErrors, DeleteBucketResponses, DeleteFileData, DeleteFileErrors, DeleteFileResponses, DeleteServiceTokenData, DeleteServiceTokenErrors, DeleteServiceTokenResponses, FinalizeFileUploadData, FinalizeFileUploadErrors, FinalizeFileUploadResponses, FirstRunCheckData, FirstRunCheckErrors, FirstRunCheckResponses, GetBucketData, GetBucketErrors, GetBucketResponses, GetServiceTokenData, GetServiceTokenErrors, GetServiceTokenResponses, InitiateFileUploadData, InitiateFileUploadErrors, InitiateFileUploadResponses, ListAllServiceTokensData, ListAllServiceTokensErrors, ListAllServiceTokensResponses, ListBucketsData, ListBucketsErrors, ListBucketsResponses, UpdateBucketData, UpdateBucketErrors, UpdateBucketResponses, UploadFileBlobData, UploadFileBlobErrors, UploadFileBlobResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -22,8 +22,8 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
  * List buckets
  * List all S3 buckets
  */
-export const getV1Bucket = <ThrowOnError extends boolean = false>(options: Options<GetV1BucketData, ThrowOnError>) => {
-    return (options.client ?? client).get<GetV1BucketResponses, GetV1BucketErrors, ThrowOnError>({
+export const listBuckets = <ThrowOnError extends boolean = false>(options: Options<ListBucketsData, ThrowOnError>) => {
+    return (options.client ?? client).get<ListBucketsResponses, ListBucketsErrors, ThrowOnError>({
         url: '/v1/bucket/',
         ...options
     });
@@ -33,8 +33,8 @@ export const getV1Bucket = <ThrowOnError extends boolean = false>(options: Optio
  * Create bucket
  * Create a new S3 bucket. Only admin users can create buckets.
  */
-export const postV1Bucket = <ThrowOnError extends boolean = false>(options: Options<PostV1BucketData, ThrowOnError>) => {
-    return (options.client ?? client).post<PostV1BucketResponses, PostV1BucketErrors, ThrowOnError>({
+export const createBucket = <ThrowOnError extends boolean = false>(options: Options<CreateBucketData, ThrowOnError>) => {
+    return (options.client ?? client).post<CreateBucketResponses, CreateBucketErrors, ThrowOnError>({
         url: '/v1/bucket/',
         ...options,
         headers: {
@@ -48,8 +48,8 @@ export const postV1Bucket = <ThrowOnError extends boolean = false>(options: Opti
  * Delete bucket
  * Delete a bucket by ID. Only admin users can delete buckets.
  */
-export const deleteV1BucketById = <ThrowOnError extends boolean = false>(options: Options<DeleteV1BucketByIdData, ThrowOnError>) => {
-    return (options.client ?? client).delete<DeleteV1BucketByIdResponses, DeleteV1BucketByIdErrors, ThrowOnError>({
+export const deleteBucket = <ThrowOnError extends boolean = false>(options: Options<DeleteBucketData, ThrowOnError>) => {
+    return (options.client ?? client).delete<DeleteBucketResponses, DeleteBucketErrors, ThrowOnError>({
         url: '/v1/bucket/{id}',
         ...options
     });
@@ -59,8 +59,8 @@ export const deleteV1BucketById = <ThrowOnError extends boolean = false>(options
  * Get bucket
  * Get a bucket by ID
  */
-export const getV1BucketById = <ThrowOnError extends boolean = false>(options: Options<GetV1BucketByIdData, ThrowOnError>) => {
-    return (options.client ?? client).get<GetV1BucketByIdResponses, GetV1BucketByIdErrors, ThrowOnError>({
+export const getBucket = <ThrowOnError extends boolean = false>(options: Options<GetBucketData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetBucketResponses, GetBucketErrors, ThrowOnError>({
         url: '/v1/bucket/{id}',
         ...options
     });
@@ -70,8 +70,8 @@ export const getV1BucketById = <ThrowOnError extends boolean = false>(options: O
  * Update bucket
  * Update a bucket by ID. Only admin users can update buckets.
  */
-export const patchV1BucketById = <ThrowOnError extends boolean = false>(options: Options<PatchV1BucketByIdData, ThrowOnError>) => {
-    return (options.client ?? client).patch<PatchV1BucketByIdResponses, PatchV1BucketByIdErrors, ThrowOnError>({
+export const updateBucket = <ThrowOnError extends boolean = false>(options: Options<UpdateBucketData, ThrowOnError>) => {
+    return (options.client ?? client).patch<UpdateBucketResponses, UpdateBucketErrors, ThrowOnError>({
         url: '/v1/bucket/{id}',
         ...options,
         headers: {
@@ -85,8 +85,8 @@ export const patchV1BucketById = <ThrowOnError extends boolean = false>(options:
  * Initiate file upload
  * Initiate a new file upload. Receives regionId and bucketCode, returns a pre-signed upload URL and TTL (seconds). Admin access required.
  */
-export const postV1File = <ThrowOnError extends boolean = false>(options: Options<PostV1FileData, ThrowOnError>) => {
-    return (options.client ?? client).post<PostV1FileResponses, PostV1FileErrors, ThrowOnError>({
+export const initiateFileUpload = <ThrowOnError extends boolean = false>(options: Options<InitiateFileUploadData, ThrowOnError>) => {
+    return (options.client ?? client).post<InitiateFileUploadResponses, InitiateFileUploadErrors, ThrowOnError>({
         url: '/v1/file/',
         ...options,
         headers: {
@@ -100,8 +100,8 @@ export const postV1File = <ThrowOnError extends boolean = false>(options: Option
  * Finalize file upload
  * Finalize a file upload after client notifies server. Admin access required.
  */
-export const postV1FileByBlobFinalize = <ThrowOnError extends boolean = false>(options: Options<PostV1FileByBlobFinalizeData, ThrowOnError>) => {
-    return (options.client ?? client).post<PostV1FileByBlobFinalizeResponses, PostV1FileByBlobFinalizeErrors, ThrowOnError>({
+export const finalizeFileUpload = <ThrowOnError extends boolean = false>(options: Options<FinalizeFileUploadData, ThrowOnError>) => {
+    return (options.client ?? client).post<FinalizeFileUploadResponses, FinalizeFileUploadErrors, ThrowOnError>({
         url: '/v1/file/{blob}/finalize',
         ...options
     });
@@ -111,8 +111,8 @@ export const postV1FileByBlobFinalize = <ThrowOnError extends boolean = false>(o
  * Delete file
  * Delete a file by ID. Admin access required.
  */
-export const deleteV1FileById = <ThrowOnError extends boolean = false>(options: Options<DeleteV1FileByIdData, ThrowOnError>) => {
-    return (options.client ?? client).delete<DeleteV1FileByIdResponses, DeleteV1FileByIdErrors, ThrowOnError>({
+export const deleteFile = <ThrowOnError extends boolean = false>(options: Options<DeleteFileData, ThrowOnError>) => {
+    return (options.client ?? client).delete<DeleteFileResponses, DeleteFileErrors, ThrowOnError>({
         url: '/v1/file/{id}',
         ...options
     });
@@ -122,8 +122,8 @@ export const deleteV1FileById = <ThrowOnError extends boolean = false>(options: 
  * List all service tokens
  * List all service tokens (admin only).
  */
-export const getV1St = <ThrowOnError extends boolean = false>(options: Options<GetV1StData, ThrowOnError>) => {
-    return (options.client ?? client).get<GetV1StResponses, GetV1StErrors, ThrowOnError>({
+export const listAllServiceTokens = <ThrowOnError extends boolean = false>(options: Options<ListAllServiceTokensData, ThrowOnError>) => {
+    return (options.client ?? client).get<ListAllServiceTokensResponses, ListAllServiceTokensErrors, ThrowOnError>({
         url: '/v1/st/',
         ...options
     });
@@ -133,8 +133,8 @@ export const getV1St = <ThrowOnError extends boolean = false>(options: Options<G
  * Create service token
  * Create a new service token. Only one admin token can exist. Only admin can create/delete other tokens. Admin token cannot be deleted.
  */
-export const postV1St = <ThrowOnError extends boolean = false>(options: Options<PostV1StData, ThrowOnError>) => {
-    return (options.client ?? client).post<PostV1StResponses, PostV1StErrors, ThrowOnError>({
+export const createServiceToken = <ThrowOnError extends boolean = false>(options: Options<CreateServiceTokenData, ThrowOnError>) => {
+    return (options.client ?? client).post<CreateServiceTokenResponses, CreateServiceTokenErrors, ThrowOnError>({
         url: '/v1/st/',
         ...options,
         headers: {
@@ -148,8 +148,8 @@ export const postV1St = <ThrowOnError extends boolean = false>(options: Options<
  * Bootstrap admin token
  * Create the initial admin service token. Only allowed if no admin token exists. Used for first-time setup.
  */
-export const postV1StBootstrap = <ThrowOnError extends boolean = false>(options?: Options<PostV1StBootstrapData, ThrowOnError>) => {
-    return (options?.client ?? client).post<PostV1StBootstrapResponses, PostV1StBootstrapErrors, ThrowOnError>({
+export const bootstrapAdminToken = <ThrowOnError extends boolean = false>(options?: Options<BootstrapAdminTokenData, ThrowOnError>) => {
+    return (options?.client ?? client).post<BootstrapAdminTokenResponses, BootstrapAdminTokenErrors, ThrowOnError>({
         url: '/v1/st/bootstrap',
         ...options
     });
@@ -159,8 +159,8 @@ export const postV1StBootstrap = <ThrowOnError extends boolean = false>(options?
  * Check if admin token has already been created
  * Returns whether the admin token exists. Used to determine if setup is required.
  */
-export const getV1StFirstRun = <ThrowOnError extends boolean = false>(options?: Options<GetV1StFirstRunData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetV1StFirstRunResponses, GetV1StFirstRunErrors, ThrowOnError>({
+export const firstRunCheck = <ThrowOnError extends boolean = false>(options?: Options<FirstRunCheckData, ThrowOnError>) => {
+    return (options?.client ?? client).get<FirstRunCheckResponses, FirstRunCheckErrors, ThrowOnError>({
         url: '/v1/st/first-run',
         ...options
     });
@@ -170,8 +170,8 @@ export const getV1StFirstRun = <ThrowOnError extends boolean = false>(options?: 
  * Delete service token
  * Delete a service token by ID. Only admin can delete other tokens. Admin token cannot be deleted.
  */
-export const deleteV1StById = <ThrowOnError extends boolean = false>(options: Options<DeleteV1StByIdData, ThrowOnError>) => {
-    return (options.client ?? client).delete<DeleteV1StByIdResponses, DeleteV1StByIdErrors, ThrowOnError>({
+export const deleteServiceToken = <ThrowOnError extends boolean = false>(options: Options<DeleteServiceTokenData, ThrowOnError>) => {
+    return (options.client ?? client).delete<DeleteServiceTokenResponses, DeleteServiceTokenErrors, ThrowOnError>({
         url: '/v1/st/{id}',
         ...options
     });
@@ -181,8 +181,8 @@ export const deleteV1StById = <ThrowOnError extends boolean = false>(options: Op
  * Get service token
  * Get a service token by ID
  */
-export const getV1StById = <ThrowOnError extends boolean = false>(options: Options<GetV1StByIdData, ThrowOnError>) => {
-    return (options.client ?? client).get<GetV1StByIdResponses, GetV1StByIdErrors, ThrowOnError>({
+export const getServiceToken = <ThrowOnError extends boolean = false>(options: Options<GetServiceTokenData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetServiceTokenResponses, GetServiceTokenErrors, ThrowOnError>({
         url: '/v1/st/{id}',
         ...options
     });
@@ -192,8 +192,8 @@ export const getV1StById = <ThrowOnError extends boolean = false>(options: Optio
  * Upload file data
  * Upload file data using the blob ID provided by the server. Supports stream, form-data, and multipart uploads. No admin access required.
  */
-export const patchV1UploadByBlob = <ThrowOnError extends boolean = false>(options: Options<PatchV1UploadByBlobData, ThrowOnError>) => {
-    return (options.client ?? client).patch<PatchV1UploadByBlobResponses, PatchV1UploadByBlobErrors, ThrowOnError>({
+export const uploadFileBlob = <ThrowOnError extends boolean = false>(options: Options<UploadFileBlobData, ThrowOnError>) => {
+    return (options.client ?? client).patch<UploadFileBlobResponses, UploadFileBlobErrors, ThrowOnError>({
         bodySerializer: null,
         url: '/v1/upload/{blob}',
         ...options,

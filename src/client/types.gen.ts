@@ -82,7 +82,7 @@ export type RouterInitiateFileUploadResponse = {
     url?: string;
 };
 
-export type GetV1BucketData = {
+export type ListBucketsData = {
     body?: never;
     headers: {
         /**
@@ -95,7 +95,7 @@ export type GetV1BucketData = {
     url: '/v1/bucket/';
 };
 
-export type GetV1BucketErrors = {
+export type ListBucketsErrors = {
     /**
      * Unauthorized
      */
@@ -106,18 +106,18 @@ export type GetV1BucketErrors = {
     403: RouterErrorResponse;
 };
 
-export type GetV1BucketError = GetV1BucketErrors[keyof GetV1BucketErrors];
+export type ListBucketsError = ListBucketsErrors[keyof ListBucketsErrors];
 
-export type GetV1BucketResponses = {
+export type ListBucketsResponses = {
     /**
      * OK
      */
     200: Array<ModelsBucket>;
 };
 
-export type GetV1BucketResponse = GetV1BucketResponses[keyof GetV1BucketResponses];
+export type ListBucketsResponse = ListBucketsResponses[keyof ListBucketsResponses];
 
-export type PostV1BucketData = {
+export type CreateBucketData = {
     /**
      * Bucket
      */
@@ -133,7 +133,7 @@ export type PostV1BucketData = {
     url: '/v1/bucket/';
 };
 
-export type PostV1BucketErrors = {
+export type CreateBucketErrors = {
     /**
      * Bad Request
      */
@@ -148,18 +148,18 @@ export type PostV1BucketErrors = {
     403: RouterErrorResponse;
 };
 
-export type PostV1BucketError = PostV1BucketErrors[keyof PostV1BucketErrors];
+export type CreateBucketError = CreateBucketErrors[keyof CreateBucketErrors];
 
-export type PostV1BucketResponses = {
+export type CreateBucketResponses = {
     /**
      * Created
      */
     201: ModelsBucket;
 };
 
-export type PostV1BucketResponse = PostV1BucketResponses[keyof PostV1BucketResponses];
+export type CreateBucketResponse = CreateBucketResponses[keyof CreateBucketResponses];
 
-export type DeleteV1BucketByIdData = {
+export type DeleteBucketData = {
     body?: never;
     headers: {
         /**
@@ -177,7 +177,7 @@ export type DeleteV1BucketByIdData = {
     url: '/v1/bucket/{id}';
 };
 
-export type DeleteV1BucketByIdErrors = {
+export type DeleteBucketErrors = {
     /**
      * Unauthorized
      */
@@ -192,16 +192,16 @@ export type DeleteV1BucketByIdErrors = {
     404: RouterErrorResponse;
 };
 
-export type DeleteV1BucketByIdError = DeleteV1BucketByIdErrors[keyof DeleteV1BucketByIdErrors];
+export type DeleteBucketError = DeleteBucketErrors[keyof DeleteBucketErrors];
 
-export type DeleteV1BucketByIdResponses = {
+export type DeleteBucketResponses = {
     /**
      * No Content
      */
     204: unknown;
 };
 
-export type GetV1BucketByIdData = {
+export type GetBucketData = {
     body?: never;
     headers: {
         /**
@@ -219,7 +219,7 @@ export type GetV1BucketByIdData = {
     url: '/v1/bucket/{id}';
 };
 
-export type GetV1BucketByIdErrors = {
+export type GetBucketErrors = {
     /**
      * Unauthorized
      */
@@ -234,18 +234,18 @@ export type GetV1BucketByIdErrors = {
     404: RouterErrorResponse;
 };
 
-export type GetV1BucketByIdError = GetV1BucketByIdErrors[keyof GetV1BucketByIdErrors];
+export type GetBucketError = GetBucketErrors[keyof GetBucketErrors];
 
-export type GetV1BucketByIdResponses = {
+export type GetBucketResponses = {
     /**
      * OK
      */
     200: ModelsBucket;
 };
 
-export type GetV1BucketByIdResponse = GetV1BucketByIdResponses[keyof GetV1BucketByIdResponses];
+export type GetBucketResponse = GetBucketResponses[keyof GetBucketResponses];
 
-export type PatchV1BucketByIdData = {
+export type UpdateBucketData = {
     /**
      * Bucket
      */
@@ -266,7 +266,7 @@ export type PatchV1BucketByIdData = {
     url: '/v1/bucket/{id}';
 };
 
-export type PatchV1BucketByIdErrors = {
+export type UpdateBucketErrors = {
     /**
      * Bad Request
      */
@@ -285,18 +285,18 @@ export type PatchV1BucketByIdErrors = {
     404: RouterErrorResponse;
 };
 
-export type PatchV1BucketByIdError = PatchV1BucketByIdErrors[keyof PatchV1BucketByIdErrors];
+export type UpdateBucketError = UpdateBucketErrors[keyof UpdateBucketErrors];
 
-export type PatchV1BucketByIdResponses = {
+export type UpdateBucketResponses = {
     /**
      * OK
      */
     200: ModelsBucket;
 };
 
-export type PatchV1BucketByIdResponse = PatchV1BucketByIdResponses[keyof PatchV1BucketByIdResponses];
+export type UpdateBucketResponse = UpdateBucketResponses[keyof UpdateBucketResponses];
 
-export type PostV1FileData = {
+export type InitiateFileUploadData = {
     /**
      * Upload initiation data
      */
@@ -312,7 +312,7 @@ export type PostV1FileData = {
     url: '/v1/file/';
 };
 
-export type PostV1FileErrors = {
+export type InitiateFileUploadErrors = {
     /**
      * Bad Request
      */
@@ -327,18 +327,18 @@ export type PostV1FileErrors = {
     403: RouterErrorResponse;
 };
 
-export type PostV1FileError = PostV1FileErrors[keyof PostV1FileErrors];
+export type InitiateFileUploadError = InitiateFileUploadErrors[keyof InitiateFileUploadErrors];
 
-export type PostV1FileResponses = {
+export type InitiateFileUploadResponses = {
     /**
      * Created
      */
     201: RouterInitiateFileUploadResponse;
 };
 
-export type PostV1FileResponse = PostV1FileResponses[keyof PostV1FileResponses];
+export type InitiateFileUploadResponse = InitiateFileUploadResponses[keyof InitiateFileUploadResponses];
 
-export type PostV1FileByBlobFinalizeData = {
+export type FinalizeFileUploadData = {
     body?: never;
     headers: {
         /**
@@ -356,7 +356,7 @@ export type PostV1FileByBlobFinalizeData = {
     url: '/v1/file/{blob}/finalize';
 };
 
-export type PostV1FileByBlobFinalizeErrors = {
+export type FinalizeFileUploadErrors = {
     /**
      * Bad Request
      */
@@ -375,18 +375,18 @@ export type PostV1FileByBlobFinalizeErrors = {
     404: RouterErrorResponse;
 };
 
-export type PostV1FileByBlobFinalizeError = PostV1FileByBlobFinalizeErrors[keyof PostV1FileByBlobFinalizeErrors];
+export type FinalizeFileUploadError = FinalizeFileUploadErrors[keyof FinalizeFileUploadErrors];
 
-export type PostV1FileByBlobFinalizeResponses = {
+export type FinalizeFileUploadResponses = {
     /**
      * OK
      */
     200: ModelsFile;
 };
 
-export type PostV1FileByBlobFinalizeResponse = PostV1FileByBlobFinalizeResponses[keyof PostV1FileByBlobFinalizeResponses];
+export type FinalizeFileUploadResponse = FinalizeFileUploadResponses[keyof FinalizeFileUploadResponses];
 
-export type DeleteV1FileByIdData = {
+export type DeleteFileData = {
     body?: never;
     headers: {
         /**
@@ -404,7 +404,7 @@ export type DeleteV1FileByIdData = {
     url: '/v1/file/{id}';
 };
 
-export type DeleteV1FileByIdErrors = {
+export type DeleteFileErrors = {
     /**
      * Unauthorized
      */
@@ -419,16 +419,16 @@ export type DeleteV1FileByIdErrors = {
     404: RouterErrorResponse;
 };
 
-export type DeleteV1FileByIdError = DeleteV1FileByIdErrors[keyof DeleteV1FileByIdErrors];
+export type DeleteFileError = DeleteFileErrors[keyof DeleteFileErrors];
 
-export type DeleteV1FileByIdResponses = {
+export type DeleteFileResponses = {
     /**
      * No Content
      */
     204: unknown;
 };
 
-export type GetV1StData = {
+export type ListAllServiceTokensData = {
     body?: never;
     headers: {
         /**
@@ -441,7 +441,7 @@ export type GetV1StData = {
     url: '/v1/st/';
 };
 
-export type GetV1StErrors = {
+export type ListAllServiceTokensErrors = {
     /**
      * Unauthorized
      */
@@ -452,18 +452,18 @@ export type GetV1StErrors = {
     403: RouterErrorResponse;
 };
 
-export type GetV1StError = GetV1StErrors[keyof GetV1StErrors];
+export type ListAllServiceTokensError = ListAllServiceTokensErrors[keyof ListAllServiceTokensErrors];
 
-export type GetV1StResponses = {
+export type ListAllServiceTokensResponses = {
     /**
      * OK
      */
     200: Array<ModelsServiceToken>;
 };
 
-export type GetV1StResponse = GetV1StResponses[keyof GetV1StResponses];
+export type ListAllServiceTokensResponse = ListAllServiceTokensResponses[keyof ListAllServiceTokensResponses];
 
-export type PostV1StData = {
+export type CreateServiceTokenData = {
     /**
      * Service Token Request
      */
@@ -479,7 +479,7 @@ export type PostV1StData = {
     url: '/v1/st/';
 };
 
-export type PostV1StErrors = {
+export type CreateServiceTokenErrors = {
     /**
      * Bad Request
      */
@@ -494,25 +494,25 @@ export type PostV1StErrors = {
     403: RouterErrorResponse;
 };
 
-export type PostV1StError = PostV1StErrors[keyof PostV1StErrors];
+export type CreateServiceTokenError = CreateServiceTokenErrors[keyof CreateServiceTokenErrors];
 
-export type PostV1StResponses = {
+export type CreateServiceTokenResponses = {
     /**
      * Created
      */
     201: ModelsServiceToken;
 };
 
-export type PostV1StResponse = PostV1StResponses[keyof PostV1StResponses];
+export type CreateServiceTokenResponse = CreateServiceTokenResponses[keyof CreateServiceTokenResponses];
 
-export type PostV1StBootstrapData = {
+export type BootstrapAdminTokenData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/v1/st/bootstrap';
 };
 
-export type PostV1StBootstrapErrors = {
+export type BootstrapAdminTokenErrors = {
     /**
      * Bad Request
      */
@@ -523,34 +523,34 @@ export type PostV1StBootstrapErrors = {
     409: RouterErrorResponse;
 };
 
-export type PostV1StBootstrapError = PostV1StBootstrapErrors[keyof PostV1StBootstrapErrors];
+export type BootstrapAdminTokenError = BootstrapAdminTokenErrors[keyof BootstrapAdminTokenErrors];
 
-export type PostV1StBootstrapResponses = {
+export type BootstrapAdminTokenResponses = {
     /**
      * Created
      */
     201: ModelsServiceToken;
 };
 
-export type PostV1StBootstrapResponse = PostV1StBootstrapResponses[keyof PostV1StBootstrapResponses];
+export type BootstrapAdminTokenResponse = BootstrapAdminTokenResponses[keyof BootstrapAdminTokenResponses];
 
-export type GetV1StFirstRunData = {
+export type FirstRunCheckData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/v1/st/first-run';
 };
 
-export type GetV1StFirstRunErrors = {
+export type FirstRunCheckErrors = {
     /**
      * Internal server error
      */
     500: RouterErrorResponse;
 };
 
-export type GetV1StFirstRunError = GetV1StFirstRunErrors[keyof GetV1StFirstRunErrors];
+export type FirstRunCheckError = FirstRunCheckErrors[keyof FirstRunCheckErrors];
 
-export type GetV1StFirstRunResponses = {
+export type FirstRunCheckResponses = {
     /**
      * first_run: true if no admin token exists, false otherwise
      */
@@ -559,9 +559,9 @@ export type GetV1StFirstRunResponses = {
     };
 };
 
-export type GetV1StFirstRunResponse = GetV1StFirstRunResponses[keyof GetV1StFirstRunResponses];
+export type FirstRunCheckResponse = FirstRunCheckResponses[keyof FirstRunCheckResponses];
 
-export type DeleteV1StByIdData = {
+export type DeleteServiceTokenData = {
     body?: never;
     headers: {
         /**
@@ -579,7 +579,7 @@ export type DeleteV1StByIdData = {
     url: '/v1/st/{id}';
 };
 
-export type DeleteV1StByIdErrors = {
+export type DeleteServiceTokenErrors = {
     /**
      * Unauthorized
      */
@@ -594,16 +594,16 @@ export type DeleteV1StByIdErrors = {
     404: RouterErrorResponse;
 };
 
-export type DeleteV1StByIdError = DeleteV1StByIdErrors[keyof DeleteV1StByIdErrors];
+export type DeleteServiceTokenError = DeleteServiceTokenErrors[keyof DeleteServiceTokenErrors];
 
-export type DeleteV1StByIdResponses = {
+export type DeleteServiceTokenResponses = {
     /**
      * No Content
      */
     204: unknown;
 };
 
-export type GetV1StByIdData = {
+export type GetServiceTokenData = {
     body?: never;
     headers: {
         /**
@@ -621,7 +621,7 @@ export type GetV1StByIdData = {
     url: '/v1/st/{id}';
 };
 
-export type GetV1StByIdErrors = {
+export type GetServiceTokenErrors = {
     /**
      * Unauthorized
      */
@@ -636,18 +636,18 @@ export type GetV1StByIdErrors = {
     404: RouterErrorResponse;
 };
 
-export type GetV1StByIdError = GetV1StByIdErrors[keyof GetV1StByIdErrors];
+export type GetServiceTokenError = GetServiceTokenErrors[keyof GetServiceTokenErrors];
 
-export type GetV1StByIdResponses = {
+export type GetServiceTokenResponses = {
     /**
      * OK
      */
     200: ModelsServiceToken;
 };
 
-export type GetV1StByIdResponse = GetV1StByIdResponses[keyof GetV1StByIdResponses];
+export type GetServiceTokenResponse = GetServiceTokenResponses[keyof GetServiceTokenResponses];
 
-export type PatchV1UploadByBlobData = {
+export type UploadFileBlobData = {
     /**
      * File data (raw stream, required if not using multipart/form-data)
      */
@@ -668,7 +668,7 @@ export type PatchV1UploadByBlobData = {
     url: '/v1/upload/{blob}';
 };
 
-export type PatchV1UploadByBlobErrors = {
+export type UploadFileBlobErrors = {
     /**
      * Bad Request
      */
@@ -683,9 +683,9 @@ export type PatchV1UploadByBlobErrors = {
     404: RouterErrorResponse;
 };
 
-export type PatchV1UploadByBlobError = PatchV1UploadByBlobErrors[keyof PatchV1UploadByBlobErrors];
+export type UploadFileBlobError = UploadFileBlobErrors[keyof UploadFileBlobErrors];
 
-export type PatchV1UploadByBlobResponses = {
+export type UploadFileBlobResponses = {
     /**
      * No Content
      */
