@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -65,11 +66,28 @@ func (r *router) Run(ctx context.Context, wg *sync.WaitGroup) error {
 
 func NewRouter(repo *repositories.ApplicationRepository, port int) *router {
 	ginRouter := gin.Default()
-	allowedOrigins := viper.GetStringSlice("cors-allowed-origins")
-	allowedHeaders := strings.Split(viper.GetString("cors-allowed-headers"), ",")
+	var allowedOrigins []string
+	var allowedHeaders []string
+	if envOrigins := os.Getenv("KINETICAFS_CORS_ALLOWED_ORIGINS"); envOrigins != "" {
+		for _, origin := range strings.Split(envOrigins, ",") {
+			allowedOrigins = append(allowedOrigins, strings.TrimSpace(origin))
+		}
+	} else {
+		allowedOrigins = strings.Split(viper.GetString("cors-allowed-origins"), ",")
+	}
+	if envHeaders := os.Getenv("KINETICAFS_CORS_ALLOWED_HEADERS"); envHeaders != "" {
+		for _, header := range strings.Split(envHeaders, ",") {
+			allowedHeaders = append(allowedHeaders, strings.TrimSpace(header))
+		}
+	} else {
+		allowedHeaders = strings.Split(viper.GetString("cors-allowed-headers"), ",")
+	}
+
 	for i, header := range allowedHeaders {
 		allowedHeaders[i] = strings.TrimSpace(header)
 	}
+	fmt.Printf("%+v", allowedOrigins)
+	fmt.Printf("%+v", allowedHeaders)
 	corsConfig := cors.Config{
 		AllowOrigins: allowedOrigins,
 		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
