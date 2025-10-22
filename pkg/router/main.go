@@ -74,6 +74,7 @@ func NewRouter(repo *repositories.ApplicationRepository, port int) *router {
 		AllowOrigins: allowedOrigins,
 		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders: allowedHeaders,
+		MaxAge:       24 * time.Hour,
 	}
 	ginRouter.Use(cors.New(corsConfig))
 	return &router{
