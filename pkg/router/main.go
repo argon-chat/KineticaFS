@@ -86,8 +86,6 @@ func NewRouter(repo *repositories.ApplicationRepository, port int) *router {
 	for i, header := range allowedHeaders {
 		allowedHeaders[i] = strings.TrimSpace(header)
 	}
-	fmt.Printf("%+v", allowedOrigins)
-	fmt.Printf("%+v", allowedHeaders)
 	corsConfig := cors.Config{
 		AllowOrigins: allowedOrigins,
 		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
