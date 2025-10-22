@@ -25,7 +25,9 @@ region: "./regions.json"     # Path to regions configuration file
 
 # CORS configuration
 cors-allowed-origins: "http://localhost:3000,http://localhost:8080" # CORS allowed origins (list of URLs)
-cors-allowed-headers: "Origin,Content-Type,Accept,Authorization,X-API-Token,X-Mamascha-Yuuki-Schalaschoffka"  # CORS allowed headers (comma-separated)
+
+cors-allowed-headers: "Origin,Content-Type,Accept,Authorization,X-API-Token"  # CORS allowed headers (comma-separated)
+
 
 # Environment variable prefix: KINETICAFS_
 migrate: false       # Set to true to run database migrations
@@ -42,5 +44,5 @@ migrate: false       # Set to true to run database migrations
 # KINETICAFS_MIGRATE=true
 # KINETICAFS_FRONT-END-PATH=/your/custom/path
 # KINETICAFS_REGION=./my-regions.json
-# KINETICAFS_CORS_ALLOWED_ORIGINS=http://localhost:3000,https://myapp.com
-# KINETICAFS_CORS_ALLOWED_HEADERS=Origin,Content-Type,Accept,Authorization,X-API-Token
+# KINETICAFS_CORS_ALLOWED_ORIGINS="http://example.com,https://api.example.com"
+# KINETICAFS_CORS_ALLOWED_HEADERS="Origin,Content-Type,Accept,Authorization,X-API-Token"
