@@ -24,10 +24,8 @@ front-end-path: "/var/www"   # Path to front-end folder containing index.html an
 region: "./regions.json"     # Path to regions configuration file
 
 # CORS configuration
-cors-allowed-origins:        # CORS allowed origins (list of URLs)
-  - "http://localhost:3000"
-  - "http://localhost:8080"
-cors-allowed-headers: "Origin,Content-Type,Accept,Authorization,X-API-Token"  # CORS allowed headers (comma-separated)
+cors-allowed-origins: "http://localhost:3000,http://localhost:8080" # CORS allowed origins (list of URLs)
+cors-allowed-headers: "Origin,Content-Type,Accept,Authorization,X-API-Token,X-Mamascha-Yuuki-Schalaschoffka"  # CORS allowed headers (comma-separated)
 
 # Environment variable prefix: KINETICAFS_
 migrate: false       # Set to true to run database migrations
