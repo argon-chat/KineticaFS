@@ -135,8 +135,8 @@ func init() {
 	viper.SetDefault("database", "scylla")
 	viper.SetDefault("front-end-path", "/var/www")
 	viper.SetDefault("region", "./regions.json")
-	viper.SetDefault("cors-allowed-origins", "http://localhost:3000,http://localhost:8080")
-	viper.SetDefault("cors-allowed-headers", "Origin,Content-Type,Accept,Authorization,X-API-Token")
+	viper.SetDefault("cors-allowed-origins", "*")
+	viper.SetDefault("cors-allowed-headers", "*")
 
 	pflag.BoolP("server", "s", false, "Run as server")
 	pflag.String("token", "", "Authorization token")
