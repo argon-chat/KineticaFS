@@ -164,7 +164,7 @@ jobs:
         echo "=== Container Status ==="
         docker ps -a
 
-  docker-push:
+  ghcr-push:
     name: Docker Push
     runs-on: ubuntu-latest
     needs: [docker-build, autotests]
@@ -190,11 +190,40 @@ jobs:
     - name: Push to GitHub Container Registry
       run: |
         docker push ghcr.io/argon-chat/kineticafs:${{ github.run_number }}
-        # Also push as latest if this is the main branch
         if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
           docker tag ghcr.io/argon-chat/kineticafs:${{ github.run_number }} ghcr.io/argon-chat/kineticafs:latest
           docker push ghcr.io/argon-chat/kineticafs:latest
         fi
+
+  dockerhub-push:
+    name: Docker Hub Push
+    runs-on: ubuntu-latest
+    needs: [docker-build, autotests]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+
+    steps:
+    - name: Download built Docker image
+      uses: actions/download-artifact@v4
+      with:
+        name: kineticafs-image
+        path: /tmp
+
+    - name: Load Docker image
+      run: docker load --input /tmp/kineticafs-${{ github.run_number }}.tar
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+    - name: Retag and push to Docker Hub
+      run: |
+        docker tag ghcr.io/argon-chat/kineticafs:${{ github.run_number }} argonchat/kineticafs:${{ github.run_number }}
+        docker tag ghcr.io/argon-chat/kineticafs:${{ github.run_number }} argonchat/kineticafs:latest
+        
+        docker push argonchat/kineticafs:${{ github.run_number }}
+        docker push argonchat/kineticafs:latest
 
   # security:
   #   name: Security Scan
