@@ -135,7 +135,7 @@ func init() {
 	viper.SetDefault("database", "scylla")
 	viper.SetDefault("front-end-path", "/var/www")
 	viper.SetDefault("region", "./regions.json")
-	viper.SetDefault("cors-allowed-origins", []string{"http://localhost:3000", "http://localhost:8080"})
+	viper.SetDefault("cors-allowed-origins", "http://localhost:3000,http://localhost:8080")
 	viper.SetDefault("cors-allowed-headers", "Origin,Content-Type,Accept,Authorization,X-API-Token")
 
 	pflag.BoolP("server", "s", false, "Run as server")
@@ -147,7 +147,7 @@ func init() {
 	pflag.BoolP("bootstrap", "b", false, "Bootstrap admin service token (makes HTTP request to /v1/st/bootstrap)")
 	pflag.StringP("front-end-path", "f", "/var/www", "Path to front-end folder containing index.html (default: /var/www)")
 	pflag.StringP("region", "r", "./regions.json", "Path to regions configuration file (default: ./regions.json)")
-	pflag.StringSlice("cors-allowed-origins", []string{"http://localhost:3000", "http://localhost:8080"}, "CORS allowed origins (comma-separated)")
+	pflag.String("cors-allowed-origins", "http://localhost:3000,http://localhost:8080", "CORS allowed origins (comma-separated)")
 	pflag.String("cors-allowed-headers", "Origin,Content-Type,Accept,Authorization,X-API-Token", "CORS allowed headers (comma-separated)")
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
