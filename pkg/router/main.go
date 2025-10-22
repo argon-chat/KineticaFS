@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/argon-chat/KineticaFS/pkg/repositories"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	swaggerFiles "github.com/swaggo/files"
@@ -62,8 +64,20 @@ func (r *router) Run(ctx context.Context, wg *sync.WaitGroup) error {
 }
 
 func NewRouter(repo *repositories.ApplicationRepository, port int) *router {
+	ginRouter := gin.Default()
+	allowedOrigins := viper.GetStringSlice("cors-allowed-origins")
+	allowedHeaders := strings.Split(viper.GetString("cors-allowed-headers"), ",")
+	for i, header := range allowedHeaders {
+		allowedHeaders[i] = strings.TrimSpace(header)
+	}
+	corsConfig := cors.Config{
+		AllowOrigins: allowedOrigins,
+		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders: allowedHeaders,
+	}
+	ginRouter.Use(cors.New(corsConfig))
 	return &router{
-		engine: gin.Default(),
+		engine: ginRouter,
 		repo:   repo,
 		port:   port,
 	}
