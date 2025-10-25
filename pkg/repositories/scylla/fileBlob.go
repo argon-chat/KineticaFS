@@ -9,15 +9,6 @@ import (
 	"github.com/gocql/gocql"
 )
 
-// ddl
-// table fileblob
-// (
-//     id        text primary key,
-//     createdat timestamp,
-//     fileid    text,
-//     updatedat timestamp
-// )
-
 type ScyllaFileBlobRepository struct {
 	session *gocql.Session
 }

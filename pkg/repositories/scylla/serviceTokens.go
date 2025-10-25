@@ -11,17 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// DDL
-// servicetoken
-// (
-//     id        text primary key,
-//     accesskey text,
-//     createdat timestamp,
-//     name      text,
-//     tokentype int,
-//     updatedat timestamp
-// )
-
 type ScyllaServiceTokenRepository struct {
 	session *gocql.Session
 }

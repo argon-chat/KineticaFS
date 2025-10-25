@@ -11,23 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// DDL
-// bucket
-// (
-//     id           text primary key,
-//     accesskey    text,
-//     createdat    timestamp,
-//     customconfig text,
-//     endpoint     text,
-//     name         text,
-//     region       text,
-//     s3provider   text,
-//     secretkey    text,
-//     storagetype  int,
-//     updatedat    timestamp,
-//     usessl       boolean
-// )
-
 type ScyllaBucketRepository struct {
 	session *gocql.Session
 }
