@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { BootstrapAdminTokenData, BootstrapAdminTokenErrors, BootstrapAdminTokenResponses, CreateBucketData, CreateBucketErrors, CreateBucketResponses, CreateServiceTokenData, CreateServiceTokenErrors, CreateServiceTokenResponses, DeleteBucketData, DeleteBucketErrors, DeleteBucketResponses, DeleteFileData, DeleteFileErrors, DeleteFileResponses, DeleteServiceTokenData, DeleteServiceTokenErrors, DeleteServiceTokenResponses, FinalizeFileUploadData, FinalizeFileUploadErrors, FinalizeFileUploadResponses, FirstRunCheckData, FirstRunCheckErrors, FirstRunCheckResponses, GetBucketData, GetBucketErrors, GetBucketResponses, GetServiceTokenData, GetServiceTokenErrors, GetServiceTokenResponses, InitiateFileUploadData, InitiateFileUploadErrors, InitiateFileUploadResponses, ListAllServiceTokensData, ListAllServiceTokensErrors, ListAllServiceTokensResponses, ListBucketsData, ListBucketsErrors, ListBucketsResponses, UpdateBucketData, UpdateBucketErrors, UpdateBucketResponses, UploadFileBlobData, UploadFileBlobErrors, UploadFileBlobResponses } from './types.gen';
+import type { BootstrapAdminTokenData, BootstrapAdminTokenErrors, BootstrapAdminTokenResponses, CreateBucketData, CreateBucketErrors, CreateBucketResponses, CreateServiceTokenData, CreateServiceTokenErrors, CreateServiceTokenResponses, DecrementFileRefData, DecrementFileRefErrors, DecrementFileRefResponses, DeleteBucketData, DeleteBucketErrors, DeleteBucketResponses, DeleteFileData, DeleteFileErrors, DeleteFileResponses, DeleteServiceTokenData, DeleteServiceTokenErrors, DeleteServiceTokenResponses, FinalizeFileUploadData, FinalizeFileUploadErrors, FinalizeFileUploadResponses, FirstRunCheckData, FirstRunCheckErrors, FirstRunCheckResponses, GetBucketData, GetBucketErrors, GetBucketResponses, GetFileByIdData, GetFileByIdErrors, GetFileByIdResponses, GetServiceTokenData, GetServiceTokenErrors, GetServiceTokenResponses, IncrementFileRefData, IncrementFileRefErrors, IncrementFileRefResponses, InitiateFileUploadData, InitiateFileUploadErrors, InitiateFileUploadResponses, ListAllServiceTokensData, ListAllServiceTokensErrors, ListAllServiceTokensResponses, ListBucketsData, ListBucketsErrors, ListBucketsResponses, UpdateBucketData, UpdateBucketErrors, UpdateBucketResponses, UploadFileBlobData, UploadFileBlobErrors, UploadFileBlobResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -109,11 +109,44 @@ export const finalizeFileUpload = <ThrowOnError extends boolean = false>(options
 
 /**
  * Delete file
- * Delete a file by ID. Admin access required.
+ * Delete a file by ID. Removes the file from S3 storage and then deletes the database record. Admin access required.
  */
 export const deleteFile = <ThrowOnError extends boolean = false>(options: Options<DeleteFileData, ThrowOnError>) => {
     return (options.client ?? client).delete<DeleteFileResponses, DeleteFileErrors, ThrowOnError>({
         url: '/api/v1/file/{id}',
+        ...options
+    });
+};
+
+/**
+ * Get file by ID
+ * Retrieve detailed information about a file by its ID, including metadata, size, content type, and reference count. Admin access required.
+ */
+export const getFileById = <ThrowOnError extends boolean = false>(options: Options<GetFileByIdData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetFileByIdResponses, GetFileByIdErrors, ThrowOnError>({
+        url: '/api/v1/file/{id}',
+        ...options
+    });
+};
+
+/**
+ * Decrement file reference count
+ * Atomically decrements the reference count for a file. Used for tracking how many clients are using a file. When reference count reaches zero, the file may be eligible for garbage collection. Requires authentication.
+ */
+export const decrementFileRef = <ThrowOnError extends boolean = false>(options: Options<DecrementFileRefData, ThrowOnError>) => {
+    return (options.client ?? client).patch<DecrementFileRefResponses, DecrementFileRefErrors, ThrowOnError>({
+        url: '/api/v1/file/{id}/decrement',
+        ...options
+    });
+};
+
+/**
+ * Increment file reference count
+ * Atomically increments the reference count for a file. Used for tracking how many clients are using a file. Requires authentication.
+ */
+export const incrementFileRef = <ThrowOnError extends boolean = false>(options: Options<IncrementFileRefData, ThrowOnError>) => {
+    return (options.client ?? client).patch<IncrementFileRefResponses, IncrementFileRefErrors, ThrowOnError>({
+        url: '/api/v1/file/{id}/increment',
         ...options
     });
 };

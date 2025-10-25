@@ -31,6 +31,7 @@ export type ModelsFile = {
     metadata?: string;
     name: string;
     path?: string;
+    references?: number;
     updated_at?: string;
 };
 
@@ -406,6 +407,60 @@ export type DeleteFileData = {
 
 export type DeleteFileErrors = {
     /**
+     * Bad Request
+     */
+    400: RouterErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: RouterErrorResponse;
+    /**
+     * Forbidden - Admin only
+     */
+    403: RouterErrorResponse;
+    /**
+     * Not Found
+     */
+    404: RouterErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: RouterErrorResponse;
+};
+
+export type DeleteFileError = DeleteFileErrors[keyof DeleteFileErrors];
+
+export type DeleteFileResponses = {
+    /**
+     * No Content
+     */
+    204: unknown;
+};
+
+export type GetFileByIdData = {
+    body?: never;
+    headers: {
+        /**
+         * API Token
+         */
+        'x-api-token': string;
+    };
+    path: {
+        /**
+         * File ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/file/{id}';
+};
+
+export type GetFileByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: RouterErrorResponse;
+    /**
      * Unauthorized
      */
     401: RouterErrorResponse;
@@ -419,11 +474,97 @@ export type DeleteFileErrors = {
     404: RouterErrorResponse;
 };
 
-export type DeleteFileError = DeleteFileErrors[keyof DeleteFileErrors];
+export type GetFileByIdError = GetFileByIdErrors[keyof GetFileByIdErrors];
 
-export type DeleteFileResponses = {
+export type GetFileByIdResponses = {
     /**
-     * No Content
+     * OK
+     */
+    200: ModelsFile;
+};
+
+export type GetFileByIdResponse = GetFileByIdResponses[keyof GetFileByIdResponses];
+
+export type DecrementFileRefData = {
+    body?: never;
+    headers: {
+        /**
+         * API Token
+         */
+        'x-api-token': string;
+    };
+    path: {
+        /**
+         * File ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/file/{id}/decrement';
+};
+
+export type DecrementFileRefErrors = {
+    /**
+     * Bad Request
+     */
+    400: RouterErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: RouterErrorResponse;
+    /**
+     * Not Found
+     */
+    404: RouterErrorResponse;
+};
+
+export type DecrementFileRefError = DecrementFileRefErrors[keyof DecrementFileRefErrors];
+
+export type DecrementFileRefResponses = {
+    /**
+     * Reference count decremented successfully
+     */
+    204: unknown;
+};
+
+export type IncrementFileRefData = {
+    body?: never;
+    headers: {
+        /**
+         * API Token
+         */
+        'x-api-token': string;
+    };
+    path: {
+        /**
+         * File ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/file/{id}/increment';
+};
+
+export type IncrementFileRefErrors = {
+    /**
+     * Bad Request
+     */
+    400: RouterErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: RouterErrorResponse;
+    /**
+     * Not Found
+     */
+    404: RouterErrorResponse;
+};
+
+export type IncrementFileRefError = IncrementFileRefErrors[keyof IncrementFileRefErrors];
+
+export type IncrementFileRefResponses = {
+    /**
+     * Reference count incremented successfully
      */
     204: unknown;
 };
