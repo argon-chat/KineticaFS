@@ -2,10 +2,18 @@ package repositories
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
-	"reflect"
 	"sync"
+
+	"github.com/gocql/gocql"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database"
+	scylladb "github.com/golang-migrate/migrate/v4/database/cassandra"
+	pgsql "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/lib/pq"
 
 	"github.com/argon-chat/KineticaFS/pkg/models"
 	"github.com/argon-chat/KineticaFS/pkg/repositories/postgres"
@@ -25,8 +33,9 @@ type IDatabase interface {
 }
 
 type ApplicationRepository struct {
-	db     IDatabase
-	dbType string
+	db               IDatabase
+	dbType           string
+	connectionString string
 
 	ServiceTokens IServiceTokenRepository
 	Buckets       IBucketRepository
@@ -88,45 +97,47 @@ func NewMigrator(repo *ApplicationRepository) *migrator {
 func (ar *ApplicationRepository) Migrate(ctx context.Context) error {
 	switch ar.dbType {
 	case "scylla":
-		return ar.migrateDatabase(ctx, migrateScyllaModel, ar.executeScyllaQuery)
+		return ar.migrateDatabase(ctx)
 	case "postgres":
-		return ar.migrateDatabase(ctx, migratePostgresModel, ar.executePostgresQuery)
+		return ar.migrateDatabase(ctx)
 	default:
 		return fmt.Errorf("unsupported database type: %s", ar.dbType)
 	}
 }
 
-func (ar *ApplicationRepository) migrateDatabase(
-	ctx context.Context,
-	modelMigrator func(*migration) string,
-	queryExecutor func(context.Context, string) error,
-) error {
-	for _, e := range migrationTypes {
-		tableName := fmt.Sprintf("%T", e)
-		model := migration{
-			TableName: tableName,
-			Fields:    make(map[string]string),
-		}
-		t := reflect.TypeOf(e)
-		for _, i := range reflect.VisibleFields(t) {
-			model.Fields[i.Name] = i.Type.Name()
-		}
-		query := modelMigrator(&model)
-		if err := queryExecutor(ctx, query); err != nil {
-			return fmt.Errorf("failed to migrate table %s: %w", tableName, err)
-		}
+func (ar *ApplicationRepository) migrateDatabase(ctx context.Context) error {
+	migrationPath := fmt.Sprintf("%s/%s", viper.GetString("migration-path"), ar.dbType)
+	var scyllaDriver *gocql.Session
+	var postgresDriver *sql.DB
+	var m *migrate.Migrate
+	var driver database.Driver
+	var err error
+	switch ar.dbType {
+	case "scylla":
+		scyllaDriver = ar.db.(*scylla.ScyllaConnection).Session
+		driver, err = scylladb.WithInstance(scyllaDriver, &scylladb.Config{
+			KeyspaceName: ar.db.(*scylla.ScyllaConnection).Keyspace,
+		})
+	case "postgres":
+		postgresDriver = ar.db.(*postgres.PostgresConnection).DB
+		driver, err = pgsql.WithInstance(postgresDriver, &pgsql.Config{
+			DatabaseName: ar.db.(*postgres.PostgresConnection).DatabaseName,
+		})
+	}
+
+	if err != nil {
+		return fmt.Errorf("create %s migration driver error: %w", ar.dbType, err)
+	}
+	m, err = migrate.NewWithDatabaseInstance(
+		migrationPath,
+		ar.dbType, driver)
+	if err != nil {
+		return fmt.Errorf("create migrator: %w", err)
+	}
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("apply migrations: %w", err)
 	}
 	return nil
-}
-
-// Database-specific query executors
-func (ar *ApplicationRepository) executeScyllaQuery(ctx context.Context, query string) error {
-	return ar.db.(*scylla.ScyllaConnection).Session.Query(query).WithContext(ctx).Exec()
-}
-
-func (ar *ApplicationRepository) executePostgresQuery(ctx context.Context, query string) error {
-	_, err := ar.db.(*postgres.PostgresConnection).DB.ExecContext(ctx, query)
-	return err
 }
 
 func newPostgresRepository(connectionString string) (*ApplicationRepository, error) {
@@ -136,8 +147,9 @@ func newPostgresRepository(connectionString string) (*ApplicationRepository, err
 	}
 
 	ar := &ApplicationRepository{
-		db:     repository,
-		dbType: "postgres",
+		db:               repository,
+		dbType:           "postgres",
+		connectionString: connectionString,
 
 		ServiceTokens: postgres.NewPostgresServiceTokenRepository(repository.DB),
 		Buckets:       postgres.NewPostgresBucketRepository(repository.DB),
@@ -155,8 +167,9 @@ func newScyllaRepository(connectionString string) (*ApplicationRepository, error
 	}
 
 	ar := &ApplicationRepository{
-		db:     repository,
-		dbType: "scylla",
+		db:               repository,
+		dbType:           "scylla",
+		connectionString: connectionString,
 
 		ServiceTokens: scylla.NewScyllaServiceTokenRepository(repository.Session),
 		Buckets:       scylla.NewScyllaBucketRepository(repository.Session),
@@ -168,8 +181,8 @@ func newScyllaRepository(connectionString string) (*ApplicationRepository, error
 }
 
 func (r *ApplicationRepository) InitializeRepo(ctx context.Context, repo *ApplicationRepository) {
-	repo.ServiceTokens.CreateIndices(ctx)
-	repo.Buckets.CreateIndices(ctx)
-	repo.Files.CreateIndices(ctx)
-	repo.FileBlobs.CreateIndices(ctx)
+	r.ServiceTokens.CreateIndices(ctx)
+	r.Buckets.CreateIndices(ctx)
+	r.Files.CreateIndices(ctx)
+	r.FileBlobs.CreateIndices(ctx)
 }
