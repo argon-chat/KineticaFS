@@ -39,7 +39,7 @@ func (s *ScyllaFileRepository) scanFileRow(row *gocql.Query) (*models.File, erro
 	return &file, nil
 }
 
-func (s *ScyllaFileRepository) getFileReferenceCount(ctx context.Context, fileID string) (int64, error) {
+func (s *ScyllaFileRepository) GetFileReferenceCount(ctx context.Context, fileID string) (int64, error) {
 	var refCount int64
 	query := "SELECT ref FROM filecounter WHERE id = ?"
 	err := s.session.Query(query, fileID).WithContext(ctx).Scan(&refCount)
@@ -53,7 +53,7 @@ func (s *ScyllaFileRepository) getFileReferenceCount(ctx context.Context, fileID
 }
 
 func (s *ScyllaFileRepository) populateFileReferences(ctx context.Context, file *models.File) error {
-	refCount, err := s.getFileReferenceCount(ctx, file.ID)
+	refCount, err := s.GetFileReferenceCount(ctx, file.ID)
 	if err != nil {
 		return err
 	}

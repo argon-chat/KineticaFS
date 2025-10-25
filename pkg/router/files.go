@@ -482,6 +482,14 @@ func (r *router) DecrementHandler(c *gin.Context) {
 		c.JSON(400, ErrorResponse{Message: "Failed to decrement file ref count: " + err.Error()})
 		return
 	}
+	currentRefCount, err := r.repo.Files.GetFileReferenceCount(ctx, id)
+	if err != nil {
+		c.JSON(400, ErrorResponse{Message: "Failed to get current file ref count: " + err.Error()})
+		return
+	}
+	if currentRefCount < 1 {
+		r.DeleteFileHandler(c)
+	}
 	c.Status(204)
 }
 

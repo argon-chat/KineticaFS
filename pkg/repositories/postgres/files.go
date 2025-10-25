@@ -56,3 +56,7 @@ func (p *PostgresFileRepository) AtomicIncrement(ctx context.Context, id string)
 func (p *PostgresFileRepository) AtomicDecrement(ctx context.Context, id string) error {
 	panic("implement me")
 }
+
+func (p *PostgresFileRepository) GetFileReferenceCount(ctx context.Context, fileID string) (int64, error) {
+	panic("implement me")
+}

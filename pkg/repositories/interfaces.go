@@ -28,6 +28,7 @@ type IFileRepository interface {
 	UpdateFile(ctx context.Context, file *models.File) error
 	DeleteFile(ctx context.Context, id string) error
 	ListFiles(ctx context.Context, bucketID string) ([]*models.File, error)
+	GetFileReferenceCount(ctx context.Context, fileID string) (int64, error)
 	AtomicIncrement(ctx context.Context, id string) error
 	AtomicDecrement(ctx context.Context, id string) error
 }
