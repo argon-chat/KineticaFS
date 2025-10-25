@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS File (
     checksum text,
     name text,
     path text,
-    counter_id text,
     finalized boolean,
     created_at timestamp,
     updated_at timestamp,
