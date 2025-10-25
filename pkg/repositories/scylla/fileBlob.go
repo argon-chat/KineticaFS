@@ -28,7 +28,7 @@ func NewScyllaFileBlobRepository(session *gocql.Session) *ScyllaFileBlobReposito
 
 func (s *ScyllaFileBlobRepository) CreateIndices(ctx context.Context) {
 	indexQueries := []string{
-		"CREATE INDEX IF NOT EXISTS fileblob_fileid_idx ON fileblob (fileid)",
+		"CREATE INDEX IF NOT EXISTS fileblob_file_id_idx ON fileblob (file_id)",
 		"ALTER TABLE fileblob WITH default_time_to_live = 600",
 	}
 	for _, indexQuery := range indexQueries {
@@ -43,7 +43,7 @@ func (s *ScyllaFileBlobRepository) CreateFileBlob(ctx context.Context, blob *mod
 	blob.ID = gocql.TimeUUID().String()
 	blob.CreatedAt = time.Now().UTC()
 	blob.UpdatedAt = blob.CreatedAt
-	query := "INSERT INTO fileblob (id, createdat, fileid, updatedat) VALUES (?, ?, ?, ?)"
+	query := "INSERT INTO fileblob (id, created_at, file_id, updated_at) VALUES (?, ?, ?, ?)"
 	if err := s.session.Query(query, blob.ID, blob.CreatedAt, blob.FileID, blob.UpdatedAt).WithContext(ctx).Exec(); err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (s *ScyllaFileBlobRepository) CreateFileBlob(ctx context.Context, blob *mod
 }
 
 func (s *ScyllaFileBlobRepository) GetFileBlobByID(ctx context.Context, id string) (*models.FileBlob, error) {
-	query := "SELECT id, createdat, fileid, updatedat FROM fileblob WHERE id = ?"
+	query := "SELECT id, created_at, file_id, updated_at FROM fileblob WHERE id = ?"
 	row := s.session.Query(query, id).WithContext(ctx)
 	var blob models.FileBlob
 	err := row.Scan(&blob.ID, &blob.CreatedAt, &blob.FileID, &blob.UpdatedAt)

@@ -49,7 +49,7 @@ func (s *ScyllaBucketRepository) CreateIndices(ctx context.Context) {
 	}
 }
 func (s *ScyllaBucketRepository) GetBucketByID(ctx context.Context, id string) (*models.Bucket, error) {
-	query := s.session.Query("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket where id = ?", id).
+	query := s.session.Query("select id, name, region, endpoint, s3_provider, access_key, secret_key, storage_type, use_ssl, custom_config, created_at, updated_at from bucket where id = ?", id).
 		WithContext(ctx)
 	var bucket models.Bucket
 	var storageType int8
@@ -64,7 +64,7 @@ func (s *ScyllaBucketRepository) GetBucketByID(ctx context.Context, id string) (
 }
 
 func (s *ScyllaBucketRepository) GetBucketByName(ctx context.Context, name string) (*models.Bucket, error) {
-	query := s.session.Query("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket where name = ?", name).
+	query := s.session.Query("select id, name, region, endpoint, s3_provider, access_key, secret_key, storage_type, use_ssl, custom_config, created_at, updated_at from bucket where name = ?", name).
 		WithContext(ctx)
 	var bucket models.Bucket
 	var storageType int8
@@ -84,7 +84,7 @@ func (s *ScyllaBucketRepository) CreateBucket(ctx context.Context, bucket *model
 	bucket.UpdatedAt = now
 	bucket.ID = uuid.NewString()
 	query := s.session.Query(
-		"insert into bucket (id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"insert into bucket (id, name, region, endpoint, s3_provider, access_key, secret_key, storage_type, use_ssl, custom_config, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		bucket.ID, bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, bucket.CreatedAt, bucket.UpdatedAt).
 		WithContext(ctx)
 	return query.Exec()
@@ -92,7 +92,7 @@ func (s *ScyllaBucketRepository) CreateBucket(ctx context.Context, bucket *model
 
 func (s *ScyllaBucketRepository) UpdateBucket(ctx context.Context, bucket *models.Bucket) error {
 	query := s.session.Query(
-		"update bucket set name = ?, region = ?, endpoint = ?, s3provider = ?, accesskey = ?, secretkey = ?, storagetype = ?, usessl = ?, customconfig = ?, updatedat = ? where id = ?",
+		"update bucket set name = ?, region = ?, endpoint = ?, s3_provider = ?, access_key = ?, secret_key = ?, storage_type = ?, use_ssl = ?, custom_config = ?, updated_at = ? where id = ?",
 		bucket.Name, bucket.Region, bucket.Endpoint, bucket.S3Provider, bucket.AccessKey, bucket.SecretKey, bucket.StorageType, bucket.UseSSL, bucket.CustomConfig, time.Now(), bucket.ID).
 		WithContext(ctx)
 	return query.Exec()
@@ -103,7 +103,7 @@ func (s *ScyllaBucketRepository) DeleteBucket(ctx context.Context, id string) er
 }
 
 func (s *ScyllaBucketRepository) ListBuckets(ctx context.Context) ([]*models.Bucket, error) {
-	iter := s.session.Query("select id, name, region, endpoint, s3provider, accesskey, secretkey, storagetype, usessl, customconfig, createdat, updatedat from bucket").WithContext(ctx).Iter()
+	iter := s.session.Query("select id, name, region, endpoint, s3_provider, access_key, secret_key, storage_type, use_ssl, custom_config, created_at, updated_at from bucket").WithContext(ctx).Iter()
 
 	estimatedSize := iter.NumRows()
 	buckets := make([]*models.Bucket, 0, estimatedSize)

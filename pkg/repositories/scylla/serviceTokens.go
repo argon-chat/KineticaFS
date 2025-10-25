@@ -33,7 +33,7 @@ func NewScyllaServiceTokenRepository(session *gocql.Session) *ScyllaServiceToken
 func (s *ScyllaServiceTokenRepository) CreateIndices(ctx context.Context) {
 	indexQueries := []string{
 		"CREATE INDEX IF NOT EXISTS servicetoken_name_idx ON servicetoken (name)",
-		"CREATE INDEX IF NOT EXISTS servicetoken_accesskey_idx ON servicetoken (accesskey)",
+		"CREATE INDEX IF NOT EXISTS servicetoken_access_key_idx ON servicetoken (access_key)",
 	}
 	for _, indexQuery := range indexQueries {
 		log.Printf("Executing index creation query: %s", indexQuery)
@@ -44,7 +44,7 @@ func (s *ScyllaServiceTokenRepository) CreateIndices(ctx context.Context) {
 }
 
 func (s *ScyllaServiceTokenRepository) GetServiceTokenByAccessKey(ctx context.Context, accessKey string) (*models.ServiceToken, error) {
-	query := s.session.Query("select id, name, accesskey, tokentype, createdat, updatedat from servicetoken where accesskey = ?", accessKey).
+	query := s.session.Query("select id, name, access_key, token_type, created_at, updated_at from servicetoken where access_key = ?", accessKey).
 		WithContext(ctx)
 	var token models.ServiceToken
 	var tokenType int8
@@ -59,7 +59,7 @@ func (s *ScyllaServiceTokenRepository) GetServiceTokenByAccessKey(ctx context.Co
 }
 
 func (s *ScyllaServiceTokenRepository) GetAllServiceTokens(ctx context.Context) ([]*models.ServiceToken, error) {
-	iter := s.session.Query("select id, name, accesskey, tokentype, createdat, updatedat from servicetoken").
+	iter := s.session.Query("select id, name, access_key, token_type, created_at, updated_at from servicetoken").
 		WithContext(ctx).
 		Iter()
 
@@ -81,7 +81,7 @@ func (s *ScyllaServiceTokenRepository) GetAllServiceTokens(ctx context.Context) 
 }
 
 func (s *ScyllaServiceTokenRepository) GetServiceTokenById(ctx context.Context, id string) (*models.ServiceToken, error) {
-	query := s.session.Query("select id, name, accesskey, tokentype, createdat, updatedat from servicetoken where id = ?", id).
+	query := s.session.Query("select id, name, access_key, token_type, created_at, updated_at from servicetoken where id = ?", id).
 		WithContext(ctx)
 	var token models.ServiceToken
 	var tokenType int8
@@ -96,7 +96,7 @@ func (s *ScyllaServiceTokenRepository) GetServiceTokenById(ctx context.Context, 
 }
 
 func (s *ScyllaServiceTokenRepository) GetServiceTokenByName(ctx context.Context, name string) (*models.ServiceToken, error) {
-	query := s.session.Query("select id, name, accesskey, tokentype, createdat, updatedat from servicetoken where name = ?", name).WithContext(ctx)
+	query := s.session.Query("select id, name, access_key, token_type, created_at, updated_at from servicetoken where name = ?", name).WithContext(ctx)
 	var token models.ServiceToken
 	var tokenType int8
 	if err := query.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt); err != nil {
@@ -114,7 +114,7 @@ func (s *ScyllaServiceTokenRepository) CreateServiceToken(ctx context.Context, t
 	token.CreatedAt = time.Now()
 	token.UpdatedAt = token.CreatedAt
 	query := s.session.Query(
-		"insert into servicetoken (id, name, accesskey, tokentype, createdat, updatedat) values (?, ?, ?, ?, ?, ?)",
+		"insert into servicetoken (id, name, access_key, token_type, created_at, updated_at) values (?, ?, ?, ?, ?, ?)",
 		token.ID, token.Name, token.AccessKey, int8(token.TokenType), token.CreatedAt, token.UpdatedAt).WithContext(ctx)
 	return query.Exec()
 }
