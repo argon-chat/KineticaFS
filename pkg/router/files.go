@@ -461,16 +461,17 @@ func (r *router) IncrementHandler(c *gin.Context) {
 
 // Decrement file reference count
 // @Summary Decrement file reference count
-// @Description Atomically decrements the reference count for a file. Used for tracking how many clients are using a file. When reference count reaches zero, the file may be eligible for garbage collection. Requires authentication.
+// @Description Atomically decrements the reference count for a file. Used for tracking how many clients are using a file. When reference count reaches zero or below, the file is automatically deleted from both S3 storage and database. Requires authentication.
 // @Tags files
 // @Accept json
 // @Produce json
 // @Param x-api-token header string true "API Token"
 // @Param id path string true "File ID"
-// @Success 204 "Reference count decremented successfully"
+// @Success 204 "Reference count decremented successfully (and file deleted if count reached zero)"
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 401 {object} router.ErrorResponse
 // @Failure 404 {object} router.ErrorResponse
+// @Failure 500 {object} router.ErrorResponse "Internal error during file deletion"
 // @Router /api/v1/file/{id}/decrement [patch]
 // @Id DecrementFileRef
 func (r *router) DecrementHandler(c *gin.Context) {
