@@ -62,7 +62,7 @@ dev-setup: deps
 	fi
 	@if ! command -v swag > /dev/null; then \
 		echo "$(YELLOW)Installing swag...$(NC)"; \
-		$(GOGET) -u github.com/swaggo/swag/cmd/swag; \
+		$(GOCMD) install github.com/swaggo/swag/cmd/swag@latest; \
 	fi
 	@echo "$(GREEN)Development environment ready!$(NC)"
 
