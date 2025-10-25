@@ -48,3 +48,11 @@ func (p *PostgresFileRepository) DeleteFile(ctx context.Context, id string) erro
 func (p *PostgresFileRepository) ListFiles(ctx context.Context, bucketID string) ([]*models.File, error) {
 	panic("implement me")
 }
+
+func (p *PostgresFileRepository) AtomicIncrement(ctx context.Context, id string) error {
+	panic("implement me")
+}
+
+func (p *PostgresFileRepository) AtomicDecrement(ctx context.Context, id string) error {
+	panic("implement me")
+}

@@ -31,6 +31,8 @@ func AddFileRoutes(router *router, v1 *gin.RouterGroup) {
 	files.POST("/", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.InitiateFileUploadHandler)
 	files.POST("/:blob/finalize", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.FinalizeFileUploadHandler)
 	files.DELETE("/:id", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.DeleteFileHandler)
+	files.POST("/:id/increment", AuthMiddleware(router.repo), router.IncrementHandler)
+	files.POST("/:id/decrement", AuthMiddleware(router.repo), router.DecrementHandler)
 }
 
 // AddFileBlobRoutes sets up the client-side upload endpoint.
@@ -387,5 +389,65 @@ func (r *router) FinalizeFileUploadHandler(c *gin.Context) {
 // @Router /api/v1/file/{id} [delete]
 // @Id DeleteFile
 func (r *router) DeleteFileHandler(c *gin.Context) {
-	// Implementation goes here
+	id := c.Param("id")
+	ctx := c.Request.Context()
+
+	err := r.repo.Files.DeleteFile(ctx, id)
+	if err != nil {
+		c.JSON(400, ErrorResponse{Message: "Failed to delete file: " + err.Error()})
+		return
+	}
+	c.Status(204)
+}
+
+// Increment file reference count
+// @Summary Increment file reference count
+// @Description Atomically increments the reference count for a file. Used for tracking how many clients are using a file. Requires authentication.
+// @Tags files
+// @Accept json
+// @Produce json
+// @Param x-api-token header string true "API Token"
+// @Param id path string true "File ID"
+// @Success 204 "Reference count incremented successfully"
+// @Failure 400 {object} router.ErrorResponse
+// @Failure 401 {object} router.ErrorResponse
+// @Failure 404 {object} router.ErrorResponse
+// @Router /v1/file/{id}/increment [post]
+// @Id Increment
+func (r *router) IncrementHandler(c *gin.Context) {
+	id := c.Param("id")
+	ctx := c.Request.Context()
+
+	err := r.repo.Files.AtomicIncrement(ctx, id)
+	if err != nil {
+		c.JSON(400, ErrorResponse{Message: "Failed to increment file ref count: " + err.Error()})
+		return
+	}
+	c.Status(204)
+}
+
+// Decrement file reference count
+// @Summary Decrement file reference count
+// @Description Atomically decrements the reference count for a file. Used for tracking how many clients are using a file. When reference count reaches zero, the file may be eligible for garbage collection. Requires authentication.
+// @Tags files
+// @Accept json
+// @Produce json
+// @Param x-api-token header string true "API Token"
+// @Param id path string true "File ID"
+// @Success 204 "Reference count decremented successfully"
+// @Failure 400 {object} router.ErrorResponse
+// @Failure 401 {object} router.ErrorResponse
+// @Failure 404 {object} router.ErrorResponse
+// @Router /v1/file/{id}/decrement [post]
+// @Id Decrement
+func (r *router) DecrementHandler(c *gin.Context) {
+	id := c.Param("id")
+	ctx := c.Request.Context()
+
+	err := r.repo.Files.AtomicDecrement(ctx, id)
+	if err != nil {
+		c.JSON(400, ErrorResponse{Message: "Failed to decrement file ref count: " + err.Error()})
+		return
+	}
+	c.Status(204)
 }

@@ -61,6 +61,11 @@ func (s *ScyllaFileRepository) CreateFile(ctx context.Context, file *models.File
 		log.Printf("Error creating file: %v", err)
 		return err
 	}
+	query = `update FileCounter set ref = ref + 1 where id = ?`
+	if err := s.session.Query(query, file.ID).WithContext(ctx).Exec(); err != nil {
+		log.Printf("Error updating file counter: %v", err)
+		return err
+	}
 	return nil
 }
 
@@ -75,9 +80,35 @@ func (s *ScyllaFileRepository) UpdateFile(ctx context.Context, file *models.File
 }
 
 func (s *ScyllaFileRepository) DeleteFile(ctx context.Context, id string) error {
-	panic("implement me")
+	query := "DELETE FROM file WHERE id = ?"
+	return s.session.Query(query, id).WithContext(ctx).Exec()
 }
 
 func (s *ScyllaFileRepository) ListFiles(ctx context.Context, bucketID string) ([]*models.File, error) {
-	panic("implement me")
+	query := "SELECT id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at FROM file WHERE bucket_id = ?"
+	iter := s.session.Query(query, bucketID).WithContext(ctx).Iter()
+	defer iter.Close()
+
+	var files []*models.File
+	for {
+		file := &models.File{}
+		if !iter.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt) {
+			break
+		}
+		files = append(files, file)
+	}
+	if err := iter.Close(); err != nil {
+		return nil, err
+	}
+	return files, nil
+}
+
+func (s *ScyllaFileRepository) AtomicIncrement(ctx context.Context, id string) error {
+	query := "UPDATE file SET ref_count = ref_count + 1 WHERE id = ? and finalized = true"
+	return s.session.Query(query, id).WithContext(ctx).Exec()
+}
+
+func (s *ScyllaFileRepository) AtomicDecrement(ctx context.Context, id string) error {
+	query := "UPDATE file SET ref_count = ref_count - 1 WHERE id = ? and finalized = true"
+	return s.session.Query(query, id).WithContext(ctx).Exec()
 }
