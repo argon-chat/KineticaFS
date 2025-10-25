@@ -123,7 +123,7 @@ func bootstrapAdminToken(shouldPrint bool) (*models.ServiceToken, error) {
 }
 
 func init() {
-	fmt.Println(asciiArt)
+	fmt.Print(asciiArt)
 	fmt.Println("Welcome to KineticaFS!")
 	fmt.Println("Initializing configuration...")
 	fmt.Println()
