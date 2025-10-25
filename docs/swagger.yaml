@@ -702,4 +702,81 @@ paths:
       summary: Upload file data
       tags:
       - upload
+  /v1/file/{id}/decrement:
+    post:
+      consumes:
+      - application/json
+      description: Atomically decrements the reference count for a file. Used for
+        tracking how many clients are using a file. When reference count reaches zero,
+        the file may be eligible for garbage collection. Requires authentication.
+      operationId: Decrement
+      parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
+      - description: File ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Reference count decremented successfully
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Decrement file reference count
+      tags:
+      - files
+  /v1/file/{id}/increment:
+    post:
+      consumes:
+      - application/json
+      description: Atomically increments the reference count for a file. Used for
+        tracking how many clients are using a file. Requires authentication.
+      operationId: Increment
+      parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
+      - description: File ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Reference count incremented successfully
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Increment file reference count
+      tags:
+      - files
 swagger: "2.0"
