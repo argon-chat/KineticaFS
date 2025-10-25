@@ -89,14 +89,22 @@ jobs:
     runs-on: ubuntu-latest
     needs: docker-build
     services:
-      pg: 
-        image: postgres:17.2-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: kineticafs
+      scylla:
+        image: scylladb/scylla:latest
         ports:
-          - 5432:5432
+          - "9042:9042"
+          - "9160:9160"
+        env:
+          SCYLLA_CLUSTER_NAME: 'scylla_cluster'
+          SCYLLA_SEEDS: 'scylla'
+      # pg: 
+      #   image: postgres:17.2-alpine
+      #   env:
+      #     POSTGRES_USER: postgres
+      #     POSTGRES_PASSWORD: postgres
+      #     POSTGRES_DB: kineticafs
+      #   ports:
+      #     - 5432:5432
       region1:
         image: chrislusf/seaweedfs
         ports:
@@ -136,8 +144,7 @@ jobs:
           --name kineticafs \
           --network host \
           -e KINETICAFS_SERVER=true \
-          -e KINETICAFS_DATABASE=postgres \
-          -e KINETICAFS_POSTGRES="postgres://postgres:postgres@localhost:5432/kineticafs" \
+          -e KINETICAFS_SCYLLA=scylla:9042 \
           -e KINETICAFS_MIGRATE=true \
           kineticafs:test
 
