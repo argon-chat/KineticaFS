@@ -31,7 +31,7 @@ cors-allowed-headers: "Origin,Content-Type,Accept,Authorization,X-API-Token"  # 
 
 # Environment variable prefix: KINETICAFS_
 migrate: false       # Set to true to run database migrations
-migration-path: "file://migrations"  # Path to database migration files
+migration_path: "./migrations"  # Path to database migration files
 
 # Environment variable prefix: KINETICAFS_
 # Examples:

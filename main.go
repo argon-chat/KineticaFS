@@ -137,7 +137,7 @@ func init() {
 	viper.SetDefault("region", "./regions.json")
 	viper.SetDefault("cors-allowed-origins", "*")
 	viper.SetDefault("cors-allowed-headers", "*")
-	viper.SetDefault("migration-path", "file://migrations")
+	viper.SetDefault("migration_path", "./migrations")
 
 	pflag.BoolP("server", "s", false, "Run as server")
 	pflag.String("token", "", "Authorization token")
@@ -150,7 +150,7 @@ func init() {
 	pflag.StringP("region", "r", "./regions.json", "Path to regions configuration file (default: ./regions.json)")
 	pflag.String("cors-allowed-origins", "http://localhost:3000,http://localhost:8080", "CORS allowed origins (comma-separated)")
 	pflag.String("cors-allowed-headers", "Origin,Content-Type,Accept,Authorization,X-API-Token", "CORS allowed headers (comma-separated)")
-	pflag.String("migration-path", "file://migrations", "Path to migration files (default: file://migrations)")
+	pflag.String("migration_path", "./migrations", "Path to migration files (default: ./migrations)")
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
 
