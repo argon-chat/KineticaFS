@@ -31,8 +31,9 @@ func AddFileRoutes(router *router, v1 *gin.RouterGroup) {
 	files.POST("/", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.InitiateFileUploadHandler)
 	files.POST("/:blob/finalize", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.FinalizeFileUploadHandler)
 	files.DELETE("/:id", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.DeleteFileHandler)
-	files.POST("/:id/increment", AuthMiddleware(router.repo), router.IncrementHandler)
-	files.POST("/:id/decrement", AuthMiddleware(router.repo), router.DecrementHandler)
+	files.PATCH("/:id/increment", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.IncrementHandler)
+	files.PATCH("/:id/decrement", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.DecrementHandler)
+	files.GET("/:id", AuthMiddleware(router.repo), AdminOnlyMiddleware, router.GetFileByIDHandler)
 }
 
 // AddFileBlobRoutes sets up the client-side upload endpoint.
@@ -292,7 +293,8 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	}
 
 	metadata := map[string]string{
-		"file_type": fileContentType,
+		"file_type":   fileContentType,
+		"uploaded_by": c.GetHeader("x-api-token"),
 	}
 	jsonMetadata, err := json.Marshal(metadata)
 	if err != nil {
@@ -307,7 +309,7 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	file.ContentType = fileContentType
 	file.Finalized = true
 	file.Metadata = string(jsonMetadata)
-	file.Checksum = checksum
+	file.Checksum = fmt.Sprintf("sha256:%s", checksum)
 
 	err = r.repo.Files.UpdateFile(ctx, file)
 	if err != nil {
@@ -378,25 +380,56 @@ func (r *router) FinalizeFileUploadHandler(c *gin.Context) {
 
 // Delete file (admin only)
 // @Summary Delete file
-// @Description Delete a file by ID. Admin access required.
+// @Description Delete a file by ID. Removes the file from S3 storage and then deletes the database record. Admin access required.
 // @Tags files
 // @Param x-api-token header string true "API Token"
 // @Param id path string true "File ID"
 // @Success 204 {object} nil
+// @Failure 400 {object} router.ErrorResponse
 // @Failure 401 {object} router.ErrorResponse "Unauthorized"
 // @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
 // @Failure 404 {object} router.ErrorResponse
+// @Failure 500 {object} router.ErrorResponse
 // @Router /api/v1/file/{id} [delete]
 // @Id DeleteFile
 func (r *router) DeleteFileHandler(c *gin.Context) {
 	id := c.Param("id")
 	ctx := c.Request.Context()
 
-	err := r.repo.Files.DeleteFile(ctx, id)
+	file, err := r.repo.Files.GetFileByID(ctx, id)
 	if err != nil {
-		c.JSON(400, ErrorResponse{Message: "Failed to delete file: " + err.Error()})
+		c.JSON(404, ErrorResponse{Message: "File not found: " + err.Error()})
 		return
 	}
+
+	bucket, err := r.repo.Buckets.GetBucketByID(ctx, file.BucketID)
+	if err != nil {
+		c.JSON(404, ErrorResponse{Message: "Bucket not found: " + err.Error()})
+		return
+	}
+
+	s3Client, err := createS3Client(bucket)
+	if err != nil {
+		c.JSON(500, ErrorResponse{Message: "Failed to create S3 client: " + err.Error()})
+		return
+	}
+
+	_, err = s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(bucket.Name),
+		Key:    aws.String(file.Name),
+	})
+	if err != nil {
+		c.JSON(500, ErrorResponse{Message: "Failed to delete file from S3: " + err.Error()})
+		return
+	}
+
+	err = r.repo.Files.DeleteFile(ctx, id)
+	if err != nil {
+		log.Printf("CRITICAL: File %s deleted from S3 but failed to delete from database: %v", id, err)
+		c.JSON(500, ErrorResponse{Message: "Failed to delete file from database: " + err.Error()})
+		return
+	}
+
 	c.Status(204)
 }
 
@@ -412,8 +445,8 @@ func (r *router) DeleteFileHandler(c *gin.Context) {
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 401 {object} router.ErrorResponse
 // @Failure 404 {object} router.ErrorResponse
-// @Router /v1/file/{id}/increment [post]
-// @Id Increment
+// @Router /api/v1/file/{id}/increment [patch]
+// @Id IncrementFileRef
 func (r *router) IncrementHandler(c *gin.Context) {
 	id := c.Param("id")
 	ctx := c.Request.Context()
@@ -438,8 +471,8 @@ func (r *router) IncrementHandler(c *gin.Context) {
 // @Failure 400 {object} router.ErrorResponse
 // @Failure 401 {object} router.ErrorResponse
 // @Failure 404 {object} router.ErrorResponse
-// @Router /v1/file/{id}/decrement [post]
-// @Id Decrement
+// @Router /api/v1/file/{id}/decrement [patch]
+// @Id DecrementFileRef
 func (r *router) DecrementHandler(c *gin.Context) {
 	id := c.Param("id")
 	ctx := c.Request.Context()
@@ -450,4 +483,32 @@ func (r *router) DecrementHandler(c *gin.Context) {
 		return
 	}
 	c.Status(204)
+}
+
+// Get file by ID (admin only)
+// @Summary Get file by ID
+// @Description Retrieve detailed information about a file by its ID, including metadata, size, content type, and reference count. Admin access required.
+// @Tags files
+// @Accept json
+// @Produce json
+// @Param x-api-token header string true "API Token"
+// @Param id path string true "File ID"
+// @Success 200 {object} models.File
+// @Failure 400 {object} router.ErrorResponse
+// @Failure 401 {object} router.ErrorResponse "Unauthorized"
+// @Failure 403 {object} router.ErrorResponse "Forbidden - Admin only"
+// @Failure 404 {object} router.ErrorResponse
+// @Router /api/v1/file/{id} [get]
+// @Id GetFileById
+func (r *router) GetFileByIDHandler(c *gin.Context) {
+	id := c.Param("id")
+	ctx := c.Request.Context()
+
+	file, err := r.repo.Files.GetFileByID(ctx, id)
+	if err != nil {
+		c.JSON(404, ErrorResponse{Message: "File not found: " + err.Error()})
+		return
+	}
+
+	c.JSON(200, file)
 }

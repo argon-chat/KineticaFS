@@ -39,20 +39,55 @@ func (s *ScyllaFileRepository) scanFileRow(row *gocql.Query) (*models.File, erro
 	return &file, nil
 }
 
+func (s *ScyllaFileRepository) getFileReferenceCount(ctx context.Context, fileID string) (int64, error) {
+	var refCount int64
+	query := "SELECT ref FROM filecounter WHERE id = ?"
+	err := s.session.Query(query, fileID).WithContext(ctx).Scan(&refCount)
+	if err != nil {
+		if err == gocql.ErrNotFound {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return refCount, nil
+}
+
+func (s *ScyllaFileRepository) populateFileReferences(ctx context.Context, file *models.File) error {
+	refCount, err := s.getFileReferenceCount(ctx, file.ID)
+	if err != nil {
+		return err
+	}
+	file.References = refCount
+	return nil
+}
+
 func (s *ScyllaFileRepository) fileSelectColumns() string {
 	return "id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at"
 }
 
-func (s *ScyllaFileRepository) GetFileByID(ctx context.Context, id string) (*models.File, error) {
-	query := "SELECT " + s.fileSelectColumns() + " FROM file WHERE id = ?"
-	row := s.session.Query(query, id).WithContext(ctx)
-	return s.scanFileRow(row)
+func (s *ScyllaFileRepository) queryFileWithReferences(ctx context.Context, query string, args ...interface{}) (*models.File, error) {
+	row := s.session.Query(query, args...).WithContext(ctx)
+	file, err := s.scanFileRow(row)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.populateFileReferences(ctx, file); err != nil {
+		log.Printf("Warning: Failed to get reference count for file %s: %v", file.ID, err)
+		file.References = 0
+	}
+
+	return file, nil
 }
 
-func (s *ScyllaFileRepository) GetFileByName(ctx context.Context, bucketID, name string) (*models.File, error) {
-	query := "SELECT " + s.fileSelectColumns() + " FROM file WHERE bucket_id = ? AND name = ? ALLOW FILTERING"
-	row := s.session.Query(query, bucketID, name).WithContext(ctx)
-	return s.scanFileRow(row)
+func (s *ScyllaFileRepository) GetFileByID(ctx context.Context, id string) (*models.File, error) {
+	query := "SELECT " + s.fileSelectColumns() + " FROM file WHERE id = ?"
+	return s.queryFileWithReferences(ctx, query, id)
+}
+
+func (s *ScyllaFileRepository) GetFileByName(ctx context.Context, name string) (*models.File, error) {
+	query := "SELECT " + s.fileSelectColumns() + " FROM file WHERE name = ?"
+	return s.queryFileWithReferences(ctx, query, name)
 }
 
 func (s *ScyllaFileRepository) CreateFile(ctx context.Context, file *models.File) error {
@@ -103,6 +138,14 @@ func (s *ScyllaFileRepository) ListFiles(ctx context.Context, bucketID string) (
 	if err := iter.Close(); err != nil {
 		return nil, err
 	}
+
+	for _, file := range files {
+		if err := s.populateFileReferences(ctx, file); err != nil {
+			log.Printf("Warning: Failed to get reference count for file %s: %v", file.ID, err)
+			file.References = 0
+		}
+	}
+
 	return files, nil
 }
 

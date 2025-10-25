@@ -29,7 +29,7 @@ func (p *PostgresFileRepository) GetFileByID(ctx context.Context, id string) (*m
 	panic("implement me")
 }
 
-func (p *PostgresFileRepository) GetFileByName(ctx context.Context, bucketID, name string) (*models.File, error) {
+func (p *PostgresFileRepository) GetFileByName(ctx context.Context, name string) (*models.File, error) {
 	panic("implement me")
 }
 

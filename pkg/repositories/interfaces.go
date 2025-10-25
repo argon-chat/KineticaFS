@@ -23,7 +23,7 @@ type IBucketRepository interface {
 type IFileRepository interface {
 	IRepository
 	GetFileByID(ctx context.Context, id string) (*models.File, error)
-	GetFileByName(ctx context.Context, bucketID, name string) (*models.File, error)
+	GetFileByName(ctx context.Context, name string) (*models.File, error)
 	CreateFile(ctx context.Context, file *models.File) error
 	UpdateFile(ctx context.Context, file *models.File) error
 	DeleteFile(ctx context.Context, id string) error

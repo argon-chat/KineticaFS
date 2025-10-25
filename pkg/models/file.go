@@ -10,7 +10,7 @@ type File struct {
 	Checksum      string `json:"checksum"`
 	Finalized     bool   `json:"finalized"`
 	FileSizeLimit uint64 `json:"file_size_limit"`
-	References    uint64 `json:"references"`
+	References    int64  `json:"references"`
 	Metadata      string `json:"metadata,omitempty"`
 }
 
