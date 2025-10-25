@@ -107,6 +107,7 @@ func (ar *ApplicationRepository) Migrate(ctx context.Context) error {
 
 func (ar *ApplicationRepository) migrateDatabase(ctx context.Context) error {
 	migrationPath := fmt.Sprintf("%s/%s", viper.GetString("migration-path"), ar.dbType)
+	log.Println(migrationPath)
 	var scyllaDriver *gocql.Session
 	var postgresDriver *sql.DB
 	var m *migrate.Migrate

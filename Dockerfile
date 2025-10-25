@@ -16,9 +16,11 @@ RUN export PATH=$PATH:$(go env GOPATH)/bin && swag init --generalInfo main.go --
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./kinctl -tags prod -mod=readonly -ldflags "-s -w" ./main.go
 
 FROM alpine:3.20
+ENV KINETICAFS_MIGRATION_PATH=/migrations
 WORKDIR /var/www
 COPY --from=dashboard /usr/src/app/dist .
 COPY --from=builder /app/kinctl /usr/local/bin/kinctl
 COPY --from=builder /app/docs /usr/local/bin/docs
+COPY --from=builder /app/migrations /migrations
 EXPOSE 3000
 CMD ["kinctl", "-sm", "--port", "3000"]
