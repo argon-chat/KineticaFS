@@ -186,8 +186,8 @@ func newScyllaRepository(connectionString string) (*ApplicationRepository, error
 }
 
 func (r *ApplicationRepository) InitializeRepo(ctx context.Context, repo *ApplicationRepository) {
-	r.ServiceTokens.CreateIndices(ctx)
-	r.Buckets.CreateIndices(ctx)
-	r.Files.CreateIndices(ctx)
-	r.FileBlobs.CreateIndices(ctx)
+	// r.ServiceTokens.CreateIndices(ctx)
+	// r.Buckets.CreateIndices(ctx)
+	// r.Files.CreateIndices(ctx)
+	// r.FileBlobs.CreateIndices(ctx)
 }
