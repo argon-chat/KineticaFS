@@ -30,9 +30,7 @@ func (s *ScyllaFileRepository) CreateIndices(ctx context.Context) {
 	}
 }
 
-func (s *ScyllaFileRepository) GetFileByID(ctx context.Context, id string) (*models.File, error) {
-	query := "SELECT id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at FROM file WHERE id = ?"
-	row := s.session.Query(query, id).WithContext(ctx)
+func (s *ScyllaFileRepository) scanFileRow(row *gocql.Query) (*models.File, error) {
 	var file models.File
 	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt)
 	if err != nil {
@@ -41,15 +39,20 @@ func (s *ScyllaFileRepository) GetFileByID(ctx context.Context, id string) (*mod
 	return &file, nil
 }
 
+func (s *ScyllaFileRepository) fileSelectColumns() string {
+	return "id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at"
+}
+
+func (s *ScyllaFileRepository) GetFileByID(ctx context.Context, id string) (*models.File, error) {
+	query := "SELECT " + s.fileSelectColumns() + " FROM file WHERE id = ?"
+	row := s.session.Query(query, id).WithContext(ctx)
+	return s.scanFileRow(row)
+}
+
 func (s *ScyllaFileRepository) GetFileByName(ctx context.Context, bucketID, name string) (*models.File, error) {
-	query := "SELECT id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at FROM file WHERE bucket_id = ? AND name = ? ALLOW FILTERING"
+	query := "SELECT " + s.fileSelectColumns() + " FROM file WHERE bucket_id = ? AND name = ? ALLOW FILTERING"
 	row := s.session.Query(query, bucketID, name).WithContext(ctx)
-	var file models.File
-	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt)
-	if err != nil {
-		return nil, err
-	}
-	return &file, nil
+	return s.scanFileRow(row)
 }
 
 func (s *ScyllaFileRepository) CreateFile(ctx context.Context, file *models.File) error {
@@ -85,7 +88,7 @@ func (s *ScyllaFileRepository) DeleteFile(ctx context.Context, id string) error 
 }
 
 func (s *ScyllaFileRepository) ListFiles(ctx context.Context, bucketID string) ([]*models.File, error) {
-	query := "SELECT id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at FROM file WHERE bucket_id = ?"
+	query := "SELECT " + s.fileSelectColumns() + " FROM file WHERE bucket_id = ?"
 	iter := s.session.Query(query, bucketID).WithContext(ctx).Iter()
 	defer iter.Close()
 
@@ -104,11 +107,11 @@ func (s *ScyllaFileRepository) ListFiles(ctx context.Context, bucketID string) (
 }
 
 func (s *ScyllaFileRepository) AtomicIncrement(ctx context.Context, id string) error {
-	query := "UPDATE file SET ref_count = ref_count + 1 WHERE id = ? and finalized = true"
+	query := "UPDATE FileCounter SET ref = ref + 1 WHERE id = ?"
 	return s.session.Query(query, id).WithContext(ctx).Exec()
 }
 
 func (s *ScyllaFileRepository) AtomicDecrement(ctx context.Context, id string) error {
-	query := "UPDATE file SET ref_count = ref_count - 1 WHERE id = ? and finalized = true"
+	query := "UPDATE FileCounter SET ref = ref - 1 WHERE id = ?"
 	return s.session.Query(query, id).WithContext(ctx).Exec()
 }
