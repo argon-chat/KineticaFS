@@ -8,16 +8,6 @@ import (
 	"github.com/argon-chat/KineticaFS/pkg/models"
 )
 
-// ddl
-// table fileblob
-// (
-//     createdat timestamp,
-//     updatedat timestamp,
-//     fileid    text,
-//     id        text not null
-//         primary key
-// )
-
 type PostgresFileBlobRepository struct {
 	session *sql.DB
 }
@@ -28,7 +18,7 @@ func NewPostgresFileBlobRepository(session *sql.DB) *PostgresFileBlobRepository 
 
 func (p *PostgresFileBlobRepository) CreateIndices(ctx context.Context) {
 	indexQueries := []string{
-		"create index if not exists fileblob_fileid_idx on fileblob (fileid)",
+		"create index if not exists file_blob_file_id_idx on file_blob (file_id)",
 	}
 	for _, indexQuery := range indexQueries {
 		log.Printf("Executing index creation query: %s", indexQuery)

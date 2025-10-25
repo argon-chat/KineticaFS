@@ -11,18 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// DDL
-// servicetoken
-// (
-//     name      text,
-//     accesskey text,
-//     tokentype integer,
-//     id        text not null
-//         primary key,
-//     createdat timestamp,
-//     updatedat timestamp
-// )
-
 type PostgresServiceTokenRepository struct {
 	session *sql.DB
 }
@@ -33,8 +21,8 @@ func NewPostgresServiceTokenRepository(session *sql.DB) *PostgresServiceTokenRep
 
 func (s *PostgresServiceTokenRepository) CreateIndices(ctx context.Context) {
 	indexQueries := []string{
-		"create index if not exists servicetoken_name_idx on servicetoken (name)",
-		"create index if not exists servicetoken_accesskey_idx on servicetoken (accesskey)",
+		"create index if not exists service_token_name_idx on service_token (name)",
+		"create index if not exists service_token_access_key_idx on service_token (access_key)",
 	}
 	for _, indexQuery := range indexQueries {
 		log.Printf("Executing index creation query: %s", indexQuery)
@@ -45,7 +33,7 @@ func (s *PostgresServiceTokenRepository) CreateIndices(ctx context.Context) {
 }
 
 func (p *PostgresServiceTokenRepository) GetServiceTokenById(ctx context.Context, id string) (*models.ServiceToken, error) {
-	row := p.session.QueryRowContext(ctx, "select id, name, accesskey, tokentype, createdat, updatedat from servicetoken where id = $1", id)
+	row := p.session.QueryRowContext(ctx, "select id, name, access_key, token_type, created_at, updated_at from service_token where id = $1", id)
 	var token models.ServiceToken
 	var tokenType int8
 	err := row.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt)
@@ -60,7 +48,7 @@ func (p *PostgresServiceTokenRepository) GetServiceTokenById(ctx context.Context
 }
 
 func (s *PostgresServiceTokenRepository) GetAllServiceTokens(ctx context.Context) ([]*models.ServiceToken, error) {
-	rows, err := s.session.QueryContext(ctx, "select id, name, accesskey, tokentype, createdat, updatedat from servicetoken")
+	rows, err := s.session.QueryContext(ctx, "select id, name, access_key, token_type, created_at, updated_at from service_token")
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +70,7 @@ func (s *PostgresServiceTokenRepository) GetAllServiceTokens(ctx context.Context
 	return tokens, nil
 }
 func (s *PostgresServiceTokenRepository) GetServiceTokenByAccessKey(ctx context.Context, accessKey string) (*models.ServiceToken, error) {
-	row := s.session.QueryRowContext(ctx, "select id, name, accesskey, tokentype, createdat, updatedat from servicetoken where accesskey = $1", accessKey)
+	row := s.session.QueryRowContext(ctx, "select id, name, access_key, token_type, created_at, updated_at from service_token where access_key = $1", accessKey)
 	var token models.ServiceToken
 	var tokenType int8
 	err := row.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt)
@@ -97,7 +85,7 @@ func (s *PostgresServiceTokenRepository) GetServiceTokenByAccessKey(ctx context.
 }
 
 func (p *PostgresServiceTokenRepository) GetServiceTokenByName(ctx context.Context, name string) (*models.ServiceToken, error) {
-	row := p.session.QueryRowContext(ctx, "select id, name, accesskey, tokentype, createdat, updatedat from servicetoken where name = $1", name)
+	row := p.session.QueryRowContext(ctx, "select id, name, access_key, token_type, created_at, updated_at from service_token where name = $1", name)
 	var token models.ServiceToken
 	var tokenType int8
 	err := row.Scan(&token.ID, &token.Name, &token.AccessKey, &tokenType, &token.CreatedAt, &token.UpdatedAt)
@@ -117,12 +105,12 @@ func (p *PostgresServiceTokenRepository) CreateServiceToken(ctx context.Context,
 	token.UpdatedAt = token.CreatedAt
 	_, err := p.session.ExecContext(
 		ctx,
-		"insert into servicetoken (id, name, accesskey, tokentype, createdat, updatedat) values ($1, $2, $3, $4, $5, $6)",
+		"insert into service_token (id, name, access_key, token_type, created_at, updated_at) values ($1, $2, $3, $4, $5, $6)",
 		token.ID, token.Name, token.AccessKey, int8(token.TokenType), token.CreatedAt, token.UpdatedAt)
 	return err
 }
 
 func (p *PostgresServiceTokenRepository) RevokeServiceToken(ctx context.Context, id string) error {
-	_, err := p.session.ExecContext(ctx, "delete from servicetoken where id = $1", id)
+	_, err := p.session.ExecContext(ctx, "delete from service_token where id = $1", id)
 	return err
 }

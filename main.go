@@ -20,7 +20,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var asciiArt = `
+const asciiArt = `
   _  __ _          _____  _______  _      
  | |/ /(_)        / ____||__   __|| |     
  | ' /  _  _ __  | |        | |   | |     
