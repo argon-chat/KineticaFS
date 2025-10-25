@@ -516,13 +516,17 @@ export type DecrementFileRefErrors = {
      * Not Found
      */
     404: RouterErrorResponse;
+    /**
+     * Internal error during file deletion
+     */
+    500: RouterErrorResponse;
 };
 
 export type DecrementFileRefError = DecrementFileRefErrors[keyof DecrementFileRefErrors];
 
 export type DecrementFileRefResponses = {
     /**
-     * Reference count decremented successfully
+     * Reference count decremented successfully (and file deleted if count reached zero)
      */
     204: unknown;
 };

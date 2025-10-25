@@ -131,7 +131,7 @@ export const getFileById = <ThrowOnError extends boolean = false>(options: Optio
 
 /**
  * Decrement file reference count
- * Atomically decrements the reference count for a file. Used for tracking how many clients are using a file. When reference count reaches zero, the file may be eligible for garbage collection. Requires authentication.
+ * Atomically decrements the reference count for a file. Used for tracking how many clients are using a file. When reference count reaches zero or below, the file is automatically deleted from both S3 storage and database. Requires authentication.
  */
 export const decrementFileRef = <ThrowOnError extends boolean = false>(options: Options<DecrementFileRefData, ThrowOnError>) => {
     return (options.client ?? client).patch<DecrementFileRefResponses, DecrementFileRefErrors, ThrowOnError>({

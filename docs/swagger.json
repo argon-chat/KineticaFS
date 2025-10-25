@@ -526,7 +526,7 @@
         },
         "/api/v1/file/{id}/decrement": {
             "patch": {
-                "description": "Atomically decrements the reference count for a file. Used for tracking how many clients are using a file. When reference count reaches zero, the file may be eligible for garbage collection. Requires authentication.",
+                "description": "Atomically decrements the reference count for a file. Used for tracking how many clients are using a file. When reference count reaches zero or below, the file is automatically deleted from both S3 storage and database. Requires authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -556,7 +556,7 @@
                 ],
                 "responses": {
                     "204": {
-                        "description": "Reference count decremented successfully"
+                        "description": "Reference count decremented successfully (and file deleted if count reached zero)"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -572,6 +572,12 @@
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error during file deletion",
                         "schema": {
                             "$ref": "#/definitions/router.ErrorResponse"
                         }
