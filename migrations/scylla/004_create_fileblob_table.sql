@@ -1,8 +1,8 @@
 -- Create FileBlob table
 CREATE TABLE IF NOT EXISTS FileBlob (
-    ID text,
-    CreatedAt timestamp,
-    UpdatedAt timestamp,
-    FileID text,
+    id text,
+    created_at timestamp,
+    updated_at timestamp,
+    file_id text,
     PRIMARY KEY (id)
 );
