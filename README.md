@@ -69,7 +69,38 @@ Or use the provided Docker Compose:
 docker compose up -d
 ```
 
-## 📈 Roadmap
+## �️ Database Migrations
+
+KineticaFS supports both PostgreSQL and Scylla/Cassandra databases. Database migrations are managed using [golang-migrate](https://github.com/golang-migrate/migrate).
+
+### Creating New Migrations
+
+To create a new migration file, use the `migrate` CLI tool:
+
+```bash
+# For PostgreSQL migrations
+migrate create -ext sql -seq -dir migrations/postgres/ migration_name
+
+# For Scylla migrations  
+migrate create -ext sql -seq -dir migrations/scylla/ migration_name
+```
+
+This will create two files:
+- `XXXXXX_migration_name.up.sql` - Contains the migration logic
+- `XXXXXX_migration_name.down.sql` - Contains the rollback logic
+
+### Migration Naming Convention
+
+- Use descriptive names: `create_users_table`, `add_email_index`, `update_schema_v2`
+- Keep names concise but clear about the change being made
+- Use snake_case for consistency
+
+### Database Support
+
+- **PostgreSQL**: Full relational database support with foreign keys and constraints
+- **Scylla/Cassandra**: NoSQL distributed database with application-level relationship management
+
+## �📈 Roadmap
 
 - [ ] File reference tracking API (`CreateRef`, `DeleteRef`, `ListRefs`) 🔥
 - [ ] File upload 🔥
