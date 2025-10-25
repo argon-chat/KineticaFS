@@ -10,12 +10,8 @@ type File struct {
 	Checksum      string `json:"checksum"`
 	Finalized     bool   `json:"finalized"`
 	FileSizeLimit uint64 `json:"file_size_limit"`
+	References    uint64 `json:"references"`
 	Metadata      string `json:"metadata,omitempty"`
-}
-
-type FileReferences struct {
-	FileID   string `json:"file_id" binding:"required"`
-	Metadata string `json:"metadata,omitempty"`
 }
 
 func (f File) GetID() string {
