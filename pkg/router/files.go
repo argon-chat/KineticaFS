@@ -65,6 +65,19 @@ type RegionInfo struct {
 
 type Regions map[string]RegionInfo
 
+// sizeLimitReader wraps an io.Reader and tracks bytes read while enforcing size limits
+type sizeLimitReader struct {
+	reader    io.Reader
+	sizeLimit uint64
+	uploaded  *int64
+}
+
+func (r *sizeLimitReader) Read(p []byte) (n int, err error) {
+	n, err = r.reader.Read(p)
+	*r.uploaded += int64(n)
+	return n, err
+}
+
 func loadRegionsConfig(regions *Regions) error {
 	path := viper.GetString("region")
 	data, err := os.ReadFile(path)
@@ -244,29 +257,21 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO: Currently reads the entire file into memory.
-	//       This can consume a lot of RAM for large files.
-	//       Consider streaming the file directly (e.g., to S3)
-	//       and computing checksum on the fly to avoid memory spikes.
-	body, err := io.ReadAll(requestFile)
-
-	if uint64(len(body)) >= file.FileSizeLimit && file.FileSizeLimit > 0 {
-		c.JSON(400, ErrorResponse{Message: fmt.Sprintf("File size exceeds the limit of %d bytes", file.FileSizeLimit)})
-		return
-	}
-
-	if err != nil {
+	// Read first 512 bytes to detect content type
+	firstChunk := make([]byte, 512)
+	n, err := io.ReadFull(requestFile, firstChunk)
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
 		c.JSON(400, ErrorResponse{Message: "Failed to read request body: " + err.Error()})
 		return
 	}
 
-	if len(body) == 0 {
+	if n == 0 {
 		c.JSON(400, ErrorResponse{Message: "Empty file data"})
 		return
 	}
 
-	n := min(len(body), 512)
-	fileContentType := http.DetectContentType(body[:n])
+	// Detect content type from the first chunk
+	fileContentType := http.DetectContentType(firstChunk[:n])
 
 	s3Client, err := createS3Client(bucket)
 	if err != nil {
@@ -276,19 +281,47 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 
 	objectKey := file.Name
 	hash := sha256.New()
-	// bodyReader := bytes.NewReader(body)
-	// tee := io.TeeReader(bodyReader, hash)
+
+	// Write the first chunk to hash
+	hash.Write(firstChunk[:n])
+
+	// Create a counting reader to track uploaded size and verify size limit
+	var uploadedSize int64 = int64(n)
+	sizeLimitReader := &sizeLimitReader{
+		reader:    requestFile,
+		sizeLimit: file.FileSizeLimit,
+		uploaded:  &uploadedSize,
+	}
+
+	// Use TeeReader to compute checksum while streaming to S3
+	teeReader := io.TeeReader(sizeLimitReader, hash)
+
+	// Combine first chunk with the rest
+	streamReader := io.MultiReader(
+		strings.NewReader(string(firstChunk[:n])),
+		teeReader,
+	)
 
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:        aws.String(bucket.Name),
-		Key:           aws.String(objectKey),
-		Body:          strings.NewReader(string(body)),
-		ContentType:   aws.String(fileContentType),
-		ContentLength: aws.Int64(int64(len(body))),
+		Bucket:      aws.String(bucket.Name),
+		Key:         aws.String(objectKey),
+		Body:        streamReader,
+		ContentType: aws.String(fileContentType),
 	})
 
 	if err != nil {
 		c.JSON(500, ErrorResponse{Message: "Failed to upload file to S3: " + err.Error()})
+		return
+	}
+
+	// Check if we hit the size limit
+	if file.FileSizeLimit > 0 && uint64(uploadedSize) > file.FileSizeLimit {
+		// File was too large - attempt to delete from S3
+		_, _ = s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
+			Bucket: aws.String(bucket.Name),
+			Key:    aws.String(objectKey),
+		})
+		c.JSON(400, ErrorResponse{Message: fmt.Sprintf("File size exceeds the limit of %d bytes", file.FileSizeLimit)})
 		return
 	}
 
@@ -305,7 +338,7 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	checksum := fmt.Sprintf("%x", hash.Sum(nil))
 
 	file.Path = fmt.Sprintf("%s/%s/%s", bucket.Endpoint, bucket.Name, objectKey)
-	file.FileSize = int64(len(body))
+	file.FileSize = uploadedSize
 	file.ContentType = fileContentType
 	file.Finalized = true
 	file.Metadata = string(jsonMetadata)
