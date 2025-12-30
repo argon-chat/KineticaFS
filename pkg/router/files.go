@@ -282,9 +282,6 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	objectKey := file.Name
 	hash := sha256.New()
 
-	// Write the first chunk to hash
-	hash.Write(firstChunk[:n])
-
 	// Create a reader to track uploaded size
 	var uploadedSize int64 = int64(n)
 	sizeLimitReader := &sizeLimitReader{
@@ -296,8 +293,9 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	teeReader := io.TeeReader(sizeLimitReader, hash)
 
 	// Combine first chunk with the rest
+	// Important: hash the first chunk through the TeeReader, not directly
 	streamReader := io.MultiReader(
-		bytes.NewReader(firstChunk[:n]),
+		io.TeeReader(bytes.NewReader(firstChunk[:n]), hash),
 		teeReader,
 	)
 
@@ -316,10 +314,12 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	// Check if we hit the size limit
 	if file.FileSizeLimit > 0 && uint64(uploadedSize) >= file.FileSizeLimit {
 		// File was too large - attempt to delete from S3
-		_, _ = s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		if _, delErr := s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
 			Bucket: aws.String(bucket.Name),
 			Key:    aws.String(objectKey),
-		})
+		}); delErr != nil {
+			log.Printf("ERROR: Failed to delete oversized file %s from S3: %v", objectKey, delErr)
+		}
 		c.JSON(400, ErrorResponse{Message: fmt.Sprintf("File size exceeds the limit of %d bytes", file.FileSizeLimit)})
 		return
 	}
