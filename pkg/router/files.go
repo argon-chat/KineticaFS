@@ -1,6 +1,7 @@
 package router
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -65,11 +66,10 @@ type RegionInfo struct {
 
 type Regions map[string]RegionInfo
 
-// sizeLimitReader wraps an io.Reader and tracks bytes read while enforcing size limits
+// sizeLimitReader wraps an io.Reader and tracks bytes read
 type sizeLimitReader struct {
-	reader    io.Reader
-	sizeLimit uint64
-	uploaded  *int64
+	reader   io.Reader
+	uploaded *int64
 }
 
 func (r *sizeLimitReader) Read(p []byte) (n int, err error) {
@@ -285,12 +285,11 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	// Write the first chunk to hash
 	hash.Write(firstChunk[:n])
 
-	// Create a counting reader to track uploaded size and verify size limit
+	// Create a reader to track uploaded size
 	var uploadedSize int64 = int64(n)
 	sizeLimitReader := &sizeLimitReader{
-		reader:    requestFile,
-		sizeLimit: file.FileSizeLimit,
-		uploaded:  &uploadedSize,
+		reader:   requestFile,
+		uploaded: &uploadedSize,
 	}
 
 	// Use TeeReader to compute checksum while streaming to S3
@@ -298,7 +297,7 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 
 	// Combine first chunk with the rest
 	streamReader := io.MultiReader(
-		strings.NewReader(string(firstChunk[:n])),
+		bytes.NewReader(firstChunk[:n]),
 		teeReader,
 	)
 
@@ -315,7 +314,7 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 	}
 
 	// Check if we hit the size limit
-	if file.FileSizeLimit > 0 && uint64(uploadedSize) > file.FileSizeLimit {
+	if file.FileSizeLimit > 0 && uint64(uploadedSize) >= file.FileSizeLimit {
 		// File was too large - attempt to delete from S3
 		_, _ = s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
 			Bucket: aws.String(bucket.Name),
