@@ -123,12 +123,12 @@ func (r *router) InitiateFileUploadHandler(c *gin.Context) {
 		c.JSON(400, ErrorResponse{Message: "Invalid request body: " + err.Error()})
 		return
 	}
-	
+
 	if r.regions == nil {
 		c.JSON(500, ErrorResponse{Message: "Regions configuration not loaded"})
 		return
 	}
-	
+
 	region, ok := (*r.regions)[dto.RegionID]
 	if !ok {
 		c.JSON(400, ErrorResponse{Message: "Invalid region ID"})
