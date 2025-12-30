@@ -26,9 +26,10 @@ type ErrorResponse struct {
 }
 
 type router struct {
-	engine *gin.Engine
-	repo   *repositories.ApplicationRepository
-	port   int
+	engine  *gin.Engine
+	repo    *repositories.ApplicationRepository
+	port    int
+	regions *Regions
 }
 
 func (r *router) Run(ctx context.Context, wg *sync.WaitGroup) error {
@@ -93,10 +94,19 @@ func NewRouter(repo *repositories.ApplicationRepository, port int) *router {
 		MaxAge:       24 * time.Hour,
 	}
 	ginRouter.Use(cors.New(corsConfig))
+	
+	// Load regions configuration once at startup
+	regions := &Regions{}
+	if err := loadRegionsConfig(regions); err != nil {
+		log.Printf("Warning: Failed to load regions configuration: %v", err)
+		// Continue without regions - will fail at runtime if needed
+	}
+	
 	return &router{
-		engine: ginRouter,
-		repo:   repo,
-		port:   port,
+		engine:  ginRouter,
+		repo:    repo,
+		port:    port,
+		regions: regions,
 	}
 }
 

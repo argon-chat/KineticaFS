@@ -123,13 +123,13 @@ func (r *router) InitiateFileUploadHandler(c *gin.Context) {
 		c.JSON(400, ErrorResponse{Message: "Invalid request body: " + err.Error()})
 		return
 	}
-	regions := Regions{}
-	err := loadRegionsConfig(&regions)
-	if err != nil {
-		c.JSON(500, ErrorResponse{Message: "Failed to load regions configuration: " + err.Error()})
+	
+	if r.regions == nil {
+		c.JSON(500, ErrorResponse{Message: "Regions configuration not loaded"})
 		return
 	}
-	region, ok := regions[dto.RegionID]
+	
+	region, ok := (*r.regions)[dto.RegionID]
 	if !ok {
 		c.JSON(400, ErrorResponse{Message: "Invalid region ID"})
 		return
@@ -523,6 +523,7 @@ func (r *router) DecrementHandler(c *gin.Context) {
 	}
 	if currentRefCount < 1 {
 		r.DeleteFileHandler(c)
+		return // Return early since DeleteFileHandler already sent a response
 	}
 	c.Status(204)
 }
