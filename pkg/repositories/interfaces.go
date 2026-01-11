@@ -48,4 +48,9 @@ type IFileBlobRepository interface {
 	CreateFileBlob(ctx context.Context, blob *models.FileBlob) (*models.FileBlob, error)
 	GetFileBlobByID(ctx context.Context, id string) (*models.FileBlob, error)
 	DeleteFileBlobByID(ctx context.Context, id string) error
+	GetAllFileBlobs(ctx context.Context) ([]*models.FileBlob, error)
+}
+
+type IDatabaseOperations interface {
+	ClearAllData(ctx context.Context) error
 }
