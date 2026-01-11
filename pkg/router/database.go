@@ -126,6 +126,18 @@ func (r *router) RestoreDatabaseHandler(c *gin.Context) {
 		"errors":                  []string{},
 	}
 
+	existingTokens, err := r.repo.ServiceTokens.GetAllServiceTokens(ctx)
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, fmt.Sprintf("failed to fetch existing tokens: %v", err))
+		return
+	}
+	for _, existingToken := range existingTokens {
+		if err := r.repo.ServiceTokens.RevokeServiceToken(ctx, existingToken.ID); err != nil {
+			errorMsg := fmt.Sprintf("failed to remove existing token %s: %v", existingToken.ID, err)
+			stats["errors"] = append(stats["errors"].([]string), errorMsg)
+		}
+	}
+
 	for _, token := range req.Data.ServiceTokens {
 		if err := r.repo.ServiceTokens.CreateServiceToken(ctx, token); err != nil {
 			errorMsg := fmt.Sprintf("failed to restore service token %s: %v", token.ID, err)
