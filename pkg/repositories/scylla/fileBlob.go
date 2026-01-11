@@ -56,3 +56,21 @@ func (s *ScyllaFileBlobRepository) DeleteFileBlobByID(ctx context.Context, id st
 	query := "DELETE FROM fileblob WHERE id = ?"
 	return s.session.Query(query, id).WithContext(ctx).Exec()
 }
+
+func (s *ScyllaFileBlobRepository) GetAllFileBlobs(ctx context.Context) ([]*models.FileBlob, error) {
+	query := "SELECT id, created_at, file_id, updated_at FROM fileblob"
+	iter := s.session.Query(query).WithContext(ctx).Iter()
+	defer iter.Close()
+
+	var blobs []*models.FileBlob
+	var blob models.FileBlob
+	for iter.Scan(&blob.ID, &blob.CreatedAt, &blob.FileID, &blob.UpdatedAt) {
+		blobCopy := blob
+		blobs = append(blobs, &blobCopy)
+	}
+
+	if err := iter.Close(); err != nil {
+		return nil, err
+	}
+	return blobs, nil
+}
