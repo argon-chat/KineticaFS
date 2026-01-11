@@ -50,6 +50,14 @@ func (a *ApplicationRepository) Close() error {
 	return nil
 }
 
+func (a *ApplicationRepository) GetDB() IDatabase {
+	return a.db
+}
+
+func (a *ApplicationRepository) GetDBType() string {
+	return a.dbType
+}
+
 func NewApplicationRepository() (*ApplicationRepository, error) {
 	migrationTypes = []models.ApplicationRecord{
 		models.ServiceToken{},
@@ -190,4 +198,54 @@ func (r *ApplicationRepository) InitializeRepo(ctx context.Context, repo *Applic
 	// r.Buckets.CreateIndices(ctx)
 	// r.Files.CreateIndices(ctx)
 	// r.FileBlobs.CreateIndices(ctx)
+}
+
+func (ar *ApplicationRepository) ClearAllData(ctx context.Context) error {
+	buckets, err := ar.Buckets.ListBuckets(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to list buckets: %w", err)
+	}
+
+	for _, bucket := range buckets {
+		files, err := ar.Files.ListFiles(ctx, bucket.ID)
+		if err != nil {
+			return fmt.Errorf("failed to list files for bucket %s: %w", bucket.ID, err)
+		}
+		for _, file := range files {
+			if err := ar.Files.DeleteFile(ctx, file.ID); err != nil {
+				return fmt.Errorf("failed to delete file %s: %w", file.ID, err)
+			}
+		}
+	}
+
+	fileBlobs, err := ar.FileBlobs.GetAllFileBlobs(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get all file blobs: %w", err)
+	}
+	for _, blob := range fileBlobs {
+		if err := ar.FileBlobs.DeleteFileBlobByID(ctx, blob.ID); err != nil {
+			return fmt.Errorf("failed to delete file blob %s: %w", blob.ID, err)
+		}
+	}
+
+	for _, bucket := range buckets {
+		if err := ar.Buckets.DeleteBucket(ctx, bucket.ID); err != nil {
+			return fmt.Errorf("failed to delete bucket %s: %w", bucket.ID, err)
+		}
+	}
+
+	tokens, err := ar.ServiceTokens.GetAllServiceTokens(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get all service tokens: %w", err)
+	}
+	for _, token := range tokens {
+		if token.TokenType&models.AdminToken == models.AdminToken {
+			continue
+		}
+		if err := ar.ServiceTokens.RevokeServiceToken(ctx, token.ID); err != nil {
+			return fmt.Errorf("failed to revoke service token %s: %w", token.ID, err)
+		}
+	}
+
+	return nil
 }
