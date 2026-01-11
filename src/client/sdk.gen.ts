@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { BootstrapAdminTokenData, BootstrapAdminTokenErrors, BootstrapAdminTokenResponses, CreateBucketData, CreateBucketErrors, CreateBucketResponses, CreateServiceTokenData, CreateServiceTokenErrors, CreateServiceTokenResponses, DecrementFileRefData, DecrementFileRefErrors, DecrementFileRefResponses, DeleteBucketData, DeleteBucketErrors, DeleteBucketResponses, DeleteFileData, DeleteFileErrors, DeleteFileResponses, DeleteServiceTokenData, DeleteServiceTokenErrors, DeleteServiceTokenResponses, FinalizeFileUploadData, FinalizeFileUploadErrors, FinalizeFileUploadResponses, FirstRunCheckData, FirstRunCheckErrors, FirstRunCheckResponses, GetBucketData, GetBucketErrors, GetBucketResponses, GetFileByIdData, GetFileByIdErrors, GetFileByIdResponses, GetServiceTokenData, GetServiceTokenErrors, GetServiceTokenResponses, IncrementFileRefData, IncrementFileRefErrors, IncrementFileRefResponses, InitiateFileUploadData, InitiateFileUploadErrors, InitiateFileUploadResponses, ListAllServiceTokensData, ListAllServiceTokensErrors, ListAllServiceTokensResponses, ListBucketsData, ListBucketsErrors, ListBucketsResponses, UpdateBucketData, UpdateBucketErrors, UpdateBucketResponses, UploadFileBlobData, UploadFileBlobErrors, UploadFileBlobResponses } from './types.gen';
+import type { BootstrapAdminTokenData, BootstrapAdminTokenErrors, BootstrapAdminTokenResponses, CreateBucketData, CreateBucketErrors, CreateBucketResponses, CreateServiceTokenData, CreateServiceTokenErrors, CreateServiceTokenResponses, DecrementFileRefData, DecrementFileRefErrors, DecrementFileRefResponses, DeleteBucketData, DeleteBucketErrors, DeleteBucketResponses, DeleteFileData, DeleteFileErrors, DeleteFileResponses, DeleteServiceTokenData, DeleteServiceTokenErrors, DeleteServiceTokenResponses, ExportDatabaseData, ExportDatabaseErrors, ExportDatabaseResponses, FinalizeFileUploadData, FinalizeFileUploadErrors, FinalizeFileUploadResponses, FirstRunCheckData, FirstRunCheckErrors, FirstRunCheckResponses, GetBucketData, GetBucketErrors, GetBucketResponses, GetFileByIdData, GetFileByIdErrors, GetFileByIdResponses, GetServiceTokenData, GetServiceTokenErrors, GetServiceTokenResponses, IncrementFileRefData, IncrementFileRefErrors, IncrementFileRefResponses, InitiateFileUploadData, InitiateFileUploadErrors, InitiateFileUploadResponses, ListAllServiceTokensData, ListAllServiceTokensErrors, ListAllServiceTokensResponses, ListBucketsData, ListBucketsErrors, ListBucketsResponses, RestoreDatabaseData, RestoreDatabaseErrors, RestoreDatabaseResponses, UpdateBucketData, UpdateBucketErrors, UpdateBucketResponses, UploadFileBlobData, UploadFileBlobErrors, UploadFileBlobResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -73,6 +73,32 @@ export const getBucket = <ThrowOnError extends boolean = false>(options: Options
 export const updateBucket = <ThrowOnError extends boolean = false>(options: Options<UpdateBucketData, ThrowOnError>) => {
     return (options.client ?? client).patch<UpdateBucketResponses, UpdateBucketErrors, ThrowOnError>({
         url: '/api/v1/bucket/{id}',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+};
+
+/**
+ * Export database
+ * Export all data from the database including service tokens, buckets, files, and file blobs (admin only).
+ */
+export const exportDatabase = <ThrowOnError extends boolean = false>(options: Options<ExportDatabaseData, ThrowOnError>) => {
+    return (options.client ?? client).get<ExportDatabaseResponses, ExportDatabaseErrors, ThrowOnError>({
+        url: '/api/v1/database/export',
+        ...options
+    });
+};
+
+/**
+ * Restore database
+ * Restore database from a previously exported backup. Optionally clear existing data before restore (admin only).
+ */
+export const restoreDatabase = <ThrowOnError extends boolean = false>(options: Options<RestoreDatabaseData, ThrowOnError>) => {
+    return (options.client ?? client).post<RestoreDatabaseResponses, RestoreDatabaseErrors, ThrowOnError>({
+        url: '/api/v1/database/restore',
         ...options,
         headers: {
             'Content-Type': 'application/json',
