@@ -13,6 +13,7 @@
 
 # Main application binary
 kineticafs
+KineticaFS
 
 # Code coverage profiles and other test artifacts
 *.out
