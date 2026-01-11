@@ -201,6 +201,16 @@ func (r *ApplicationRepository) InitializeRepo(ctx context.Context, repo *Applic
 }
 
 func (ar *ApplicationRepository) ClearAllData(ctx context.Context) error {
+	fileBlobs, err := ar.FileBlobs.GetAllFileBlobs(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get all file blobs: %w", err)
+	}
+	for _, blob := range fileBlobs {
+		if err := ar.FileBlobs.DeleteFileBlobByID(ctx, blob.ID); err != nil {
+			return fmt.Errorf("failed to delete file blob %s: %w", blob.ID, err)
+		}
+	}
+
 	buckets, err := ar.Buckets.ListBuckets(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to list buckets: %w", err)
@@ -216,19 +226,6 @@ func (ar *ApplicationRepository) ClearAllData(ctx context.Context) error {
 				return fmt.Errorf("failed to delete file %s: %w", file.ID, err)
 			}
 		}
-	}
-
-	fileBlobs, err := ar.FileBlobs.GetAllFileBlobs(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get all file blobs: %w", err)
-	}
-	for _, blob := range fileBlobs {
-		if err := ar.FileBlobs.DeleteFileBlobByID(ctx, blob.ID); err != nil {
-			return fmt.Errorf("failed to delete file blob %s: %w", blob.ID, err)
-		}
-	}
-
-	for _, bucket := range buckets {
 		if err := ar.Buckets.DeleteBucket(ctx, bucket.ID); err != nil {
 			return fmt.Errorf("failed to delete bucket %s: %w", bucket.ID, err)
 		}
