@@ -93,7 +93,7 @@ func main() {
 
 func bootstrapAdminToken(shouldPrint bool) (*models.ServiceToken, error) {
 	port := viper.GetInt("port")
-	url := "http://localhost:" + fmt.Sprint(port) + "/v1/st/bootstrap"
+	url := "http://localhost:" + fmt.Sprint(port) + "/api/v1/st/bootstrap"
 	resp, err := http.Post(url, "application/json", nil)
 	if err != nil {
 		log.Fatalf("Failed to make bootstrap request: %v", err)
