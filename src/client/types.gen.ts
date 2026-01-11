@@ -35,6 +35,13 @@ export type ModelsFile = {
     updated_at?: string;
 };
 
+export type ModelsFileBlob = {
+    created_at?: string;
+    file_id: string;
+    id?: string;
+    updated_at?: string;
+};
+
 export type ModelsServiceToken = {
     access_key: string;
     created_at?: string;
@@ -62,6 +69,19 @@ export type RouterBucketInsertDto = {
 
 export type RouterCreateServiceTokenRequestDto = {
     name: string;
+};
+
+export type RouterDatabaseExport = {
+    buckets?: Array<ModelsBucket>;
+    export_version?: string;
+    file_blobs?: Array<ModelsFileBlob>;
+    files?: Array<ModelsFile>;
+    service_tokens?: Array<ModelsServiceToken>;
+};
+
+export type RouterDatabaseRestoreRequest = {
+    clear_existing?: boolean;
+    data: RouterDatabaseExport;
 };
 
 export type RouterErrorResponse = {
@@ -296,6 +316,93 @@ export type UpdateBucketResponses = {
 };
 
 export type UpdateBucketResponse = UpdateBucketResponses[keyof UpdateBucketResponses];
+
+export type ExportDatabaseData = {
+    body?: never;
+    headers: {
+        /**
+         * API Token
+         */
+        'x-api-token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/database/export';
+};
+
+export type ExportDatabaseErrors = {
+    /**
+     * Unauthorized
+     */
+    401: RouterErrorResponse;
+    /**
+     * Forbidden - Admin only
+     */
+    403: RouterErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: RouterErrorResponse;
+};
+
+export type ExportDatabaseError = ExportDatabaseErrors[keyof ExportDatabaseErrors];
+
+export type ExportDatabaseResponses = {
+    /**
+     * OK
+     */
+    200: RouterDatabaseExport;
+};
+
+export type ExportDatabaseResponse = ExportDatabaseResponses[keyof ExportDatabaseResponses];
+
+export type RestoreDatabaseData = {
+    /**
+     * Restore Request
+     */
+    body: RouterDatabaseRestoreRequest;
+    headers: {
+        /**
+         * API Token
+         */
+        'x-api-token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/database/restore';
+};
+
+export type RestoreDatabaseErrors = {
+    /**
+     * Invalid request
+     */
+    400: RouterErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: RouterErrorResponse;
+    /**
+     * Forbidden - Admin only
+     */
+    403: RouterErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: RouterErrorResponse;
+};
+
+export type RestoreDatabaseError = RestoreDatabaseErrors[keyof RestoreDatabaseErrors];
+
+export type RestoreDatabaseResponses = {
+    /**
+     * Restore statistics
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type RestoreDatabaseResponse = RestoreDatabaseResponses[keyof RestoreDatabaseResponses];
 
 export type InitiateFileUploadData = {
     /**
