@@ -64,6 +64,19 @@ definitions:
     - bucket_id
     - name
     type: object
+  models.FileBlob:
+    properties:
+      created_at:
+        type: string
+      file_id:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - file_id
+    type: object
   models.ServiceToken:
     properties:
       access_key:
@@ -134,6 +147,36 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  router.DatabaseExport:
+    properties:
+      buckets:
+        items:
+          $ref: '#/definitions/models.Bucket'
+        type: array
+      export_version:
+        type: string
+      file_blobs:
+        items:
+          $ref: '#/definitions/models.FileBlob'
+        type: array
+      files:
+        items:
+          $ref: '#/definitions/models.File'
+        type: array
+      service_tokens:
+        items:
+          $ref: '#/definitions/models.ServiceToken'
+        type: array
+    type: object
+  router.DatabaseRestoreRequest:
+    properties:
+      clear_existing:
+        type: boolean
+      data:
+        $ref: '#/definitions/router.DatabaseExport'
+    required:
+    - data
     type: object
   router.ErrorResponse:
     properties:
@@ -352,6 +395,85 @@ paths:
       summary: Update bucket
       tags:
       - buckets
+  /api/v1/database/export:
+    get:
+      description: Export all data from the database including service tokens, buckets,
+        files, and file blobs (admin only).
+      operationId: ExportDatabase
+      parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/router.DatabaseExport'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "403":
+          description: Forbidden - Admin only
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Export database
+      tags:
+      - database
+  /api/v1/database/restore:
+    post:
+      consumes:
+      - application/json
+      description: Restore database from a previously exported backup. Optionally
+        clear existing data before restore (admin only).
+      operationId: RestoreDatabase
+      parameters:
+      - description: API Token
+        in: header
+        name: x-api-token
+        required: true
+        type: string
+      - description: Restore Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/router.DatabaseRestoreRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Restore statistics
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "403":
+          description: Forbidden - Admin only
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/router.ErrorResponse'
+      summary: Restore database
+      tags:
+      - database
   /api/v1/file/:
     post:
       consumes:

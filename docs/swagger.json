@@ -280,6 +280,121 @@
                 }
             }
         },
+        "/api/v1/database/export": {
+            "get": {
+                "description": "Export all data from the database including service tokens, buckets, files, and file blobs (admin only).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "database"
+                ],
+                "summary": "Export database",
+                "operationId": "ExportDatabase",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/router.DatabaseExport"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/database/restore": {
+            "post": {
+                "description": "Restore database from a previously exported backup. Optionally clear existing data before restore (admin only).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "database"
+                ],
+                "summary": "Restore database",
+                "operationId": "RestoreDatabase",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "API Token",
+                        "name": "x-api-token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Restore Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/router.DatabaseRestoreRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Restore statistics",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/router.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/file/": {
             "post": {
                 "description": "Initiate a new file upload. Receives regionId and bucketCode, returns a pre-signed upload URL and TTL (seconds). Admin access required.",
@@ -1080,6 +1195,26 @@
                 }
             }
         },
+        "models.FileBlob": {
+            "type": "object",
+            "required": [
+                "file_id"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "file_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ServiceToken": {
             "type": "object",
             "required": [
@@ -1179,6 +1314,52 @@
                 "name": {
                     "type": "string",
                     "example": "my-token"
+                }
+            }
+        },
+        "router.DatabaseExport": {
+            "type": "object",
+            "properties": {
+                "buckets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Bucket"
+                    }
+                },
+                "export_version": {
+                    "type": "string"
+                },
+                "file_blobs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.FileBlob"
+                    }
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.File"
+                    }
+                },
+                "service_tokens": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ServiceToken"
+                    }
+                }
+            }
+        },
+        "router.DatabaseRestoreRequest": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "clear_existing": {
+                    "type": "boolean"
+                },
+                "data": {
+                    "$ref": "#/definitions/router.DatabaseExport"
                 }
             }
         },
