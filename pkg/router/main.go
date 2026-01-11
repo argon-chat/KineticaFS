@@ -100,6 +100,14 @@ func NewRouter(repo *repositories.ApplicationRepository, port int) *router {
 	}
 }
 
+// Handler returns the HTTP handler for testing purposes
+func (r *router) Handler() http.Handler {
+	setupDashboard(r)
+	getRoutes(r)
+	r.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	return r.engine
+}
+
 func setupDashboard(router *router) {
 	dashboardPath := viper.GetString("front-end-path")
 	router.engine.GET("/", func(c *gin.Context) {
@@ -125,4 +133,5 @@ func addV1Routes(router *router, v1 *gin.RouterGroup) {
 	AddBucketsRoutes(router, v1)
 	AddFileRoutes(router, v1)
 	AddFileBlobRoutes(router, v1)
+	AddDatabaseRoutes(router, v1)
 }
