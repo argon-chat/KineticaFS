@@ -18,18 +18,9 @@ func NewPostgresFileRepository(session *sql.DB) *PostgresFileRepository {
 	return &PostgresFileRepository{session: session}
 }
 
-func (s *PostgresFileRepository) CreateIndices(ctx context.Context) {
-	indexQueries := []string{
-		"CREATE INDEX IF NOT EXISTS file_bucket_id_idx ON file (bucket_id)",
-		"CREATE INDEX IF NOT EXISTS file_name_idx ON file (name)",
-	}
-	for _, indexQuery := range indexQueries {
-		log.Printf("Executing index creation query: %s", indexQuery)
-		if _, err := s.session.ExecContext(ctx, indexQuery); err != nil {
-			log.Printf("Error creating index: %v", err)
-		}
-	}
+func (p *PostgresFileRepository) CreateIndices(ctx context.Context) {
 }
+
 func (p *PostgresFileRepository) GetFileByID(ctx context.Context, id string) (*models.File, error) {
 	query := "SELECT id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at FROM file WHERE id = $1"
 	row := p.session.QueryRowContext(ctx, query, id)
