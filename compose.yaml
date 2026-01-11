@@ -1,39 +1,40 @@
 services:
   # region storage
-  region1:
-    image: chrislusf/seaweedfs
-    command: "server -s3 -dir /data"
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
     ports:
-      - "8333:8333"
-      - "9321:9321"
+      - "9000:9000" # S3 API
+      - "9001:9001" # Console
     volumes:
-      - region1:/data
+      - minio-data:/data
     environment:
-      S3_ACCESS_KEY: argon
-      S3_SECRET_KEY: argon
+      MINIO_ROOT_USER: argon
+      MINIO_ROOT_PASSWORD: argon1234
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9321/" ]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 5s
-  region2:
-    image: chrislusf/seaweedfs
-    command: "server -s3 -dir /data"
-    ports:
-      - "8334:8333"
-      - "9322:9321"
-    volumes:
-      - region2:/data
-    environment:
-      S3_ACCESS_KEY: argon
-      S3_SECRET_KEY: argon
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9321/" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        set -e;
+        echo 'Configuring MinIO client...';
+        mc alias set myminio http://minio:9000 argon argon1234 --api S3v4;
+        echo 'Creating buckets...';
+        mc mb myminio/region1 --ignore-existing;
+        mc mb myminio/region2 --ignore-existing;
+        echo 'Listing buckets:';
+        mc ls myminio;
+        echo 'Buckets created successfully';
+      "
   # endregion storage
   # region databases
   scylla:
@@ -45,8 +46,8 @@ services:
       - "9042:9042"
       - "9160:9160"
     environment:
-      SCYLLA_CLUSTER_NAME: 'scylla_cluster'
-      SCYLLA_SEEDS: 'scylla'
+      SCYLLA_CLUSTER_NAME: "scylla_cluster"
+      SCYLLA_SEEDS: "scylla"
   pg:
     image: postgres:17.2-alpine
     environment:
@@ -57,6 +58,21 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+  pgweb:
+    image: sosedoff/pgweb:latest
+    command: >
+      --bind 0.0.0.0
+      --url "postgres://postgres:postgres@pg:5432/kineticafs?sslmode=disable"
+    ports:
+      - "8081:8081"
+    depends_on:
+      - pg
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
   # endregion databases
   # region application
   # kineticafs:
@@ -77,6 +93,5 @@ services:
   # endregion application
 volumes:
   pgdata: {}
-  region1: {}
-  region2: {}
   scylla: {}
+  minio-data: {}
