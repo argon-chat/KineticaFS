@@ -1,6 +1,6 @@
-import { expect, test, describe } from "bun:test";
-import { createClient, createConfig } from './src/client/client'
-import { firstRunCheck, ModelsBucket } from './src/client'
+import { describe, expect, test } from "bun:test";
+import { firstRunCheck, ModelsBucket } from './src/client';
+import { createClient, createConfig } from './src/client/client';
 let admin_api_token: string | undefined, user_api_token: string | undefined;
 const client = createClient(createConfig({ baseUrl: 'http://localhost:3000' }));
 
@@ -467,13 +467,13 @@ test('creates the actual buckets from compose file', async () => {
             "x-api-token": admin_api_token as string
         },
         body: {
-            name: 'region1-storage',
-            region: 'region1',
-            endpoint: 'http://localhost:8333',
+            name: 'region1',
+            region: 'ru-3',
+            endpoint: 'http://localhost:9000',
             access_key: 'argon',
-            secret_key: 'argon',
+            secret_key: 'argon1234',
             use_ssl: false,
-            s3_provider: 'seaweedfs',
+            s3_provider: 'minio',
             storage_type: 0
         }
     });
@@ -484,13 +484,13 @@ test('creates the actual buckets from compose file', async () => {
             "x-api-token": admin_api_token as string
         },
         body: {
-            name: 'region2-storage',
-            region: 'region2',
-            endpoint: 'http://localhost:8334',
+            name: 'region2',
+            region: 'ru-3',
+            endpoint: 'http://localhost:9000',
             access_key: 'argon',
-            secret_key: 'argon',
+            secret_key: 'argon1234',
             use_ssl: false,
-            s3_provider: 'seaweedfs',
+            s3_provider: 'minio',
             storage_type: 0
         }
     });
