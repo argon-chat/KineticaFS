@@ -22,10 +22,10 @@ func (p *PostgresFileRepository) CreateIndices(ctx context.Context) {
 }
 
 func (p *PostgresFileRepository) GetFileByID(ctx context.Context, id string) (*models.File, error) {
-	query := "SELECT id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at FROM file WHERE id = $1"
+	query := "SELECT id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at, user_sub, space_id, file_type FROM file WHERE id = $1"
 	row := p.session.QueryRowContext(ctx, query, id)
 	var file models.File
-	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt)
+	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt, &file.UserSub, &file.SpaceId, &file.FileType)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -45,10 +45,10 @@ func (p *PostgresFileRepository) GetFileByID(ctx context.Context, id string) (*m
 }
 
 func (p *PostgresFileRepository) GetFileByName(ctx context.Context, name string) (*models.File, error) {
-	query := "SELECT id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at FROM file WHERE name = $1"
+	query := "SELECT id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at, user_sub, space_id, file_type FROM file WHERE name = $1"
 	row := p.session.QueryRowContext(ctx, query, name)
 	var file models.File
-	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt)
+	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt, &file.UserSub, &file.SpaceId, &file.FileType)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -92,8 +92,8 @@ func (p *PostgresFileRepository) CreateFile(ctx context.Context, file *models.Fi
 
 func (p *PostgresFileRepository) UpdateFile(ctx context.Context, file *models.File) error {
 	file.UpdatedAt = time.Now().UTC()
-	query := `UPDATE file SET bucket_id = $1, finalized = $2, name = $3, file_size = $4, file_size_limit = $5, content_type = $6, checksum = $7, metadata = $8, path = $9, updated_at = $10 WHERE id = $11`
-	_, err := p.session.ExecContext(ctx, query, file.BucketID, file.Finalized, file.Name, file.FileSize, file.FileSizeLimit, file.ContentType, file.Checksum, file.Metadata, file.Path, file.UpdatedAt, file.ID)
+	query := `UPDATE file SET bucket_id = $1, finalized = $2, name = $3, file_size = $4, file_size_limit = $5, content_type = $6, checksum = $7, metadata = $8, path = $9, updated_at = $10, user_sub = $11, space_id = $12, file_type = $13 WHERE id = $14`
+	_, err := p.session.ExecContext(ctx, query, file.BucketID, file.Finalized, file.Name, file.FileSize, file.FileSizeLimit, file.ContentType, file.Checksum, file.Metadata, file.Path, file.UpdatedAt, file.UserSub, file.SpaceId, file.FileType, file.ID)
 	if err != nil {
 		log.Printf("Error updating file: %v", err)
 		return err
@@ -108,7 +108,7 @@ func (p *PostgresFileRepository) DeleteFile(ctx context.Context, id string) erro
 }
 
 func (p *PostgresFileRepository) ListFiles(ctx context.Context, bucketID string) ([]*models.File, error) {
-	query := "SELECT id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at FROM file WHERE bucket_id = $1"
+	query := "SELECT id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at, user_sub, space_id, file_type FROM file WHERE bucket_id = $1"
 	rows, err := p.session.QueryContext(ctx, query, bucketID)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (p *PostgresFileRepository) ListFiles(ctx context.Context, bucketID string)
 	var files []*models.File
 	for rows.Next() {
 		var file models.File
-		if err := rows.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt); err != nil {
+		if err := rows.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt, &file.UserSub, &file.SpaceId, &file.FileType); err != nil {
 			return nil, err
 		}
 		files = append(files, &file)

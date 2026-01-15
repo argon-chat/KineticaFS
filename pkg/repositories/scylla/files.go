@@ -32,7 +32,7 @@ func (s *ScyllaFileRepository) CreateIndices(ctx context.Context) {
 
 func (s *ScyllaFileRepository) scanFileRow(row *gocql.Query) (*models.File, error) {
 	var file models.File
-	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt)
+	err := row.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt, &file.UserSub, &file.SpaceId, &file.FileType)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (s *ScyllaFileRepository) populateFileReferences(ctx context.Context, file 
 }
 
 func (s *ScyllaFileRepository) fileSelectColumns() string {
-	return "id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at"
+	return "id, bucket_id, checksum, content_type, created_at, file_size, file_size_limit, finalized, metadata, name, path, updated_at, user_sub, space_id, file_type"
 }
 
 func (s *ScyllaFileRepository) queryFileWithReferences(ctx context.Context, query string, args ...interface{}) (*models.File, error) {
@@ -109,8 +109,8 @@ func (s *ScyllaFileRepository) CreateFile(ctx context.Context, file *models.File
 
 func (s *ScyllaFileRepository) UpdateFile(ctx context.Context, file *models.File) error {
 	file.UpdatedAt = time.Now().UTC()
-	query := `UPDATE file SET bucket_id = ?, finalized = ?, name = ?, file_size = ?, file_size_limit = ?, content_type = ?, checksum = ?, metadata = ?, path = ?, updated_at = ? WHERE id = ?`
-	if err := s.session.Query(query, file.BucketID, file.Finalized, file.Name, file.FileSize, file.FileSizeLimit, file.ContentType, file.Checksum, file.Metadata, file.Path, file.UpdatedAt, file.ID).WithContext(ctx).Exec(); err != nil {
+	query := `UPDATE file SET bucket_id = ?, finalized = ?, name = ?, file_size = ?, file_size_limit = ?, content_type = ?, checksum = ?, metadata = ?, path = ?, updated_at = ?, user_sub = ?, space_id = ?, file_type = ? WHERE id = ?`
+	if err := s.session.Query(query, file.BucketID, file.Finalized, file.Name, file.FileSize, file.FileSizeLimit, file.ContentType, file.Checksum, file.Metadata, file.Path, file.UpdatedAt, file.UserSub, file.SpaceId, file.FileType, file.ID).WithContext(ctx).Exec(); err != nil {
 		log.Printf("Error updating file: %v", err)
 		return err
 	}
@@ -130,7 +130,7 @@ func (s *ScyllaFileRepository) ListFiles(ctx context.Context, bucketID string) (
 	var files []*models.File
 	for {
 		file := &models.File{}
-		if !iter.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt) {
+		if !iter.Scan(&file.ID, &file.BucketID, &file.Checksum, &file.ContentType, &file.CreatedAt, &file.FileSize, &file.FileSizeLimit, &file.Finalized, &file.Metadata, &file.Name, &file.Path, &file.UpdatedAt, &file.UserSub, &file.SpaceId, &file.FileType) {
 			break
 		}
 		files = append(files, file)
