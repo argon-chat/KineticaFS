@@ -400,10 +400,28 @@ func createTestServiceToken(t *testing.T, app *testApp, adminToken, name string)
 }
 
 func createTestBucket(t *testing.T, app *testApp, adminToken, name, region string) models.Bucket {
+	ctx := context.Background()
+
+	// Create the actual S3 bucket in MinIO
+	err := minioClient.MakeBucket(ctx, name, minio.MakeBucketOptions{})
+	if err != nil {
+		// Check if bucket already exists
+		exists, errBucketExists := minioClient.BucketExists(ctx, name)
+		if errBucketExists != nil || !exists {
+			t.Fatalf("Failed to create MinIO bucket %s: %v", name, err)
+		}
+	}
+
+	endpoint := minioEndpoint
+	// Add http:// scheme if not present
+	if !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
+		endpoint = "http://" + endpoint
+	}
+	// Use unique names in database that match actual S3 buckets
 	body := map[string]interface{}{
 		"name":         name,
 		"region":       region,
-		"endpoint":     minioEndpoint,
+		"endpoint":     endpoint,
 		"access_key":   minioAccessKey,
 		"secret_key":   minioSecretKey,
 		"use_ssl":      false,
@@ -548,6 +566,13 @@ func setupRegionsConfig(t *testing.T, app *testApp, adminToken string) (string, 
 	// Return cleanup function
 	cleanup := func() {
 		os.Remove(regionsPath)
+		// Clean and delete buckets from MinIO
+		cleanTestS3Bucket(ctx, minioClient, bucket1.Name)
+		minioClient.RemoveBucket(ctx, bucket1.Name)
+		cleanTestS3Bucket(ctx, minioClient, bucket2.Name)
+		minioClient.RemoveBucket(ctx, bucket2.Name)
+		cleanTestS3Bucket(ctx, minioClient, bucket3.Name)
+		minioClient.RemoveBucket(ctx, bucket3.Name)
 		// Delete buckets from database
 		app.repo.Buckets.DeleteBucket(ctx, bucket1.ID)
 		app.repo.Buckets.DeleteBucket(ctx, bucket2.ID)

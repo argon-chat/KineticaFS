@@ -39,7 +39,7 @@ func AddFileRoutes(router *router, v1 *gin.RouterGroup) {
 // AddFileBlobRoutes sets up the client-side upload endpoint.
 func AddFileBlobRoutes(router *router, v1 *gin.RouterGroup) {
 	upload := v1.Group("/upload")
-	upload.PATCH("/:blob", AuthMiddleware(router.repo), router.UploadFileBlobHandler)
+	upload.PATCH("/:blob", CombinedAuthMiddleware(router.repo), router.UploadFileBlobHandler)
 }
 
 type InitiateFileUploadDTO struct {
@@ -296,6 +296,24 @@ func (r *router) UploadFileBlobHandler(c *gin.Context) {
 		"file_type":   fileContentType,
 		"uploaded_by": c.GetHeader("x-api-token"),
 	}
+
+	// Extract JWT claims if present
+	if jwtClaimsIface, exists := c.Get("jwtClaims"); exists {
+		if jwtClaims, ok := jwtClaimsIface.(*JWTClaims); ok {
+			// Store JWT user information in file record
+			file.UserSub = &jwtClaims.Sub
+			file.SpaceId = jwtClaims.SpaceId
+			file.FileType = &jwtClaims.Type
+
+			// Add JWT information to metadata
+			metadata["jwt_sub"] = jwtClaims.Sub
+			if jwtClaims.SpaceId != nil {
+				metadata["jwt_space_id"] = *jwtClaims.SpaceId
+			}
+			metadata["jwt_type"] = jwtClaims.Type
+		}
+	}
+
 	jsonMetadata, err := json.Marshal(metadata)
 	if err != nil {
 		c.JSON(500, ErrorResponse{Message: "Failed to marshal metadata: " + err.Error()})
